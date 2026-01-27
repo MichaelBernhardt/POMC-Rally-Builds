@@ -70,7 +70,9 @@ export default function NodeLibraryPanel() {
   return (
     <div style={{ padding: '24px', overflow: 'auto', height: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700 }}>Node Library</h2>
+        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700 }}>
+          Node Library {rally && <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>for {rally.name}</span>}
+        </h2>
         {!isLocked && (
           <button className="primary" onClick={openDialog}>
             + New Node
