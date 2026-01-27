@@ -50,14 +50,6 @@ export function getColumnDefs(): ColDef<RouteRow>[] {
       headerTooltip: 'Blackbook page reference',
     },
     {
-      headerName: 'BB P2',
-      field: 'bbPage2',
-      width: 70,
-      editable: true,
-      valueParser: optionalNumberParser,
-      headerTooltip: 'Secondary blackbook page reference',
-    },
-    {
       headerName: 'Terrain',
       field: 'terrain',
       width: 85,
@@ -117,14 +109,6 @@ export function getColumnDefs(): ColDef<RouteRow>[] {
       cellStyle: { textAlign: 'center', fontWeight: 700, fontSize: '16px' },
     },
     {
-      headerName: 'Instr #',
-      field: 'instructionNumber',
-      width: 75,
-      editable: false,
-      headerTooltip: 'Instruction number (assigned on export)',
-      cellStyle: { color: '#888', textAlign: 'center' },
-    },
-    {
       headerName: 'A Sp',
       field: 'aSpeed',
       width: 70,
@@ -170,7 +154,7 @@ export function getColumnDefs(): ColDef<RouteRow>[] {
       cellStyle: { textAlign: 'right' },
     },
     {
-      headerName: 'Clue',
+      headerName: 'Instruction',
       field: 'clue',
       minWidth: 250,
       flex: 1,
