@@ -32,6 +32,9 @@ export default function NewRallyDialog({ open, onClose }: NewRallyDialogProps) {
             autoFocus
           />
         </div>
+        <div style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '12px' }}>
+          A default edition ({new Date().getFullYear()}) with one day will be created.
+        </div>
         <div className="dialog-actions">
           <button onClick={onClose}>Cancel</button>
           <button className="primary" onClick={handleCreate} disabled={!name.trim()}>

@@ -12,10 +12,25 @@ import NewRallyDialog from '../Dialogs/NewProjectDialog';
 import ImportCsvDialog from '../Dialogs/ImportCsvDialog';
 import ExportDialog from '../Dialogs/ExportDialog';
 import SpeedTableDialog from '../Dialogs/SpeedTableDialog';
-import { detectFileVersion, migrateV1ToWorkspace } from '../../engine/migration';
-import { RallyProjectV1 } from '../../types/domain';
+import NodeLibraryPanel from '../NodeLibrary/NodeLibraryPanel';
+import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
+import RouteBuilder from '../RouteBuilder/RouteBuilder';
+import { detectFileVersion, migrateV1ToWorkspace, migrateV2ToV3 } from '../../engine/migration';
+import { RallyProjectV1, RallyWorkspace, RallyWorkspaceV3 } from '../../types/domain';
 
 const LAST_FILE_KEY = 'pomc:lastFilePath';
+
+function migrateToV3(data: unknown): RallyWorkspaceV3 {
+  const version = detectFileVersion(data);
+  if (version === 1) {
+    const v2 = migrateV1ToWorkspace(data as RallyProjectV1);
+    return migrateV2ToV3(v2);
+  }
+  if (version === 2) {
+    return migrateV2ToV3(data as RallyWorkspace);
+  }
+  return data as RallyWorkspaceV3;
+}
 
 export default function AppShell() {
   const [showNewRally, setShowNewRally] = useState(false);
@@ -34,6 +49,9 @@ export default function AppShell() {
   const getCurrentRally = useProjectStore(s => s.getCurrentRally);
   const undo = useProjectStore(s => s.undo);
   const redo = useProjectStore(s => s.redo);
+  const viewMode = useProjectStore(s => s.viewMode);
+  const editingTemplateId = useProjectStore(s => s.editingTemplateId);
+  const setViewMode = useProjectStore(s => s.setViewMode);
 
   // Auto-load last workspace on startup
   useEffect(() => {
@@ -44,16 +62,13 @@ export default function AppShell() {
       .then(content => {
         const data = JSON.parse(content);
         const version = detectFileVersion(data);
-        if (version === 1) {
-          const ws = migrateV1ToWorkspace(data as RallyProjectV1);
-          loadWorkspace(ws, lastPath);
+        const ws = migrateToV3(data);
+        loadWorkspace(ws, lastPath);
+        if (version < 3) {
           useProjectStore.setState({ isDirty: true });
-        } else {
-          loadWorkspace(data, lastPath);
         }
       })
       .catch(() => {
-        // File no longer exists or unreadable — clear stale path
         localStorage.removeItem(LAST_FILE_KEY);
       });
   }, []);
@@ -95,7 +110,16 @@ export default function AppShell() {
       } else if (e.key === 'Insert' && !ctrl) {
         e.preventDefault();
         const s = useProjectStore.getState();
-        if (!s.isCurrentRallyLocked()) s.addRow();
+        if (!s.isCurrentRallyLocked() && s.viewMode === 'grid') s.addRow();
+      } else if (e.key === 'Escape') {
+        const s = useProjectStore.getState();
+        if (s.editingTemplateId) {
+          s.setEditingTemplate(null);
+        } else if (s.viewMode === 'grid') {
+          s.setViewMode('routeBuilder');
+        } else if (s.viewMode === 'routeBuilder') {
+          // stay at routeBuilder level
+        }
       }
     };
 
@@ -136,13 +160,10 @@ export default function AppShell() {
     const data = JSON.parse(content);
 
     const version = detectFileVersion(data);
-    if (version === 1) {
-      const ws = migrateV1ToWorkspace(data as RallyProjectV1);
-      loadWorkspace(ws, path);
-      // Mark dirty so saving converts to v2 format
+    const ws = migrateToV3(data);
+    loadWorkspace(ws, path);
+    if (version < 3) {
       useProjectStore.setState({ isDirty: true });
-    } else {
-      loadWorkspace(data, path);
     }
     localStorage.setItem(LAST_FILE_KEY, path);
   }, [loadWorkspace]);
@@ -153,6 +174,48 @@ export default function AppShell() {
 
   const currentRally = getCurrentRally();
   const isLocked = currentRally?.locked === true;
+
+  const renderMainContent = () => {
+    if (!currentRally) {
+      return (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          color: 'var(--color-text-muted)',
+          fontSize: '18px',
+          flexDirection: 'column',
+          gap: '16px',
+        }}>
+          <div style={{ fontSize: '24px', fontWeight: 700 }}>POMC Rally Planner</div>
+          <div>Create a new rally or open an existing workspace to get started.</div>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+            <button className="primary" onClick={() => setShowNewRally(true)}>
+              New Rally
+            </button>
+            <button onClick={handleOpen}>
+              Open Workspace
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (viewMode === 'library') {
+      if (editingTemplateId) {
+        return <NodeTemplateEditor />;
+      }
+      return <NodeLibraryPanel />;
+    }
+
+    if (viewMode === 'routeBuilder') {
+      return <RouteBuilder />;
+    }
+
+    // Default: grid view
+    return <RouteGrid onGridReady={handleGridReady} />;
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -176,11 +239,45 @@ export default function AppShell() {
 
         <div style={{ flex: 1 }} />
 
-        <span style={{ fontWeight: 700, fontSize: '18px', color: 'var(--color-text)' }}>
-          POMC Rally Planner
-        </span>
+        {/* Breadcrumb */}
+        {currentRally && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+            <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{currentRally.name}</span>
+            {viewMode === 'routeBuilder' && <span> / Route Builder</span>}
+            {viewMode === 'library' && <span> / Node Library</span>}
+            {viewMode === 'grid' && editingTemplateId && <span> / Template Editor</span>}
+            {viewMode === 'grid' && !editingTemplateId && (
+              <>
+                {(() => {
+                  const edition = useProjectStore.getState().getCurrentEdition();
+                  const day = useProjectStore.getState().getCurrentDay();
+                  const node = useProjectStore.getState().getCurrentNode();
+                  return (
+                    <>
+                      {edition && <span> / {edition.name}</span>}
+                      {day && <span> / {day.name}</span>}
+                      {node && <span> / {node.name}</span>}
+                    </>
+                  );
+                })()}
+              </>
+            )}
+          </div>
+        )}
 
         <div style={{ flex: 1 }} />
+
+        {/* Back button */}
+        {viewMode !== 'grid' && (
+          <button onClick={() => setViewMode('grid')}>
+            Back to Grid
+          </button>
+        )}
+        {viewMode === 'grid' && editingTemplateId && (
+          <button onClick={() => useProjectStore.getState().setEditingTemplate(null)}>
+            Back to Library
+          </button>
+        )}
 
         <button onClick={() => setShowSpeedTable(true)} disabled={!currentRally || isLocked}>
           Speed Tables
@@ -203,40 +300,18 @@ export default function AppShell() {
           <DayPanel />
         </div>
 
-        {/* Grid area */}
+        {/* Main area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <Toolbar
-            gridApi={gridApi}
-            onImport={() => setShowImport(true)}
-            onExport={() => setShowExport(true)}
-          />
+          {viewMode === 'grid' && (
+            <Toolbar
+              gridApi={gridApi}
+              onImport={() => setShowImport(true)}
+              onExport={() => setShowExport(true)}
+            />
+          )}
 
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            {currentRally ? (
-              <RouteGrid onGridReady={handleGridReady} />
-            ) : (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                color: 'var(--color-text-muted)',
-                fontSize: '18px',
-                flexDirection: 'column',
-                gap: '16px',
-              }}>
-                <div style={{ fontSize: '24px', fontWeight: 700 }}>POMC Rally Planner</div>
-                <div>Create a new rally or open an existing workspace to get started.</div>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                  <button className="primary" onClick={() => setShowNewRally(true)}>
-                    New Rally
-                  </button>
-                  <button onClick={handleOpen}>
-                    Open Workspace
-                  </button>
-                </div>
-              </div>
-            )}
+            {renderMainContent()}
           </div>
 
           <StatusBar />

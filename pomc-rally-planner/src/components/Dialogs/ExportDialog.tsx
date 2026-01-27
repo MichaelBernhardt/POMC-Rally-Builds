@@ -18,12 +18,12 @@ export default function ExportDialog({ open: isOpen, onClose }: ExportDialogProp
   const [error, setError] = useState('');
   const [exportCount, setExportCount] = useState(0);
 
-  const getCurrentRows = useProjectStore(s => s.getCurrentRows);
+  const getDayRows = useProjectStore(s => s.getDayRows);
 
   if (!isOpen) return null;
 
   const generateCsv = (): string => {
-    const rows = getCurrentRows();
+    const rows = getDayRows();
     const exportable = rows.filter(r => r.type !== null);
     setExportCount(exportable.length);
 

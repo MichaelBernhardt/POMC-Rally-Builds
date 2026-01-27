@@ -1,4 +1,4 @@
-import { RouteRow } from '../types/domain';
+import { RouteRow, RouteNode, NodeTemplate } from '../types/domain';
 
 export interface ValidationError {
   rowIndex: number;
@@ -107,6 +107,47 @@ export function validateRows(rows: RouteRow[]): ValidationError[] {
         field: 'clue',
         message: 'Exported row has empty instruction text',
         severity: 'warning',
+      });
+    }
+  }
+
+  return errors;
+}
+
+export interface NodeConnectionError {
+  nodeIndex: number;
+  message: string;
+}
+
+/**
+ * Validate connections between placed nodes based on their templates'
+ * allowedPreviousNodes rules.
+ *
+ * If a node's template has a non-empty allowedPreviousNodes list, the
+ * preceding node's sourceNodeId must appear in that list.
+ */
+export function validateNodeConnections(
+  nodes: RouteNode[],
+  nodeLibrary: NodeTemplate[],
+): NodeConnectionError[] {
+  const errors: NodeConnectionError[] = [];
+
+  for (let i = 1; i < nodes.length; i++) {
+    const currentNode = nodes[i];
+    const prevNode = nodes[i - 1];
+
+    // Find the template for the current node
+    const template = nodeLibrary.find(t => t.id === currentNode.sourceNodeId);
+    if (!template) continue;
+    if (template.allowedPreviousNodes.length === 0) continue;
+
+    // Check if the previous node's source is in the allowed list
+    if (!template.allowedPreviousNodes.includes(prevNode.sourceNodeId)) {
+      const prevTemplate = nodeLibrary.find(t => t.id === prevNode.sourceNodeId);
+      const prevName = prevTemplate?.name ?? prevNode.name;
+      errors.push({
+        nodeIndex: i,
+        message: `"${prevName}" is not allowed before "${template.name}"`,
       });
     }
   }

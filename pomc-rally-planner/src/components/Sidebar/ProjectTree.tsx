@@ -1,35 +1,51 @@
 import { useState, useEffect, useRef } from 'react';
 import { ask } from '@tauri-apps/plugin-dialog';
 import { useProjectStore } from '../../state/projectStore';
+import { flattenDayRows } from '../../state/storeHelpers';
 
 interface ContextMenu {
   x: number;
   y: number;
-  type: 'rally' | 'day';
+  type: 'rally' | 'edition' | 'day' | 'node';
   rallyId: string;
+  editionId?: string;
   dayId?: string;
+  nodeId?: string;
 }
 
 export default function ProjectTree() {
   const workspace = useProjectStore(s => s.workspace);
   const currentRallyId = useProjectStore(s => s.currentRallyId);
+  const currentEditionId = useProjectStore(s => s.currentEditionId);
   const currentDayId = useProjectStore(s => s.currentDayId);
+  const currentNodeId = useProjectStore(s => s.currentNodeId);
+  const viewMode = useProjectStore(s => s.viewMode);
+  const selectRally = useProjectStore(s => s.selectRally);
+  const selectEdition = useProjectStore(s => s.selectEdition);
+  const selectDay = useProjectStore(s => s.selectDay);
+  const selectNode = useProjectStore(s => s.selectNode);
   const selectRallyDay = useProjectStore(s => s.selectRallyDay);
   const removeRally = useProjectStore(s => s.removeRally);
   const toggleRallyLock = useProjectStore(s => s.toggleRallyLock);
   const addDay = useProjectStore(s => s.addDay);
   const removeDay = useProjectStore(s => s.removeDay);
-  const selectRally = useProjectStore(s => s.selectRally);
+  const addEdition = useProjectStore(s => s.addEdition);
+  const removeEdition = useProjectStore(s => s.removeEdition);
   const updateRallyName = useProjectStore(s => s.updateRallyName);
+  const updateEditionName = useProjectStore(s => s.updateEditionName);
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);
+  const setViewMode = useProjectStore(s => s.setViewMode);
+  const removeRouteNode = useProjectStore(s => s.removeRouteNode);
+  const extractToLibrary = useProjectStore(s => s.extractToLibrary);
+  const addEmptyNode = useProjectStore(s => s.addEmptyNode);
 
   const [menu, setMenu] = useState<ContextMenu | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [editingRallyId, setEditingRallyId] = useState<string | null>(null);
+  const [editingEditionId, setEditingEditionId] = useState<string | null>(null);
   const [editingDayId, setEditingDayId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const editInputRef = useRef<HTMLInputElement>(null);
-  const dayEditInputRef = useRef<HTMLInputElement>(null);
 
   // Close context menu on outside click or Escape
   useEffect(() => {
@@ -50,43 +66,27 @@ export default function ProjectTree() {
     };
   }, [menu]);
 
-  // Focus the inline edit input when editing starts
+  // Focus inline edit input
   useEffect(() => {
-    if (editingRallyId && editInputRef.current) {
+    if ((editingRallyId || editingEditionId || editingDayId) && editInputRef.current) {
       editInputRef.current.focus();
       editInputRef.current.select();
     }
-  }, [editingRallyId]);
-
-  useEffect(() => {
-    if (editingDayId && dayEditInputRef.current) {
-      dayEditInputRef.current.focus();
-      dayEditInputRef.current.select();
-    }
-  }, [editingDayId]);
+  }, [editingRallyId, editingEditionId, editingDayId]);
 
   const commitRename = () => {
     if (editingRallyId && editName.trim()) {
       updateRallyName(editingRallyId, editName.trim());
     }
-    setEditingRallyId(null);
-  };
-
-  const commitDayRename = () => {
+    if (editingEditionId && editName.trim()) {
+      updateEditionName(editingEditionId, editName.trim());
+    }
     if (editingDayId && editName.trim()) {
       updateDaySettings(editingDayId, { name: editName.trim() });
     }
+    setEditingRallyId(null);
+    setEditingEditionId(null);
     setEditingDayId(null);
-  };
-
-  const handleRallyContext = (e: React.MouseEvent, rallyId: string) => {
-    e.preventDefault();
-    setMenu({ x: e.clientX, y: e.clientY, type: 'rally', rallyId });
-  };
-
-  const handleDayContext = (e: React.MouseEvent, rallyId: string, dayId: string) => {
-    e.preventDefault();
-    setMenu({ x: e.clientX, y: e.clientY, type: 'day', rallyId, dayId });
   };
 
   const menuItemStyle: React.CSSProperties = {
@@ -95,6 +95,40 @@ export default function ProjectTree() {
     fontSize: '13px',
     whiteSpace: 'nowrap',
   };
+
+  const hoverHandlers = {
+    onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = 'var(--color-bg-secondary)'),
+    onMouseLeave: (e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = 'transparent'),
+  };
+
+  const inlineEditInput = (
+    <input
+      ref={editInputRef}
+      type="text"
+      value={editName}
+      onChange={e => setEditName(e.target.value)}
+      onBlur={commitRename}
+      onKeyDown={e => {
+        if (e.key === 'Enter') commitRename();
+        if (e.key === 'Escape') {
+          setEditingRallyId(null);
+          setEditingEditionId(null);
+          setEditingDayId(null);
+        }
+      }}
+      onClick={e => e.stopPropagation()}
+      style={{
+        flex: 1,
+        fontSize: '13px',
+        fontWeight: 600,
+        padding: '2px 4px',
+        minHeight: '22px',
+        border: '1px solid var(--color-primary)',
+        borderRadius: '4px',
+        outline: 'none',
+      }}
+    />
+  );
 
   if (!workspace || workspace.rallies.length === 0) {
     return (
@@ -138,7 +172,10 @@ export default function ProjectTree() {
             {/* Rally header */}
             <div
               onClick={() => { if (!editingRallyId) selectRally(rally.id); }}
-              onContextMenu={e => handleRallyContext(e, rally.id)}
+              onContextMenu={e => {
+                e.preventDefault();
+                setMenu({ x: e.clientX, y: e.clientY, type: 'rally', rallyId: rally.id });
+              }}
               style={{
                 padding: '8px 8px',
                 cursor: 'pointer',
@@ -152,30 +189,7 @@ export default function ProjectTree() {
                 alignItems: 'center',
               }}
             >
-              {editingRallyId === rally.id ? (
-                <input
-                  ref={editInputRef}
-                  type="text"
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  onBlur={commitRename}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') commitRename();
-                    if (e.key === 'Escape') setEditingRallyId(null);
-                  }}
-                  onClick={e => e.stopPropagation()}
-                  style={{
-                    flex: 1,
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    padding: '2px 4px',
-                    minHeight: '24px',
-                    border: '1px solid var(--color-primary)',
-                    borderRadius: '4px',
-                    outline: 'none',
-                  }}
-                />
-              ) : (
+              {editingRallyId === rally.id ? inlineEditInput : (
                 <span style={{
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -195,84 +209,205 @@ export default function ProjectTree() {
               )}
               {editingRallyId !== rally.id && (
                 <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', flexShrink: 0 }}>
-                  {rally.days.length} {rally.days.length === 1 ? 'day' : 'days'}
+                  {rally.editions.length} ed.
                 </span>
               )}
             </div>
 
-            {/* Days under this rally */}
+            {/* Expanded tree for selected rally */}
             {isSelectedRally && (
               <div style={{ paddingLeft: '12px' }}>
-                {rally.days.map(day => (
-                  <div
-                    key={day.id}
-                    onClick={() => { if (!editingDayId) selectRallyDay(rally.id, day.id); }}
-                    onContextMenu={e => handleDayContext(e, rally.id, day.id)}
-                    style={{
-                      padding: '6px 8px',
-                      cursor: 'pointer',
-                      borderRadius: '4px',
-                      marginTop: '2px',
-                      background: day.id === currentDayId ? 'var(--color-bg-secondary)' : 'transparent',
-                      fontWeight: day.id === currentDayId ? 600 : 400,
-                      fontSize: '13px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
-                    {editingDayId === day.id ? (
-                      <input
-                        ref={dayEditInputRef}
-                        type="text"
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        onBlur={commitDayRename}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') commitDayRename();
-                          if (e.key === 'Escape') setEditingDayId(null);
-                        }}
-                        onClick={e => e.stopPropagation()}
-                        style={{
-                          flex: 1,
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          padding: '2px 4px',
-                          minHeight: '22px',
-                          border: '1px solid var(--color-primary)',
-                          borderRadius: '4px',
-                          outline: 'none',
-                        }}
-                      />
-                    ) : (
-                      <>
-                        <span>{day.name}</span>
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                          {day.rows.length} rows
-                        </span>
-                      </>
-                    )}
-                  </div>
-                ))}
+                {/* Node Library link */}
+                <div
+                  onClick={() => setViewMode('library')}
+                  style={{
+                    padding: '5px 8px',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    marginTop: '2px',
+                    fontSize: '13px',
+                    fontWeight: viewMode === 'library' ? 600 : 400,
+                    background: viewMode === 'library' ? 'var(--color-bg-secondary)' : 'transparent',
+                    color: 'var(--color-text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span style={{ fontSize: '11px' }}>&#x1F4E6;</span> Node Library
+                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginLeft: 'auto' }}>
+                    {rally.nodeLibrary.length}
+                  </span>
+                </div>
 
-                {/* Add day button (hidden when locked) */}
-                {!rally.locked && (
-                  <div
-                    onClick={() => addDay(`Day ${rally.days.length + 1}`)}
-                    style={{
-                      padding: '4px 8px',
-                      marginTop: '2px',
-                      fontSize: '12px',
-                      color: 'var(--color-text-muted)',
-                      cursor: 'pointer',
-                      borderRadius: '4px',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
-                    onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
-                  >
-                    + Add Day
-                  </div>
-                )}
+                {/* Editions */}
+                {rally.editions.map(edition => {
+                  const isSelectedEdition = edition.id === currentEditionId;
+
+                  return (
+                    <div key={edition.id} style={{ marginTop: '4px' }}>
+                      {/* Edition header */}
+                      <div
+                        onClick={() => { if (!editingEditionId) selectEdition(edition.id); }}
+                        onContextMenu={e => {
+                          e.preventDefault();
+                          setMenu({ x: e.clientX, y: e.clientY, type: 'edition', rallyId: rally.id, editionId: edition.id });
+                        }}
+                        style={{
+                          padding: '5px 8px',
+                          cursor: 'pointer',
+                          borderRadius: '4px',
+                          fontWeight: isSelectedEdition ? 600 : 500,
+                          fontSize: '13px',
+                          color: 'var(--color-text)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          background: isSelectedEdition ? 'var(--color-bg-secondary)' : 'transparent',
+                        }}
+                      >
+                        {editingEditionId === edition.id ? inlineEditInput : (
+                          <>
+                            <span>{edition.name}</span>
+                            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                              {edition.days.length} {edition.days.length === 1 ? 'day' : 'days'}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Days under this edition */}
+                      {isSelectedEdition && (
+                        <div style={{ paddingLeft: '12px' }}>
+                          {edition.days.map(day => {
+                            const isSelectedDay = day.id === currentDayId;
+                            const totalRows = flattenDayRows(day).length;
+
+                            return (
+                              <div key={day.id} style={{ marginTop: '2px' }}>
+                                {/* Day header */}
+                                <div
+                                  onClick={() => {
+                                    if (!editingDayId) {
+                                      selectDay(day.id);
+                                      setViewMode('routeBuilder');
+                                    }
+                                  }}
+                                  onContextMenu={e => {
+                                    e.preventDefault();
+                                    setMenu({ x: e.clientX, y: e.clientY, type: 'day', rallyId: rally.id, editionId: edition.id, dayId: day.id });
+                                  }}
+                                  style={{
+                                    padding: '4px 8px',
+                                    cursor: 'pointer',
+                                    borderRadius: '4px',
+                                    background: isSelectedDay ? 'var(--color-bg-secondary)' : 'transparent',
+                                    fontWeight: isSelectedDay ? 600 : 400,
+                                    fontSize: '13px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  {editingDayId === day.id ? inlineEditInput : (
+                                    <>
+                                      <span>{day.name}</span>
+                                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                                        {day.nodes.length}n / {totalRows}r
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+
+                                {/* Nodes under this day */}
+                                {isSelectedDay && (
+                                  <div style={{ paddingLeft: '12px' }}>
+                                    {day.nodes.map(node => {
+                                      const isSelectedNode = node.id === currentNodeId && viewMode === 'grid';
+
+                                      return (
+                                        <div
+                                          key={node.id}
+                                          onClick={() => selectNode(node.id)}
+                                          onContextMenu={e => {
+                                            e.preventDefault();
+                                            setMenu({
+                                              x: e.clientX, y: e.clientY,
+                                              type: 'node', rallyId: rally.id,
+                                              editionId: edition.id, dayId: day.id,
+                                              nodeId: node.id,
+                                            });
+                                          }}
+                                          style={{
+                                            padding: '3px 8px',
+                                            cursor: 'pointer',
+                                            borderRadius: '4px',
+                                            marginTop: '1px',
+                                            fontSize: '12px',
+                                            fontWeight: isSelectedNode ? 600 : 400,
+                                            background: isSelectedNode ? 'var(--color-primary-light)' : 'transparent',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                          }}
+                                        >
+                                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {node.name}
+                                          </span>
+                                          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', flexShrink: 0 }}>
+                                            {node.rows.length}r
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+
+                                    {/* Add node button */}
+                                    {!rally.locked && (
+                                      <div
+                                        onClick={() => addEmptyNode(`Segment ${day.nodes.length + 1}`)}
+                                        style={{
+                                          padding: '3px 8px',
+                                          marginTop: '1px',
+                                          fontSize: '11px',
+                                          color: 'var(--color-text-muted)',
+                                          cursor: 'pointer',
+                                          borderRadius: '4px',
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
+                                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+                                      >
+                                        + Add Node
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Add day button */}
+                          {!rally.locked && (
+                            <div
+                              onClick={() => addDay(`Day ${edition.days.length + 1}`)}
+                              style={{
+                                padding: '4px 8px',
+                                marginTop: '2px',
+                                fontSize: '12px',
+                                color: 'var(--color-text-muted)',
+                                cursor: 'pointer',
+                                borderRadius: '4px',
+                              }}
+                              onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
+                              onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+                            >
+                              + Add Day
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -293,96 +428,150 @@ export default function ProjectTree() {
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             zIndex: 1000,
             padding: '4px 0',
-            minWidth: '140px',
+            minWidth: '160px',
           }}
         >
+          {/* Rally context menu */}
           {menu.type === 'rally' && (() => {
             const menuRally = workspace.rallies.find(r => r.id === menu.rallyId);
             const isLocked = menuRally?.locked === true;
             return (
               <>
-                <div
-                  style={menuItemStyle}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  onClick={() => {
-                    const rallyId = menu.rallyId;
-                    setMenu(null);
-                    toggleRallyLock(rallyId);
-                  }}
-                >
+                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
+                  setMenu(null);
+                  addEdition(new Date().getFullYear().toString());
+                }}>
+                  Add Edition
+                </div>
+                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
+                  const rallyId = menu.rallyId;
+                  setMenu(null);
+                  toggleRallyLock(rallyId);
+                }}>
                   {isLocked ? 'Unlock Rally' : 'Lock Rally'}
                 </div>
-                <div
-                  style={menuItemStyle}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  onClick={() => {
-                    const rallyId = menu.rallyId;
-                    setMenu(null);
-                    setEditName(menuRally?.name ?? '');
-                    setEditingRallyId(rallyId);
-                  }}
-                >
+                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
+                  const rallyId = menu.rallyId;
+                  setMenu(null);
+                  setEditName(menuRally?.name ?? '');
+                  setEditingRallyId(rallyId);
+                }}>
                   Rename Rally
                 </div>
-                <div
-                  style={{ ...menuItemStyle, color: 'var(--color-danger)' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  onClick={async () => {
-                    const rallyId = menu.rallyId;
-                    setMenu(null);
-                    const confirmed = await ask('Remove this rally and all its days?', {
-                      title: 'Remove Rally',
-                      kind: 'warning',
-                    });
-                    if (confirmed) removeRally(rallyId);
-                  }}
-                >
+                <div style={{ ...menuItemStyle, color: 'var(--color-danger)' }} {...hoverHandlers} onClick={async () => {
+                  const rallyId = menu.rallyId;
+                  setMenu(null);
+                  const confirmed = await ask('Remove this rally and all its editions?', {
+                    title: 'Remove Rally',
+                    kind: 'warning',
+                  });
+                  if (confirmed) removeRally(rallyId);
+                }}>
                   Remove Rally
                 </div>
               </>
             );
           })()}
-          {menu.type === 'day' && menu.dayId && (() => {
-            const dayRally = workspace.rallies.find(r => r.id === menu.rallyId);
-            const dayObj = dayRally?.days.find(d => d.id === menu.dayId);
+
+          {/* Edition context menu */}
+          {menu.type === 'edition' && menu.editionId && (() => {
+            const menuRally = workspace.rallies.find(r => r.id === menu.rallyId);
+            const edition = menuRally?.editions.find(e => e.id === menu.editionId);
             return (
               <>
-                <div
-                  style={menuItemStyle}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  onClick={() => {
-                    const dayId = menu.dayId!;
+                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
+                  const edId = menu.editionId!;
+                  setMenu(null);
+                  setEditName(edition?.name ?? '');
+                  setEditingEditionId(edId);
+                }}>
+                  Rename Edition
+                </div>
+                {menuRally && menuRally.editions.length > 1 && !menuRally.locked && (
+                  <div style={{ ...menuItemStyle, color: 'var(--color-danger)' }} {...hoverHandlers} onClick={async () => {
+                    const edId = menu.editionId!;
                     setMenu(null);
-                    setEditName(dayObj?.name ?? '');
-                    setEditingDayId(dayId);
-                  }}
-                >
+                    const confirmed = await ask('Remove this edition and all its days?', {
+                      title: 'Remove Edition',
+                      kind: 'warning',
+                    });
+                    if (confirmed) removeEdition(edId);
+                  }}>
+                    Remove Edition
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
+          {/* Day context menu */}
+          {menu.type === 'day' && menu.dayId && (() => {
+            const menuRally = workspace.rallies.find(r => r.id === menu.rallyId);
+            const edition = menuRally?.editions.find(e => e.id === menu.editionId);
+            const dayObj = edition?.days.find(d => d.id === menu.dayId);
+            return (
+              <>
+                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
+                  const dayId = menu.dayId!;
+                  setMenu(null);
+                  setEditName(dayObj?.name ?? '');
+                  setEditingDayId(dayId);
+                }}>
                   Rename Day
                 </div>
-                {!dayRally?.locked && (
-                  <div
-                    style={{ ...menuItemStyle, color: 'var(--color-danger)' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    onClick={async () => {
-                      const dayId = menu.dayId!;
-                      setMenu(null);
-                      if (dayRally && dayRally.days.length <= 1) {
-                        await ask('Cannot remove the last day in a rally.', { title: 'Remove Day', kind: 'info' });
-                        return;
-                      }
-                      const confirmed = await ask('Remove this day and all its rows?', {
-                        title: 'Remove Day',
-                        kind: 'warning',
-                      });
-                      if (confirmed) removeDay(dayId);
-                    }}
-                  >
+                {!menuRally?.locked && (
+                  <div style={{ ...menuItemStyle, color: 'var(--color-danger)' }} {...hoverHandlers} onClick={async () => {
+                    const dayId = menu.dayId!;
+                    setMenu(null);
+                    if (edition && edition.days.length <= 1) {
+                      await ask('Cannot remove the last day in an edition.', { title: 'Remove Day', kind: 'info' });
+                      return;
+                    }
+                    const confirmed = await ask('Remove this day and all its nodes?', {
+                      title: 'Remove Day',
+                      kind: 'warning',
+                    });
+                    if (confirmed) removeDay(dayId);
+                  }}>
                     Remove Day
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
+          {/* Node context menu */}
+          {menu.type === 'node' && menu.nodeId && (() => {
+            const menuRally = workspace.rallies.find(r => r.id === menu.rallyId);
+            const edition = menuRally?.editions.find(e => e.id === menu.editionId);
+            const day = edition?.days.find(d => d.id === menu.dayId);
+            const node = day?.nodes.find(n => n.id === menu.nodeId);
+            return (
+              <>
+                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
+                  const nodeId = menu.nodeId!;
+                  setMenu(null);
+                  if (node) {
+                    extractToLibrary(nodeId, node.name);
+                  }
+                }}>
+                  Extract to Library
+                </div>
+                {!menuRally?.locked && (
+                  <div style={{ ...menuItemStyle, color: 'var(--color-danger)' }} {...hoverHandlers} onClick={async () => {
+                    const nodeId = menu.nodeId!;
+                    setMenu(null);
+                    if (day && day.nodes.length <= 1) {
+                      await ask('Cannot remove the last node in a day.', { title: 'Remove Node', kind: 'info' });
+                      return;
+                    }
+                    const confirmed = await ask('Remove this node and all its rows?', {
+                      title: 'Remove Node',
+                      kind: 'warning',
+                    });
+                    if (confirmed) removeRouteNode(nodeId);
+                  }}>
+                    Remove Node
                   </div>
                 )}
               </>

@@ -101,16 +101,16 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
     foregroundColor: '#1A1A1A',
     backgroundColor: '#FFFFFF',
     headerBackgroundColor: '#E8E8E8',
-    headerForegroundColor: '#1A1A1A',
+    // headerForegroundColor not supported by ThemeDefaultParams
     oddRowBackgroundColor: '#FAFAFA',
     rowHoverColor: '#F0F4FF',
     selectedRowBackgroundColor: '#DBEAFE',
     borderColor: '#D0D0D0',
-    rowBorderColor: '#E0E0E0',
+    // rowBorderColor not supported by ThemeDefaultParams
     cellHorizontalPadding: 10,
     rowHeight: 36,
     headerHeight: 42,
-    gridSize: 6,
+    // gridSize not supported by ThemeDefaultParams
   }), []);
 
   return (

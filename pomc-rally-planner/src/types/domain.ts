@@ -158,6 +158,146 @@ export function createEmptyWorkspace(): RallyWorkspace {
 }
 
 
+// ---------------------------------------------------------------------------
+// V3 types: Node-based directed model
+// ---------------------------------------------------------------------------
+
+/** A reusable segment template stored in a rally's node library */
+export interface NodeTemplate {
+  id: string;
+  name: string;
+  description: string;
+  rows: RouteRow[];
+  /** IDs of templates that are allowed to precede this node. Empty = any predecessor allowed. */
+  allowedPreviousNodes: string[];
+}
+
+/** A placed instance of a node within a day's route (independent deep copy) */
+export interface RouteNode {
+  id: string;
+  /** ID of the NodeTemplate this was copied from (empty string if created ad-hoc) */
+  sourceNodeId: string;
+  name: string;
+  rows: RouteRow[];
+}
+
+/** A single day within an edition — contains ordered nodes instead of direct rows */
+export interface RouteDay {
+  id: string;
+  name: string;
+  startTime: string; // HH:MM:SS
+  carIntervalSeconds: number;
+  numberOfCars: number;
+  nodes: RouteNode[];
+}
+
+/** Create an empty RouteDay (V3) */
+export function createEmptyRouteDay(name: string): RouteDay {
+  return {
+    id: crypto.randomUUID(),
+    name,
+    startTime: '08:00:00',
+    carIntervalSeconds: 60,
+    numberOfCars: 30,
+    nodes: [],
+  };
+}
+
+/** An edition of a rally (e.g. "2024", "2025") */
+export interface RallyEdition {
+  id: string;
+  name: string;
+  days: RouteDay[];
+}
+
+/** Create an empty edition */
+export function createEmptyEdition(name: string): RallyEdition {
+  return {
+    id: crypto.randomUUID(),
+    name,
+    days: [],
+  };
+}
+
+/** A single rally within a V3 workspace */
+export interface RallyV3 {
+  id: string;
+  name: string;
+  locked?: boolean;
+  createdAt: string;
+  modifiedAt: string;
+  nodeLibrary: NodeTemplate[];
+  editions: RallyEdition[];
+  speedLookupTable: SpeedLookupEntry[];
+}
+
+/** Workspace file (v3 format — node-based directed model) */
+export interface RallyWorkspaceV3 {
+  version: 3;
+  createdAt: string;
+  modifiedAt: string;
+  rallies: RallyV3[];
+}
+
+/** Union type for any workspace version */
+export type AnyRallyWorkspace = RallyWorkspace | RallyWorkspaceV3;
+
+/** Create an empty node template */
+export function createEmptyNodeTemplate(name?: string): NodeTemplate {
+  return {
+    id: crypto.randomUUID(),
+    name: name ?? 'New Node',
+    description: '',
+    rows: [],
+    allowedPreviousNodes: [],
+  };
+}
+
+/** Create a RouteNode from a NodeTemplate (deep-clones rows with new UUIDs) */
+export function createRouteNode(template: NodeTemplate): RouteNode {
+  return {
+    id: crypto.randomUUID(),
+    sourceNodeId: template.id,
+    name: template.name,
+    rows: template.rows.map(r => ({ ...r, id: crypto.randomUUID() })),
+  };
+}
+
+/** Create an empty RouteNode (not from a template) */
+export function createEmptyRouteNode(name?: string): RouteNode {
+  return {
+    id: crypto.randomUUID(),
+    sourceNodeId: '',
+    name: name ?? 'Untitled Node',
+    rows: [],
+  };
+}
+
+/** Create a new empty V3 rally */
+export function createEmptyRallyV3(name: string): RallyV3 {
+  return {
+    id: crypto.randomUUID(),
+    name,
+    createdAt: new Date().toISOString(),
+    modifiedAt: new Date().toISOString(),
+    nodeLibrary: [],
+    editions: [],
+    speedLookupTable: [],
+  };
+}
+
+/** Create a new empty V3 workspace */
+export function createEmptyWorkspaceV3(): RallyWorkspaceV3 {
+  return {
+    version: 3,
+    createdAt: new Date().toISOString(),
+    modifiedAt: new Date().toISOString(),
+    rallies: [],
+  };
+}
+
+// ---------------------------------------------------------------------------
+
 /** CSV export row - matches the 15-column scoring program schema */
 export interface CsvExportRow {
   No: string | number;

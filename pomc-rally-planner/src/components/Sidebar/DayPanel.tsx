@@ -1,21 +1,28 @@
 import { useProjectStore } from '../../state/projectStore';
+import { flattenDayRows } from '../../state/storeHelpers';
 
 export default function DayPanel() {
   const getCurrentRally = useProjectStore(s => s.getCurrentRally);
+  const getCurrentDay = useProjectStore(s => s.getCurrentDay);
   const currentDayId = useProjectStore(s => s.currentDayId);
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
 
   const rally = getCurrentRally();
-  if (!rally || !currentDayId) return null;
-  const day = rally.days.find(d => d.id === currentDayId);
-  if (!day) return null;
+  const day = getCurrentDay();
+  if (!rally || !currentDayId || !day) return null;
   const locked = rally.locked === true;
+  const totalRows = flattenDayRows(day).length;
 
   return (
     <div style={{ padding: '8px', borderTop: '1px solid var(--color-border)', marginTop: '8px' }}>
       <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '12px', color: 'var(--color-text-secondary)' }}>
         Day Settings
+      </div>
+
+      {/* Node summary */}
+      <div style={{ marginBottom: '10px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+        {day.nodes.length} {day.nodes.length === 1 ? 'node' : 'nodes'} / {totalRows} total rows
       </div>
 
       <div style={{ marginBottom: '10px' }}>
