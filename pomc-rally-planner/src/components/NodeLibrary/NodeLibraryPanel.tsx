@@ -6,6 +6,7 @@ export default function NodeLibraryPanel() {
   const rally = useProjectStore(s => s.getCurrentRally());
   const addNodeTemplate = useProjectStore(s => s.addNodeTemplate);
   const removeNodeTemplate = useProjectStore(s => s.removeNodeTemplate);
+  const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
   const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
 
@@ -100,6 +101,9 @@ export default function NodeLibraryPanel() {
             // Check if any other template references this one
             const referencedBy = templates.filter(t => t.id !== template.id && t.allowedPreviousNodes.includes(template.id));
             const isReferenced = referencedBy.length > 0;
+            const followsName = template.allowedPreviousNodes.length > 0
+              ? templates.find(t => t.id === template.allowedPreviousNodes[0])?.name ?? '?'
+              : null;
 
             return (
               <div
@@ -109,61 +113,106 @@ export default function NodeLibraryPanel() {
                   border: `1px solid ${complete ? 'var(--color-border)' : 'var(--color-warning)'}`,
                   borderRadius: '8px',
                   background: 'var(--color-bg)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  cursor: 'pointer',
                 }}
-                onClick={() => setEditingTemplate(template.id)}
               >
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {template.name}
+                {/* Top row: name + badges + actions */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
+                    {isLocked ? (
+                      <span style={{ fontWeight: 600, fontSize: '15px' }}>{template.name}</span>
+                    ) : (
+                      <input
+                        type="text"
+                        value={template.name}
+                        onChange={e => updateNodeTemplate(template.id, { name: e.target.value })}
+                        style={{
+                          fontWeight: 600,
+                          fontSize: '15px',
+                          border: '1px solid transparent',
+                          borderRadius: '4px',
+                          padding: '2px 6px',
+                          background: 'transparent',
+                          flex: 1,
+                          minWidth: 0,
+                        }}
+                        onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
+                        onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent'; }}
+                      />
+                    )}
                     {!complete && (
-                      <span style={{ fontSize: '11px', color: 'var(--color-warning)', fontWeight: 600 }}>
+                      <span style={{ fontSize: '11px', color: 'var(--color-warning)', fontWeight: 600, whiteSpace: 'nowrap' }}>
                         INCOMPLETE
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                    {template.description || 'No description'}
-                    {' \u2022 '}
-                    {template.rows.length} rows
-                    {template.isStartNode && (
-                      <> {' \u2022 '} <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Start</span></>
-                    )}
-                    {template.allowedPreviousNodes.length > 0 && (() => {
-                      const prevName = templates.find(t => t.id === template.allowedPreviousNodes[0])?.name ?? '?';
-                      return <> {' \u2022 '} Follows: {prevName}</>;
-                    })()}
-                  </div>
-                  {!complete && (
-                    <div style={{ fontSize: '11px', color: 'var(--color-warning)', marginTop: '4px' }}>
-                      {warnings.map(w => w.message).join(' \u2022 ')}
-                    </div>
-                  )}
-                </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <button
-                    onClick={e => { e.stopPropagation(); setEditingTemplate(template.id); }}
-                    disabled={isLocked}
-                  >
-                    Edit
-                  </button>
-                  {!isLocked && (
-                    <button
-                      onClick={e => { e.stopPropagation(); if (!isReferenced) removeNodeTemplate(template.id); }}
-                      disabled={isReferenced}
-                      title={isReferenced ? `Referenced by: ${referencedBy.map(t => t.name).join(', ')}` : 'Delete this node'}
-                      style={{
-                        color: isReferenced ? 'var(--color-text-muted)' : 'var(--color-danger)',
-                        cursor: isReferenced ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      Delete
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '8px' }}>
+                    <button onClick={() => setEditingTemplate(template.id)} disabled={isLocked}>
+                      Edit Rows
                     </button>
+                    {!isLocked && (
+                      <button
+                        onClick={() => { if (!isReferenced) removeNodeTemplate(template.id); }}
+                        disabled={isReferenced}
+                        title={isReferenced ? `Referenced by: ${referencedBy.map(t => t.name).join(', ')}` : 'Delete this node'}
+                        style={{
+                          color: isReferenced ? 'var(--color-text-muted)' : 'var(--color-danger)',
+                          cursor: isReferenced ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div style={{ marginBottom: '6px' }}>
+                  {isLocked ? (
+                    <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                      {template.description || 'No description'}
+                    </span>
+                  ) : (
+                    <input
+                      type="text"
+                      value={template.description}
+                      onChange={e => updateNodeTemplate(template.id, { description: e.target.value })}
+                      placeholder="Add a description..."
+                      style={{
+                        fontSize: '13px',
+                        color: 'var(--color-text-muted)',
+                        border: '1px solid transparent',
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        background: 'transparent',
+                        width: '100%',
+                        boxSizing: 'border-box',
+                      }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent'; }}
+                    />
                   )}
                 </div>
+
+                {/* Info row: rows count + connection info */}
+                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
+                  <span>{template.rows.length} rows</span>
+                  {template.isStartNode && (
+                    <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Start node</span>
+                  )}
+                  {followsName && (
+                    <span>Follows: <strong>{followsName}</strong></span>
+                  )}
+                  {isReferenced && (
+                    <span>Followed by: <strong>{referencedBy.map(t => t.name).join(', ')}</strong></span>
+                  )}
+                </div>
+
+                {/* Validation warnings */}
+                {!complete && (
+                  <div style={{ fontSize: '11px', color: 'var(--color-warning)', marginTop: '4px' }}>
+                    {warnings.map(w => w.message).join(' \u2022 ')}
+                  </div>
+                )}
               </div>
             );
           })}
