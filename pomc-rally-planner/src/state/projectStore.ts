@@ -90,11 +90,12 @@ interface ProjectState {
   selectNode: (nodeId: string) => void;
   extractToLibrary: (nodeId: string, name: string) => void;
   addEmptyNode: (name?: string) => void;
+  renameRouteNode: (nodeId: string, name: string) => void;
 
   // Node library
-  addNodeTemplate: (name?: string) => void;
+  addNodeTemplate: (opts?: { name?: string; isStartNode?: boolean; allowedPreviousNodes?: string[] }) => void;
   removeNodeTemplate: (templateId: string) => void;
-  updateNodeTemplate: (templateId: string, updates: Partial<Pick<NodeTemplate, 'name' | 'description'>>) => void;
+  updateNodeTemplate: (templateId: string, updates: Partial<Pick<NodeTemplate, 'name' | 'description' | 'isStartNode'>>) => void;
   setNodeTemplateRows: (templateId: string, rows: RouteRow[]) => void;
   setAllowedPreviousNodes: (templateId: string, allowedIds: string[]) => void;
   setEditingTemplate: (templateId: string | null) => void;
@@ -557,6 +558,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       description: '',
       rows: node.rows.map(r => ({ ...r, id: crypto.randomUUID() })),
       allowedPreviousNodes: [],
+      isStartNode: false,
     };
     set({
       workspace: updateRallyV3(workspace, currentRallyId, r => ({
@@ -587,12 +589,30 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     });
   },
 
+  renameRouteNode: (nodeId: string, name: string) => {
+    const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return;
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r =>
+        updateEdition(r, currentEditionId, ed =>
+          updateRouteDay(ed, currentDayId, day => ({
+            ...day,
+            nodes: day.nodes.map(n => n.id === nodeId ? { ...n, name } : n),
+          })),
+        ),
+      ),
+      isDirty: true,
+    });
+  },
+
   // --- Node library ---
 
-  addNodeTemplate: (name?: string) => {
+  addNodeTemplate: (opts) => {
     const { workspace, currentRallyId } = get();
     if (!workspace || !currentRallyId) return;
-    const template = createEmptyNodeTemplate(name);
+    const template = createEmptyNodeTemplate(opts?.name);
+    if (opts?.isStartNode) template.isStartNode = true;
+    if (opts?.allowedPreviousNodes) template.allowedPreviousNodes = opts.allowedPreviousNodes;
     set({
       workspace: updateRallyV3(workspace, currentRallyId, r => ({
         ...r,

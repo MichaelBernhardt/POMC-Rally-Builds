@@ -8,7 +8,7 @@ export default function RouteBuilder() {
   const selectNode = useProjectStore(s => s.selectNode);
   const removeRouteNode = useProjectStore(s => s.removeRouteNode);
   const moveRouteNode = useProjectStore(s => s.moveRouteNode);
-  const placeNode = useProjectStore(s => s.placeNode);
+  const renameRouteNode = useProjectStore(s => s.renameRouteNode);
   const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
 
   const rally = getCurrentRally();
@@ -47,7 +47,7 @@ export default function RouteBuilder() {
             borderRadius: '8px',
             fontSize: '15px',
           }}>
-            No nodes yet. Place a template from the palette or add an empty node.
+            No nodes yet. Place a template from the palette on the right.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -78,21 +78,13 @@ export default function RouteBuilder() {
                           {connectionError.message}
                         </span>
                       )}
-                      {/* Insert node button */}
-                      {!isLocked && rally.nodeLibrary.length > 0 && (
-                        <button
-                          style={{ fontSize: '11px', padding: '2px 6px', opacity: 0.6 }}
-                          title="Insert node here"
-                          onClick={() => {
-                            // Place first template at this position as a quick insert
-                            if (rally.nodeLibrary.length > 0) {
-                              placeNode(rally.nodeLibrary[0].id, index - 1);
-                            }
-                          }}
-                        >
-                          +
-                        </button>
-                      )}
+                    </div>
+                  )}
+
+                  {/* Start node warning (index 0 only) */}
+                  {index === 0 && connectionError && (
+                    <div style={{ fontSize: '11px', color: 'var(--color-warning)', fontWeight: 600, marginBottom: '4px', textAlign: 'center' }}>
+                      {connectionError.message}
                     </div>
                   )}
 
@@ -100,7 +92,7 @@ export default function RouteBuilder() {
                   <div
                     style={{
                       padding: '12px 16px',
-                      border: '1px solid var(--color-border)',
+                      border: `1px solid ${connectionError ? 'var(--color-warning)' : 'var(--color-border)'}`,
                       borderRadius: '8px',
                       background: 'var(--color-bg)',
                       display: 'flex',
@@ -112,7 +104,26 @@ export default function RouteBuilder() {
                   >
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '2px' }}>
-                        {node.name}
+                        {isLocked ? node.name : (
+                          <input
+                            type="text"
+                            value={node.name}
+                            onChange={e => renameRouteNode(node.id, e.target.value)}
+                            onClick={e => e.stopPropagation()}
+                            onDoubleClick={e => e.stopPropagation()}
+                            style={{
+                              fontWeight: 600,
+                              fontSize: '15px',
+                              border: '1px solid transparent',
+                              borderRadius: '4px',
+                              padding: '1px 4px',
+                              background: 'transparent',
+                              width: '100%',
+                            }}
+                            onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
+                            onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent'; }}
+                          />
+                        )}
                       </div>
                       <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
                         {node.rows.length} rows
@@ -153,7 +164,7 @@ export default function RouteBuilder() {
                       >
                         Edit
                       </button>
-                      {!isLocked && nodes.length > 1 && (
+                      {!isLocked && (
                         <button
                           onClick={e => { e.stopPropagation(); removeRouteNode(node.id); }}
                           style={{ padding: '2px 8px', fontSize: '12px', color: 'var(--color-danger)' }}

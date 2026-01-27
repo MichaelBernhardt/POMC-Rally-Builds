@@ -12,6 +12,7 @@ import {
 import { getColumnDefs } from '../Grid/GridColumns';
 import { RouteRow } from '../../types/domain';
 import { useProjectStore } from '../../state/projectStore';
+import { validateTemplate } from '../../engine/validator';
 import '../../styles/grid-theme.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -112,6 +113,9 @@ export default function NodeTemplateEditor() {
   if (!template || !editingTemplateId) return null;
 
   const otherTemplates = rally?.nodeLibrary.filter(t => t.id !== editingTemplateId) ?? [];
+  const warnings = validateTemplate(template);
+  const hasNameWarning = warnings.some(w => w.field === 'name');
+  const hasConnectionWarning = warnings.some(w => w.field === 'connection');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -126,13 +130,27 @@ export default function NodeTemplateEditor() {
       }}>
         <button onClick={() => setEditingTemplate(null)}>Back</button>
 
-        <input
-          type="text"
-          value={template.name}
-          onChange={e => updateNodeTemplate(editingTemplateId, { name: e.target.value })}
-          disabled={isLocked}
-          style={{ fontWeight: 600, fontSize: '16px', padding: '4px 8px', minWidth: '200px' }}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <input
+            type="text"
+            value={template.name}
+            onChange={e => updateNodeTemplate(editingTemplateId, { name: e.target.value })}
+            disabled={isLocked}
+            placeholder="Node name (required)"
+            style={{
+              fontWeight: 600,
+              fontSize: '16px',
+              padding: '4px 8px',
+              minWidth: '200px',
+              borderColor: hasNameWarning ? 'var(--color-warning)' : undefined,
+            }}
+          />
+          {hasNameWarning && (
+            <span style={{ fontSize: '11px', color: 'var(--color-warning)', paddingLeft: '8px' }}>
+              Name is required
+            </span>
+          )}
+        </div>
 
         <input
           type="text"
@@ -146,44 +164,65 @@ export default function NodeTemplateEditor() {
         <button onClick={() => addRow()} disabled={isLocked}>+ Row</button>
       </div>
 
-      {/* Allowed Previous Nodes */}
-      {otherTemplates.length > 0 && (
-        <div style={{
-          padding: '8px 16px',
-          borderBottom: '1px solid var(--color-border)',
-          background: 'var(--color-bg-secondary)',
-          fontSize: '13px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          flexWrap: 'wrap',
-        }}>
-          <span style={{ color: 'var(--color-text-muted)', fontWeight: 600 }}>Allowed before this:</span>
-          {template.allowedPreviousNodes.length === 0 && (
-            <span style={{ color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Any node (no restrictions)</span>
-          )}
-          {otherTemplates.map(other => {
-            const isAllowed = template.allowedPreviousNodes.includes(other.id);
-            return (
-              <label key={other.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={isAllowed}
-                  disabled={isLocked}
-                  onChange={() => {
-                    const current = template.allowedPreviousNodes;
-                    const updated = isAllowed
-                      ? current.filter(id => id !== other.id)
-                      : [...current, other.id];
-                    setAllowedPreviousNodes(editingTemplateId, updated);
-                  }}
-                />
-                {other.name}
-              </label>
-            );
-          })}
-        </div>
-      )}
+      {/* Connection rule — start node or follows one previous node (mutually exclusive) */}
+      <div style={{
+        padding: '10px 16px',
+        borderBottom: '1px solid var(--color-border)',
+        background: hasConnectionWarning ? 'var(--color-warning-bg, #FFF8E1)' : 'var(--color-bg-secondary)',
+        fontSize: '13px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        flexWrap: 'wrap',
+      }}>
+        <span style={{ fontWeight: 600, color: hasConnectionWarning ? 'var(--color-warning)' : 'var(--color-text-secondary)' }}>
+          Connection rule:
+        </span>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+          <input
+            type="radio"
+            name={`connRule-${editingTemplateId}`}
+            checked={template.isStartNode}
+            disabled={isLocked}
+            onChange={() => {
+              updateNodeTemplate(editingTemplateId, { isStartNode: true });
+              setAllowedPreviousNodes(editingTemplateId, []);
+            }}
+          />
+          <strong>Start node</strong>
+        </label>
+
+        {otherTemplates.length > 0 && (
+          <>
+            <span style={{ color: 'var(--color-text-muted)' }}>or follows:</span>
+            {otherTemplates.map(other => {
+              const isSelected = !template.isStartNode && template.allowedPreviousNodes[0] === other.id;
+              return (
+                <label key={other.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name={`connRule-${editingTemplateId}`}
+                    checked={isSelected}
+                    disabled={isLocked}
+                    onChange={() => {
+                      updateNodeTemplate(editingTemplateId, { isStartNode: false });
+                      setAllowedPreviousNodes(editingTemplateId, [other.id]);
+                    }}
+                  />
+                  {other.name}
+                </label>
+              );
+            })}
+          </>
+        )}
+
+        {otherTemplates.length === 0 && !template.isStartNode && (
+          <span style={{ fontSize: '12px', color: 'var(--color-warning)' }}>
+            This is the only node — mark it as a start node.
+          </span>
+        )}
+      </div>
 
       {/* Grid */}
       <div style={{ flex: 1, width: '100%' }}>

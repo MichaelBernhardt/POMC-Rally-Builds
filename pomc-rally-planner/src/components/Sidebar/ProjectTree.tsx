@@ -6,11 +6,10 @@ import { flattenDayRows } from '../../state/storeHelpers';
 interface ContextMenu {
   x: number;
   y: number;
-  type: 'rally' | 'edition' | 'day' | 'node';
+  type: 'rally' | 'edition' | 'day';
   rallyId: string;
   editionId?: string;
   dayId?: string;
-  nodeId?: string;
 }
 
 export default function ProjectTree() {
@@ -18,13 +17,10 @@ export default function ProjectTree() {
   const currentRallyId = useProjectStore(s => s.currentRallyId);
   const currentEditionId = useProjectStore(s => s.currentEditionId);
   const currentDayId = useProjectStore(s => s.currentDayId);
-  const currentNodeId = useProjectStore(s => s.currentNodeId);
   const viewMode = useProjectStore(s => s.viewMode);
   const selectRally = useProjectStore(s => s.selectRally);
   const selectEdition = useProjectStore(s => s.selectEdition);
   const selectDay = useProjectStore(s => s.selectDay);
-  const selectNode = useProjectStore(s => s.selectNode);
-  const selectRallyDay = useProjectStore(s => s.selectRallyDay);
   const removeRally = useProjectStore(s => s.removeRally);
   const toggleRallyLock = useProjectStore(s => s.toggleRallyLock);
   const addDay = useProjectStore(s => s.addDay);
@@ -35,9 +31,6 @@ export default function ProjectTree() {
   const updateEditionName = useProjectStore(s => s.updateEditionName);
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);
   const setViewMode = useProjectStore(s => s.setViewMode);
-  const removeRouteNode = useProjectStore(s => s.removeRouteNode);
-  const extractToLibrary = useProjectStore(s => s.extractToLibrary);
-  const addEmptyNode = useProjectStore(s => s.addEmptyNode);
 
   const [menu, setMenu] = useState<ContextMenu | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -319,68 +312,7 @@ export default function ProjectTree() {
                                   )}
                                 </div>
 
-                                {/* Nodes under this day */}
-                                {isSelectedDay && (
-                                  <div style={{ paddingLeft: '12px' }}>
-                                    {day.nodes.map(node => {
-                                      const isSelectedNode = node.id === currentNodeId && viewMode === 'grid';
-
-                                      return (
-                                        <div
-                                          key={node.id}
-                                          onClick={() => selectNode(node.id)}
-                                          onContextMenu={e => {
-                                            e.preventDefault();
-                                            setMenu({
-                                              x: e.clientX, y: e.clientY,
-                                              type: 'node', rallyId: rally.id,
-                                              editionId: edition.id, dayId: day.id,
-                                              nodeId: node.id,
-                                            });
-                                          }}
-                                          style={{
-                                            padding: '3px 8px',
-                                            cursor: 'pointer',
-                                            borderRadius: '4px',
-                                            marginTop: '1px',
-                                            fontSize: '12px',
-                                            fontWeight: isSelectedNode ? 600 : 400,
-                                            background: isSelectedNode ? 'var(--color-primary-light)' : 'transparent',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center',
-                                          }}
-                                        >
-                                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {node.name}
-                                          </span>
-                                          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', flexShrink: 0 }}>
-                                            {node.rows.length}r
-                                          </span>
-                                        </div>
-                                      );
-                                    })}
-
-                                    {/* Add node button */}
-                                    {!rally.locked && (
-                                      <div
-                                        onClick={() => addEmptyNode(`Segment ${day.nodes.length + 1}`)}
-                                        style={{
-                                          padding: '3px 8px',
-                                          marginTop: '1px',
-                                          fontSize: '11px',
-                                          color: 'var(--color-text-muted)',
-                                          cursor: 'pointer',
-                                          borderRadius: '4px',
-                                        }}
-                                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
-                                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
-                                      >
-                                        + Add Node
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
+                                {/* Nodes are managed in the Route Builder, not the sidebar */}
                               </div>
                             );
                           })}
@@ -540,43 +472,7 @@ export default function ProjectTree() {
             );
           })()}
 
-          {/* Node context menu */}
-          {menu.type === 'node' && menu.nodeId && (() => {
-            const menuRally = workspace.rallies.find(r => r.id === menu.rallyId);
-            const edition = menuRally?.editions.find(e => e.id === menu.editionId);
-            const day = edition?.days.find(d => d.id === menu.dayId);
-            const node = day?.nodes.find(n => n.id === menu.nodeId);
-            return (
-              <>
-                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
-                  const nodeId = menu.nodeId!;
-                  setMenu(null);
-                  if (node) {
-                    extractToLibrary(nodeId, node.name);
-                  }
-                }}>
-                  Extract to Library
-                </div>
-                {!menuRally?.locked && (
-                  <div style={{ ...menuItemStyle, color: 'var(--color-danger)' }} {...hoverHandlers} onClick={async () => {
-                    const nodeId = menu.nodeId!;
-                    setMenu(null);
-                    if (day && day.nodes.length <= 1) {
-                      await ask('Cannot remove the last node in a day.', { title: 'Remove Node', kind: 'info' });
-                      return;
-                    }
-                    const confirmed = await ask('Remove this node and all its rows?', {
-                      title: 'Remove Node',
-                      kind: 'warning',
-                    });
-                    if (confirmed) removeRouteNode(nodeId);
-                  }}>
-                    Remove Node
-                  </div>
-                )}
-              </>
-            );
-          })()}
+          {/* Node context menus are in the Route Builder, not the sidebar */}
         </div>
       )}
     </div>

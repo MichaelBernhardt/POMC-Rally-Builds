@@ -1,5 +1,38 @@
 import { RouteRow, RouteNode, NodeTemplate } from '../types/domain';
 
+export interface TemplateWarning {
+  field: string;
+  message: string;
+}
+
+/**
+ * Check if a template is complete and ready to be placed in routes.
+ * A template must have:
+ * 1. A non-default name
+ * 2. Either isStartNode=true OR exactly one allowedPreviousNode (mutually exclusive)
+ */
+export function validateTemplate(template: NodeTemplate): TemplateWarning[] {
+  const warnings: TemplateWarning[] = [];
+
+  if (!template.name.trim() || template.name.trim() === 'New Node') {
+    warnings.push({ field: 'name', message: 'Node must be named' });
+  }
+
+  if (!template.isStartNode && template.allowedPreviousNodes.length === 0) {
+    warnings.push({
+      field: 'connection',
+      message: 'Must be a start node or follow another node',
+    });
+  }
+
+  return warnings;
+}
+
+/** Returns true if the template has no validation warnings */
+export function isTemplateComplete(template: NodeTemplate): boolean {
+  return validateTemplate(template).length === 0;
+}
+
 export interface ValidationError {
   rowIndex: number;
   field: string;
@@ -131,6 +164,19 @@ export function validateNodeConnections(
   nodeLibrary: NodeTemplate[],
 ): NodeConnectionError[] {
   const errors: NodeConnectionError[] = [];
+  const hasAnyStartTemplates = nodeLibrary.some(t => t.isStartNode);
+
+  // Check first node is a valid start node
+  if (nodes.length > 0 && hasAnyStartTemplates) {
+    const firstNode = nodes[0];
+    const firstTemplate = nodeLibrary.find(t => t.id === firstNode.sourceNodeId);
+    if (firstTemplate && !firstTemplate.isStartNode) {
+      errors.push({
+        nodeIndex: 0,
+        message: `"${firstTemplate.name}" is not a start node`,
+      });
+    }
+  }
 
   for (let i = 1; i < nodes.length; i++) {
     const currentNode = nodes[i];
@@ -143,11 +189,11 @@ export function validateNodeConnections(
 
     // Check if the previous node's source is in the allowed list
     if (!template.allowedPreviousNodes.includes(prevNode.sourceNodeId)) {
-      const prevTemplate = nodeLibrary.find(t => t.id === prevNode.sourceNodeId);
-      const prevName = prevTemplate?.name ?? prevNode.name;
+      const expectedTemplate = nodeLibrary.find(t => t.id === template.allowedPreviousNodes[0]);
+      const expectedName = expectedTemplate?.name ?? '?';
       errors.push({
         nodeIndex: i,
-        message: `"${prevName}" is not allowed before "${template.name}"`,
+        message: `"${template.name}" must follow "${expectedName}"`,
       });
     }
   }

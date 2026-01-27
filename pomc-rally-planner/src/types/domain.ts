@@ -170,6 +170,8 @@ export interface NodeTemplate {
   rows: RouteRow[];
   /** IDs of templates that are allowed to precede this node. Empty = any predecessor allowed. */
   allowedPreviousNodes: string[];
+  /** Whether this template can be used as the first node in a day */
+  isStartNode: boolean;
 }
 
 /** A placed instance of a node within a day's route (independent deep copy) */
@@ -250,6 +252,7 @@ export function createEmptyNodeTemplate(name?: string): NodeTemplate {
     description: '',
     rows: [],
     allowedPreviousNodes: [],
+    isStartNode: false,
   };
 }
 
