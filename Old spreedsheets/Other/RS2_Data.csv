@@ -1,0 +1,161 @@
+﻿No,Instruction,Type,Distance,A_Speed,B_Speed,C_Speed,D_Speed,Limit,AddTime_A,AddTime_B,AddTime_C,AddTime_D,Lat,Long
+o,Start under the portal at Newcastle Inn Entrance.  Start of OPEN SECTION.   Bear right and continue around parking lot to Traffic light at Hotel exit.,a,0.00,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,Traffic light. Turn LEFT into Victoria st.,a,0.22,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,Bear LEFT before Traffic light.,a,0.30,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,"Yield, Join Allan st.",a,0.33,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,70 Speed limit.  [Camera],a,0.40,30,30,30,30,70,0,0,0,0,0.00000,0.00000
+o,Traffic light.  Carry straight on.,a,1.71,30,30,30,30,70,0,0,0,0,0.00000,0.00000
+o,70 Speed limit.,a,2.38,35,35,35,35,70,0,0,0,0,0.00000,0.00000
+d,Traffic light.  Carry straight on.,a,3.12,35,39,42,45,70,0,0,0,0,0.00000,0.00000
+o,Warning - Sharp curve {Right}.  Be careful of possible gravel on road.,a,5.36,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+o,"Turn LEFT to R34 Utrecht, N11 Volksrust",a,5.86,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+d,Danger Plate at Start of Armco barrier.  START of REGULARITY.  SoR on road.,a,6.36,48,56,64,70,80,0,0,0,0,0.00000,0.00000
+m,Control.  Telephone pole before culvert before farm entrance. Dot on pole and mark on road.,v,11.26,48,56,64,70,100,0,0,0,0,27.66007,29.96616
+m,"Control.  Warning -  Two way traffic.  At sign past Eucalyptus tree.  Woodcraft stall on right.  Dot on pole, mark on road.",v,17.58,48,56,64,70,100,0,0,0,0,27.61043,29.94089
+m,"Control at 100 Speed limit. Dot on pole, mark on road.",v,23.25,48,56,64,70,100,0,0,0,0,27.57573,29.90034
+u,"Combination Sign:  Warning - General Warning, Warning -  Combined curves.  For 15 km.{  Beware of several rumble strips ahead.  Rumble strips removed 2024}",a,24.30,36,43,50,58,80,0,0,0,0,0.00000,0.00000
+m,Control at plinth & control box before farm shop entrance with culvert and thick gate posts.  Dot on box and yellow line.,v,30.94,36,43,50,58,80,0,0,0,0,27.52571,29.86346
+u,80 Speed limit.  Start of OPEN SECTION,a,32.35,36,43,50,58,80,0,0,0,0,0.00000,0.00000
+d,Overhead power lines.   {Max speed D = 54},a,41.74,40,45,50,54,60,0,0,0,0,0.00000,0.00000
+l,Kwaggasnek.  [Historic battlefield] Amajuba.  START of REGULARITY.,a,42.26,35,40,45,50,60,0,0,0,0,0.00000,0.00000
+f,100 Speed limit.  Be careful of free roaming farm animals.,a,42.45,49,58,69,78,100,0,0,0,0,0.00000,0.00000
+m,"Control @ danger plate before [Clinic] Clinic 1 km Charlestown - in sight of 43,0 km plate.",v,45.64,49,58,69,78,100,0,0,0,0,27.41708,29.86912
+m,Control @ N11 Volksrust 1 km. Dot on pole mark on road.,v,49.91,49,58,69,78,100,0,0,0,0,27.38138,29.88168
+o,Dry Stream [River].  START of OPEN SECTION.,a,50.49,30,30,30,30,100,0,0,0,0,0.00000,0.00000
+o,Traffic light.  Carry straight on. Engen service station on opposite corner,a,51.17,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Traffic light.  Carry straight on.,a,51.32,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Traffic light Turn Left into Adelaide Tambo st.  (Engen service station on near right hand corner.).,a,51.47,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Traffic light.  Carry straight on. Move to Right hand lane.,a,52.01,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Turn Right (before traffic light) into Sasol  Amajuba Service Station. This is your refuel stop. {Ashraf Moola 082 555 8551},a,52.54,0,0,0,0,60,0,0,0,0,0.00000,0.00000
+t,For refuelling you have - ,a,52.54,0,0,0,0,0,15,20,20,25,0.00000,0.00000
+o,After refuelling turn RIGHT into Govan Mbeki st. to continue on the R23 direction Standerton.  (As if you turned Right at the traffic light.),a,52.54,35,35,35,35,60,0,0,0,0,0.00000,0.00000
+l,Warning Children.  Children.,a,52.80,35,40,45,50,60,0,0,0,0,0.00000,0.00000
+f,"Danger Plate at Start of Armco barrier.  Two Eucalyptus trees.  Before Culvert under road.  START of REGULARITY.  SoR on road. {Just past 3,4 km plate.}",a,54.92,36,41,47,52,120,0,0,0,0,0.00000,0.00000
+f,Overhead wires.,a,55.65,48,57,67,76,120,0,0,0,0,0.00000,0.00000
+m,"Control @ farm, gate with railway sleepers as fence post.  Dot on sleeper stay pole and mark on rd.  Before 9,4 km plate.",v,60.86,48,57,67,76,120,0,0,0,0,27.31223,29.82419
+m,Control @ [Sanral] SA National Roads Agency Limited Routine maintenance. / [Telephone] 082 380 5364.  Dot on pole and yellow line.,v,65.68,48,57,67,76,120,0,0,0,0,27.28053,29.79115
+m,"Control @ Danger plate (for opposing traffic) 20m before 18,0 km plate.  Dot on danger plate pole & yellow line.",v,69.50,48,57,67,76,120,0,0,0,0,27.25344,29.76880
+d,Bridge.  1742.,a,70.11,40,45,50,54,120,0,0,0,0,0.00000,0.00000
+m,Control @ 120 Speed limit.  Dot on yellow line and pole.,v,73.01,40,45,50,54,60,0,0,0,0,27.23607,29.73982
+f,Overhead power lines.,a,74.80,47,56,65,74,120,0,0,0,0,0.00000,0.00000
+m,Control @ [Police] Police 10 km.  Dot on pole and mark on road.,v,77.68,47,56,65,74,120,0,0,0,0,27.21410,29.69978
+u,R23 Standerton / Streepfontein.,a,78.85,42,51,60,70,120,0,0,0,0,0.00000,0.00000
+f,Warning - Gentle curve.,a,79.61,47,56,65,74,120,0,0,0,0,0.00000,0.00000
+m,"Control @ Warning - Gentle Curve.  31,0 km plate.  Dot on pole - mark on road.",v,82.53,47,56,65,74,120,0,0,0,0,27.18826,29.66131
+d,Warning - Farm animals.,a,84.54,46,53,60,66,120,0,0,0,0,0.00000,0.00000
+d,"R23 Standerton {Straight}/ Perdekop, Amersfoort {right}.{  From here the road is bumpy and no shoulder.}",a,87.93,44,51,57,62,80,0,0,0,0,0.00000,0.00000
+m,Control @ R23 Standerton 42. Control Dot on pole & mark on road.,v,88.34,44,51,57,62,80,0,0,0,0,27.16245,29.61188
+m,Control @ LEKWA municipality.  Dot on pole and road.,v,93.72,44,51,57,62,120,0,0,0,0,27.15040,29.55976
+m,"Control @ 47,4 km plate - dot on pole & side of road.",v,98.91,44,51,57,62,120,0,0,0,0,27.13762,29.50938
+m,"80 Speed limit. Control @ Just past 53,4 km plate. Dot on pole and   road. ",v,104.93,44,51,57,62,80,0,0,0,0,27.10760,29.45935
+f,Warning - Gentle curve{ left}.{Road is good from here - and good shoulder.},a,107.23,50,60,70,80,80,0,0,0,0,0.00000,0.00000
+m,Control @ R23 Standerton 20.  Dot on pole and side of road.,v,109.34,50,60,70,80,80,0,0,0,0,27.07549,29.43356
+m,Danger plate at start of Armco barrier.  Control. Dot on pole & road.,v,113.90,50,60,70,80,80,0,0,0,0,27.05349,29.39516
+f,{Diagrammatic Sign:  }Traffic movement effected by obstruction.  250m,a,114.47,46,55,64,72,80,0,0,0,0,0.00000,0.00000
+m,Control @ R23 Standerton { straight} / Wolwespruit right.  Dot on pole line on road.,v,117.95,46,55,64,72,100,0,0,0,0,27.03325,29.36197
+f,Wolwespruit{ right}.{At  Overhead power line.},a,118.36,50,60,70,80,100,0,0,0,0,0.00000,0.00000
+m,Control @ Coenie and Eveleen Scheepers.  Darling 2km.  Dot on fence post line on road.,v,123.60,50,60,70,80,100,0,0,0,0,26.99991,29.31986
+m,"Control @ Danger plate in sight of 77,0 km plate and Warning -  Combined curves.  Dot on pole line on road.",v,128.52,50,60,70,80,100,0,0,0,0,26.97783,29.27701
+o,{80 Speed limit.  Replaced with-}{Temporary 60 Speed limit.}  Start of Armco barrier.  START of OPEN SECTION.,a,129.38,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,60 Speed limit.  [Camera].   Carry straight on.  Be careful of bad road surface.,a,129.82,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,R 38 { Straight },a,130.14,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,STOP carry straight on.,a,130.60,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o, Traffic light. STOP carry straight on.,a,130.80,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,STOP.  Carry straight on.,a,131.00,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o, Traffic light.  Carry straight on.  Prepare To Turn Right into Engen Service Station.,a,131.39,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,Turn Right to Engen Service Station. Refuel first before stretching your legs etc.{On first pump pillar}{ Pieter Van Dyk  Engen Sonlig.  078 949 5916 pieter@engensonlig.co.za },a,131.50,0,0,0,0,60,0,0,0,0,0.00000,0.00000
+t,For this you have ,a,131.50,0,0,0,0,0,15,20,20,25,0.00000,0.00000
+o,After Refuelling Turn Right out of service station and continue in same direction as before. ,a,131.50,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,STOP.  Carry straight on.  Be careful of bad road surface.,a,131.79,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,STOP.  Straight on.,a,132.92,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,Traffic light.  Carry straight on and move to centre of road.,a,133.35,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,Traffic light/STOP.  T-Junction. Turn RIGHT on R38 and R23. Careful bad road surface.,a,133.56,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,Bear left (opposite KFC).  Krogh street.,a,134.31,25,25,25,25,60,0,0,0,0,0.00000,0.00000
+o,Yield.  Join Krogh street. ,a,134.36,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Traffic light.  Carry straight on.,a,134.59,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Yield.  Traffic circle.  Exit traffic circle at 2nd exit.,a,135.63,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Yield.  Traffic circle.  Exit traffic circle at 2nd exit.,a,136.25,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+l,Yield.  Traffic circle.  Exit traffic circle at 2nd exit.,a,137.33,35,40,45,50,60,0,0,0,0,0.00000,0.00000
+f,"Danger plate at culvert. After 5,2 km plate.  Orange dot on pole SOR on road.  START of REGULARITY.",a,139.66,37,43,49,54,120,0,0,0,0,0.00000,0.00000
+f,Warning - Gentle curve{ left}.,a,141.60,46,55,64,72,120,0,0,0,0,0.00000,0.00000
+m,Control @ Danger Plate @ Culvert after 13.2 km Plate. Dot on pole and yellow line.,v,147.63,46,55,64,72,120,0,0,0,0,26.91921,29.10730
+m,"Control @ [ Sanral ] SA National Roads Agency Limited. Routine road maintenance /[Tel} 0845163330. Dot on pole, road edge and yellow line.  23,4 km plate.",v,157.73,46,55,64,72,100,0,0,0,0,26.88694,29.01281
+f,Diagrammatic sign:   Traffic movement effected by obstruction.,a,160.80,50,60,70,80,120,0,0,0,0,0.00000,0.00000
+m,Control @ Danger Plate  after 27.2 km Plate. Dot on pole and yellow line.,v,161.65,50,60,70,80,120,0,0,0,0,26.87401,28.97615
+f,Bridge.,a,164.21,41,48,55,62,120,0,0,0,0,0.00000,0.00000
+f,{Diagrammatic Sign: }Traffic movement effected by obstruction. 250m,a,166.48,50,60,70,80,120,0,0,0,0,0.00000,0.00000
+m,100 Speed limit. Control Dot on pole and yellow line.,v,169.49,50,60,70,80,100,0,0,0,0,26.86023,28.89879
+f,Bridge.,a,170.40,46,55,64,72,100,0,0,0,0,0.00000,0.00000
+f,Diagrammatic Sign:  Additional lane.  250 m,a,173.96,49,58,69,78,120,0,0,0,0,0.00000,0.00000
+m,"{Diagrammatic Sign:  Additional lane.  250 m - board gone 2024-02-17} Control just before 43,4 km plate. Dot on side of road and yellow line.",v,177.74,49,58,69,78,120,0,0,0,0,26.81066,28.84074
+m,"Warning - Farm animals. Control.  Dot on pole ,road edge and yellow line.",v,184.45,49,58,69,78,120,0,0,0,0,26.77450,28.78876
+f,Bridge.,a,187.44,46,55,64,72,120,0,0,0,0,0.00000,0.00000
+f,Single sharp curve chevron. { Last }{Start of bad road surface} Be careful of uneven road surface.,a,190.34,41,48,55,62,80,0,0,0,0,0.00000,0.00000
+m,"Control @ Danger plate @ start of a Armco barrier just past 62,4 km plate. Dot on pole , side of road and centre line.",v,196.76,41,48,55,62,80,0,0,0,0,26.70739,28.69643
+m,"Warning - Gentle curve{ Left}.  After 66,4 km plate. Control. Dot on pole , side of road and centre line.",v,201.13,41,48,55,62,120,0,0,0,0,26.68800,28.65833
+m,"Control @ Opposite 2,0 Km Stone on Right Before farm entrance on Left. Line on road and Dot on wooden fence pole.( Just past over head lines.)",v,206.83,41,48,55,62,120,0,0,0,0,26.67726,28.60389
+o, 80 Speed limit.    START of OPEN SECTION.,a,208.19,35,35,35,35,80,0,0,0,0,0.00000,0.00000
+o,60 Speed limit. Beware of speed bumps.,a,208.36,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Roundabout.  Leave roundabout at 3rd Exit  to Balfour on R51.,a,208.74,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,60 Speed limit. Beware of speed bumps.,a,209.10,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,STOP carry straight on .Beware of speed bumps.,a,209.41,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,STOP Turn RIGHT. ,a,210.67,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,STOP.  Turn Right on Dryer st just before Sasol Filling station ,a,211.02,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Sasol Service Station on left.  Refuel before lunch. { Super Service Station.  Sello 072 108 0269 sasolbalfour@gmail.com},a,211.05,0,0,0,0,60,0,0,0,0,0.00000,0.00000
+t,For refuelling you have:-,a,211.05,0,0,0,0,0,10,15,15,20,0.00000,0.00000
+o,Continue across Dryer st towards Church grounds gate.,a,211.05,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Church ground gate.  Enjoy a light lunch in the hall.,a,211.08,0,0,0,0,60,0,0,0,0,0.00000,0.00000
+t,For lunch you have:- ,a,211.08,0,0,0,0,0,45,50,55,60,0.00000,0.00000
+o,After lunch return to the gate and Turn LEFT in to Dryer st.,a,211.08,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,STOP.  Turn Left into Johny Mokoena st.,a,211.11,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,STOP.{  Yield left.}  Carry straight on through 3 more STOP streets.,a,211.44,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Bridge.,a,212.16,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+f,Big tree on both sides of the road. SOR on Road. START of REGULARATY,a,212.67,41,48,55,62,60,0,0,0,0,0.00000,0.00000
+m,Control @ Farm entrance with bricked wing walls. Dot on Road and pole.,v,215.35,41,48,55,62,80,0,0,0,0,26.64720,28.55303
+o,R23 Heidelberg {Right}/{ Left} R23 Standerton.,a,215.94,10,10,10,10,80,0,0,0,0,0.00000,0.00000
+o,STOP Turn Right on R23 to Heidelberg.,a,216.24,10,10,10,10,80,0,0,0,0,0.00000,0.00000
+f,R23 Heidelberg 26  [ max 72],a,216.35,41,48,55,62,80,0,0,0,0,0.00000,0.00000
+f,Poortjie {Right }.Bad road surface.,a,223.24,39,45,52,58,80,0,0,0,0,0.00000,0.00000
+m,Control @ Dwayvan Boerdery farm entrance & OH line. Dot on fence post stay and road.,v,225.07,39,45,52,58,80,0,0,0,0,26.59815,28.47558
+f,R23 Heidelberg { Straight}/  { Left} Largerspoort.,a,229.96,41,48,55,62,80,0,0,0,0,0.00000,0.00000
+m,Control @ Goeie Nuus { Left } Mark on road dot on pole base.,v,232.60,41,48,55,62,80,0,0,0,0,26.56788,28.41227
+o,Bridge.   START of OPEN SECTION.,a,233.21,35,35,35,35,80,0,0,0,0,0.00000,0.00000
+o,N3 [ T ] Johannesburg {Right}.  Prepare to turn RIGHT.,a,235.05,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+o,N3 Johannesburg {Right}.  Turn RIGHT.,a,235.28,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+f,"Join N3 Freeway {13,8 N Km Plate.}",a,235.85,41,48,55,62,80,0,0,0,0,0.00000,0.00000
+f,Blesbok [River],a,241.99,41,48,55,62,120,0,0,0,0,0.00000,0.00000
+l,"70.  Heidelberg.  R23 Heidelberg (North), Benoni 1km{Left}, N3{Straight}.  Prepare to leave the N3 at exit 70.",a,246.19,35,40,45,50,120,0,0,0,0,0.00000,0.00000
+o,Leave the N3 Freeway on Exit 70.,a,247.17,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,60 Speed limit. ,a,247.65,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Bear Left before 4way Stop.,a,247.77,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Yield Join the R23 to Benoni,a,247.86,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+l,"R23 Brakpan , Benoni {Straight}/{Left} R103 Alberton.",a,248.34,35,40,45,50,60,0,0,0,0,0.00000,0.00000
+d,"R23 Brakpan 28 , Benoni 31,  START of REGULARATY",a,248.61,48,56,64,70,60,0,0,0,0,0.00000,0.00000
+m,Control @ Warning - Cross road. Mark on road. Dot on pole.,v,252.15,48,56,64,70,100,0,0,0,0,26.43277,28.35201
+m,Control @ In Line with Start of Nulane office & Warehouse gate on Right.  Markon road.,v,256.50,48,56,64,70,80,0,0,0,0,26.39443,28.34682
+o,"R23 Brakpan , Benoni {Straight}/R550 Nigel { Right}/{Left}R550 Klipriver.   START of OPEN SECTION.",a,256.90,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+l,STOP carry straight on through 2 mor STOP streets.   Please treat all non-functioning Traffic lights as STOP streets.,a,257.10,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+l, Traffic light.  Carry straight on.,a,270.56,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+l,STOP (Was Traffic light)  carry straight on.{Carnival City},a,271.84,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+l, Traffic light  carry straight on through 2 more traffic lights..,a,272.48,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+l,STOP.  (Was a Traffic Light.)  Carry straight on.,a,274.65,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+l,STOP.  Carry straight on .,a,275.86,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+l, Traffic light.  Carry straight on.,a,277.72,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+l, Traffic light.  Carry straight on.,a,278.34,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+l, Traffic light.  Carry straight on.,a,278.98,35,40,45,50,80,0,0,0,0,0.00000,0.00000
+o,Traffic Light.{Main Reef Road intersection}{ Turn RIGHT - entry point for 2023 route},a,279.63,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+o,Traffic Light.  Carry straight on through 1 more traffic light.,a,280.16,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+o,Traffic Light.  Carry straight on through 2 more traffic lights.  Keep to centre of Road,a,281.46,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+o,Traffic Light.  Carry straight on through 2 more traffic lights.  Move to centre lane.,a,281.98,30,30,30,30,80,0,0,0,0,0.00000,0.00000
+o,Prohibition - Right turn ahead prohibited.,a,283.75,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,Traffic light.  Turn LEFT on Miles Sharp street.,a,284.05,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,"STOP.  Carry straight on,  on Miles Sharp street.",a,284.27,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Y-Junction. Turn RIGHT on Milburn street. ,a,284.54,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,Warning. Speed Bumps,a,284.82,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,STOP.  Turn LEFT on Brodigan Ave.,a,285.27,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Traffic Light.  Carry straight on.  Prepare to turn Left.,a,286.05,30,30,30,30,60,0,0,0,0,0.00000,0.00000
+o,Turn LEFT into Benoni Northerns Sports Club.  Carry Straight on through Treed Lane.  Beware of Speed bumps.,a,286.29,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,Turn LEFT  at end of sports field on left.{Big Arrow Please},a,286.49,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,Turn LEFT onto sports field and immediately Turn LEFT to follow edge of Sports Field.,a,286.56,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,Turn RIGHT to follow edge of sports field.,a,286.62,20,20,20,20,60,0,0,0,0,0.00000,0.00000
+o,STOP.  Final Open Control {at end of Pavilion}{Rod Scheepers 011 849 3410 rod.scheepers@hotmail.com Themba},a,286.69,0,0,0,0,60,0,0,0,0,0.00000,0.00000

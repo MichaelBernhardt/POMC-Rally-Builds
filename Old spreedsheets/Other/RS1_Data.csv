@@ -1,0 +1,221 @@
+"No","Instruction","Type","Distance","A_Speed","B_Speed","C_Speed","D_Speed","Limit","AddTime_A","AddTime_B","AddTime_C","AddTime_D","Lat","Long"
+1,"START in left exit lane of P1 parking basement.  START of OPEN SECTION.","a",0,30,30,30,30,60,0,0,0,0,0,0
+2,"Traffic Light. Turn LEFT into old Main Road","a",.02,30,30,30,30,60,0,0,0,0,0,0
+3,"Traffic Light Carry Straight On","a",.17,30,30,30,30,60,0,0,0,0,0,0
+4,"Traffic Light Carry Straight On","a",.32,30,30,30,30,60,0,0,0,0,0,0
+5,"R103 Bothas Hill","a",1.25,30,30,30,30,60,0,0,0,0,0,0
+6,"Traffic Light Carry Straight On.  Stay on Old Main road.  Be careful of bad road surface.","a",1.4,30,30,30,30,60,0,0,0,0,0,0
+7,"Clement Stott Road.  This is an ideal spot to wait for your time if you are early.","a",4.39,30,30,30,30,60,0,0,0,0,0,0
+8,"R103 Drummond  / Valley Trust, SANTA, KwaNyuswa ","a",5.57,30,30,30,30,60,0,0,0,0,0,0
+9,"[Restaurant] [View point] 1000 Hills Chefs School .  START of REGULARITY.  Be careful of the uneven road surface.","a",6.33,34,39,44,49,60,0,0,0,0,0,0
+10,"Control at No Dumping: Hotline 073 463 3920. Dot on Pole, Dot on Road","v",9.51,34,39,44,49,60,0,0,0,0,29.75912,30.70895
+11,"[Conservancy Area] Drummond.  START of OPEN SECTION.  Bad road surface and road works ahead.  Stop and Go's may be in operation.","a",10.91,30,34,37,41,60,0,0,0,0,0,0
+12,"Warning - Winding road. 60 km/h","a",11.43,37,41,46,49,60,0,0,0,0,0,0
+13,"40 Speed limit.  Beware of rumble strips.","a",18.06,36,36,36,36,40,0,0,0,0,0,0
+14,"STOP. T-Junction. Turn RIGHT.  Be careful of uneven road surface.","a",19.57,30,30,30,30,60,0,0,0,0,0,0
+15,"Warning - Farm Animals","a",19.68,36,40,44,47,60,0,0,0,0,0,0
+16,"60 Speed limit.  Be careful of unmarked speed bumps.","a",24.18,35,40,45,50,60,0,0,0,0,0,0
+17,"4-Way Stop. Carry Straight On. Bad Road Surface","a",25.01,30,30,30,30,60,0,0,0,0,0,0
+18,"Doornrug Drive.  R103 Camperdown  /  [City Centre] Cato Ridge.  Turn RIGHT to Camperdown","a",26.06,40,45,50,54,60,0,0,0,0,0,0
+19,"T-Junction.  Turn LEFT to Camperdown R103.","a",29.38,40,45,50,54,100,0,0,0,0,0,0
+20,"STOP. Turn RIGHT and immediately LEFT to Ashburton on the R103","a",30.54,30,30,30,30,60,0,0,0,0,0,0
+21,"Bear left on slip road (at Parapak Centre)","a",30.67,30,30,30,30,60,0,0,0,0,0,0
+22,"Yield on Road","a",30.72,40,45,50,54,60,0,0,0,0,0,0
+23,"[Generic Farming] Instant Turf.","a",33.54,35,40,45,50,60,0,0,0,0,0,0
+24,"T-Junction.  STOP.  Turn RIGHT on R603 to Umlaas Road","a",34.23,30,30,30,30,60,0,0,0,0,0,0
+25,"R103 Camperdown.  Carry straight on.","a",35.44,30,30,30,30,60,0,0,0,0,0,0
+26,"R56 Richmond,R56 Thornville/R103 Ashburton, (N3) Pietermaritzburg.  Carry straight on.","a",36.22,30,30,30,30,80,0,0,0,0,0,0
+27,"Constantia Kunsmis. START of REGULARITY.","a",38.06,46,55,64,72,80,0,0,0,0,0,0
+28,"D685 Control dot on Pole & Center line.","v",41.02,46,55,64,72,80,0,0,0,0,29.73105,30.44886
+29,"Control at start of Armco barrier and drain channel.  Dot on barrier and drain channel","v",46.42,46,55,64,72,80,0,0,0,0,29.745,30.40016
+30,"Warning - Speed humps. Be careful of fierce speed bumps.  START of OPEN SECTION","a",47.41,20,20,20,20,80,0,0,0,0,0,0
+31,"STOP. T-Junction. Turn RIGHT","a",47.66,25,25,25,25,80,0,0,0,0,0,0
+32,"R56, Thornville 1, Pietermaritzburg 17  ","a",47.97,42,49,57,64,80,0,0,0,0,0,0
+33,"All Metals Scrapyard  km on left.  START of REGULARITY.","a",48.86,42,49,57,64,80,0,0,0,0,0,0
+34,"Diagrammatic sign: Traffic movement affected by obstruction.  250m.  Sign on both sides of road.  Control - Dot on pole and road.","v",50,42,49,57,64,80,0,0,0,0,29.7294,30.37707
+35,"Control. Overhead bundle Conductor. Dot on Pole and Road","v",55.49,42,49,57,64,80,0,0,0,0,29.68222,30.38117
+36,"60 Speed limit. Start of OPEN SECTION.","a",57.33,30,35,40,45,60,0,0,0,0,0,0
+37,"High Accident zone. Slow down.  Be Careful of bad road surface.","a",58.11,35,40,45,50,60,0,0,0,0,0,0
+38,"Traffic Light Carry Straight On","a",58.46,35,40,45,50,60,0,0,0,0,0,0
+39,"Traffic Light.  Carry straight on.","a",59.6,30,35,40,45,60,0,0,0,0,0,0
+40,"Traffic Light","a",60.45,30,30,30,30,60,0,0,0,0,0,0
+41,"Traffic light carry straight on.","a",61.04,30,30,30,30,60,0,0,0,0,0,0
+42,"Take slip road before traffic light. ( French Rd)","a",61.15,30,30,30,30,60,0,0,0,0,0,0
+43,"Traffic light carry straight on through one more traffic light.","a",61.44,30,30,30,30,60,0,0,0,0,0,0
+44,"Bridge.","a",62.53,30,30,30,30,60,0,0,0,0,0,0
+45,"Traffic light. TURN RIGHT in to Moses Mabhida Rd.","a",63.15,30,30,30,30,60,0,0,0,0,0,0
+46,"Entrace to Shell service station.  This is your fuel stop.","a",63.55,0,0,0,0,60,0,0,0,0,0,0
+47,"For refueling you have -","a",63.55,0,0,0,0,0,15,20,20,25,0,0
+48,"After refueling continue in the same direction as before.","a",63.55,30,30,30,30,0,0,0,0,0,0,0
+49,"Traffic light Turn LEFT under Railway line.","a",63.97,30,30,30,30,60,0,0,0,0,0,0
+50,"Bear RIGHT into Sherwood.","a",64.59,30,30,30,30,60,0,0,0,0,0,0
+51,"Continue STRAIGHT it is now Eugene Marais Rd","a",64.87,30,30,30,30,60,0,0,0,0,0,0
+52,"Turn RIGHT into Roy Campbell road .","a",65.41,30,30,30,30,60,0,0,0,0,0,0
+53,"STOP T Junction. Turn RIGHT (This is Neville Rd )","a",66.79,30,30,30,30,60,0,0,0,0,0,0
+54,"Traffic light.  T-Junction Turn LEFT.  This is Zwartkop Rd","a",67.43,36,36,36,36,40,0,0,0,0,0,0
+55,"Warning - General Warning. Potholes.","a",69.14,36,36,36,36,40,0,0,0,0,0,0
+56,"60 Speed limit.","a",72.65,35,35,35,35,60,0,0,0,0,0,0
+57,"Welcome to  Mbutshane Area Sponsored by Build Africa.  START of REGULARITY","a",76.82,40,45,50,54,60,0,0,0,0,0,0
+58,"Contral @ Gum pole at start of Sumit Rd intersection Marked with Ducktape.","v",78.65,40,45,50,54,60,0,0,0,0,29.56726,30.29154
+59,"Diagrammatic sign:  Warning Traffic light .200m. START of OPEN SECTION.","a",79.24,30,30,30,30,60,0,0,0,0,0,0
+60,"Traffic light Turn LEFT on Cedara R103 Howick .","a",79.45,30,30,30,30,60,0,0,0,0,0,0
+61,"B+B Abbots Cove.","a",79.57,35,40,45,50,60,0,0,0,0,0,0
+62,"Red Posting Box. START of REGULARITY","a",82.36,37,43,49,54,60,0,0,0,0,0,0
+63,"Warning - Stop. 600m.  Control Dot on pole and road.","v",82.55,37,43,49,54,60,0,0,0,0,29.5428,30.28119
+64,"3-Way STOP. Carry straight on","a",83.14,36,41,47,52,60,0,0,0,0,0,0
+65,"STOP.  3-Way Stop. Carry straight on.","a",83.52,34,39,44,49,60,0,0,0,0,0,0
+66,"Madrassa An-Noor, for the Blind","a",83.69,46,55,64,72,80,0,0,0,0,0,0
+67,"Warning - Side road junction .  Control.","v",85.42,46,55,64,72,80,0,0,0,0,29.52709,30.25944
+68,"60 Speed limit","a",85.89,35,40,45,50,60,0,0,0,0,0,0
+69,"Bear LEFT.  District Drive..  START of OPEN SECTION.","a",85.99,30,30,30,30,60,0,0,0,0,0,0
+70,"R103 Howick 6 . Turn RIGHT. Wilson Road","a",86.25,30,30,30,30,60,0,0,0,0,0,0
+71,"STOP Turn RIGHT.","a",87.01,30,35,40,45,60,0,0,0,0,0,0
+72,"STOP carry straight on.","a",87.15,30,35,40,45,60,0,0,0,0,0,0
+73,"3 Way Stop.   Be carefull of speed bumps ahead .","a",87.31,30,30,30,30,60,0,0,0,0,0,0
+74,"Traffic light carry straight on.","a",88.87,30,30,30,30,60,0,0,0,0,0,0
+75,"60 Speed limit [Camera]","a",89.02,30,35,40,45,60,0,0,0,0,0,0
+76,"Traffic Light. Carry straight on.","a",90.37,30,35,40,45,60,0,0,0,0,0,0
+77,"Pietermaritzburg Recommended Route.  Prepare to turn left","a",90.87,30,30,30,30,60,0,0,0,0,0,0
+78,"Bear left","a",90.94,30,30,30,30,60,0,0,0,0,0,0
+79,"Yield on road. Turn LEFT","a",90.99,30,30,30,30,60,0,0,0,0,0,0
+80,"Traffic Light.  Straight on.","a",92.27,30,30,30,30,60,0,0,0,0,0,0
+81,"0km Stone.  START of REGULARITY.","a",93.07,44,52,60,68,80,0,0,0,0,0,0
+82,"Control. Prohibition - Stopping. Dot on Pole and Centre Line.","v",98.33,44,52,60,68,80,0,0,0,0,29.47939,30.17652
+83,"R103 Lions River  / Curry's Post.  START of OPEN SECTION.  Be careful of bad and bumpy road surface ahead.","a",99.02,42,49,57,64,80,0,0,0,0,0,0
+84,"Overhead Wires.  Be careful of uneven road surface in places and speed bumps.","a",108.21,35,35,35,35,80,0,0,0,0,0,0
+85,"Bridge.  Road is bumpy","a",109.01,42,49,57,64,80,0,0,0,0,0,0
+86,"Hum Lilly Lake House.  START of REGULARITY.","a",112.24,42,49,57,64,80,0,0,0,0,0,0
+87,"Control @ Renaissance Furniture, Decor & Gifts.  Dot on Pole & Edge of Road","v",116.56,42,49,57,64,80,0,0,0,0,29.39496,30.05818
+88,"Bridge","a",118.42,38,45,54,62,80,0,0,0,0,0,0
+89,"Warning - Combined curves. Control. Dot on pole & Centre line","v",121.76,38,45,54,62,80,0,0,0,0,29.38384,30.02819
+90,"60 Speed limit.","a",121.93,34,40,47,54,60,0,0,0,0,0,0
+91,"Rawdons  [Accommodation] [Restaurant]  START of OPEN SECTION.","a",124.93,35,35,35,35,60,0,0,0,0,0,0
+92,"Fork LEFT to R103 [Centre] Nottingham Road, Rosetta","a",127.16,35,35,35,35,60,0,0,0,0,0,0
+93,"Yield. Straight on. Stay on R103","a",127.22,35,35,35,35,60,0,0,0,0,0,0
+94,"60 Speed limit. Warning - Speed humps.  Be careful of potholes close to the road verge.","a",128.51,35,35,35,35,60,0,0,0,0,0,0
+95,"Emergency Numbers / KZN RTI 0800339911, (033)3423972, Medical Services 10177. START of REGULARITY","a",129.11,40,45,50,54,60,0,0,0,0,0,0
+96,"Warning - Children","a",130.02,44,51,57,62,80,0,0,0,0,0,0
+97,"Control @ Westview Estate.  Dot on small pole& road center line and edge.","v",131.24,44,51,57,62,80,0,0,0,0,29.32756,29.99122
+98,"Power lines.  START of OPEN SECTION.","a",131.59,35,40,45,50,80,0,0,0,0,0,0
+99,"60 Speed limit.  START of REGULARITY.  Be carefulof uneven road surface and road edge up to Mooiriver.","a",134.69,34,39,44,49,60,0,0,0,0,0,0
+100,"80 Speed limit.  Be careful of bad road verge up to Mooi river.","a",135.03,39,45,52,58,80,0,0,0,0,0,0
+101,"Control [Umgeni Water] Mearns dam. Dot on pole and road.","v",140.37,39,45,52,58,80,0,0,0,0,29.25497,29.98838
+102,"Mearns.  START of OPEN SECTION.  Beware of pot holes!","a",142.14,35,35,35,35,80,0,0,0,0,0,0
+103,"[Truck] Mooi River Truck stop","a",143.91,35,35,35,35,80,0,0,0,0,0,0
+104,"Mpofana Licensing and Testing . Turn LEFT to Engen Filling station","a",144.42,30,30,30,30,60,0,0,0,0,0,0
+105,"Turn LEFT to Mooi 1-Stop.  Engen Filling Station. Refuel Stop.","a",144.58,0,0,0,0,60,0,0,0,0,0,0
+106,"For refueling you have","a",144.58,0,0,0,0,0,10,15,15,20,0,0
+107,"After refueling return to main road and continue in the same direction as before.","a",144.58,30,30,30,30,60,0,0,0,0,0,0
+108,"[Rest area Class 3]Mooi 1-Stop.","a",144.6,35,40,45,50,60,0,0,0,0,0,0
+109,"Traffic Circle - Leave circle at 2nd exit","a",146.12,35,35,35,35,60,0,0,0,0,0,0
+110,"R103 Estcourt 29.","a",146.55,36,41,47,52,80,0,0,0,0,0,0
+111,"(N3) [Toll Route] [Highway] 146.  START of REGULARITY.  Be careful of uneven road surface.","a",147.45,39,44,49,52,80,0,0,0,0,0,0
+112,"Farm road to left","a",151.77,45,53,62,70,80,0,0,0,0,0,0
+113,"R103 Estcourt 22. Control. Dot on pole and road","v",154.49,45,53,62,70,80,0,0,0,0,29.14046,29.99387
+114,"Control at Entrance road to Microwave towers, Dot on Fence post & yellow line","v",159.08,45,53,62,70,80,0,0,0,0,29.10647,29.97401
+115,"Tree.  Be careful of uneven road surface.","a",159.55,39,45,52,58,80,0,0,0,0,0,0
+116,"Control @ Warthoghill farm sign on right. Dot on road and Armco.","v",163.2,39,45,52,58,80,0,0,0,0,29.07525,29.95738
+117,"Control @ Concrete fence post. Dot on pole and center line.","v",168.39,39,45,52,58,80,0,0,0,0,29.05272,29.92101
+118," Landfill site 700m.  Be carful of speed bumps, rumble strips and freeroaming animals.  START of OPEN SECTION","a",169.28,30,35,40,45,80,0,0,0,0,0,0
+119,"T-Junction. STOP. ( on road ) TURN RIGHT.","a",171.07,30,30,30,30,80,0,0,0,0,0,0
+120,"End of drainage channel.","a",171.41,46,55,64,72,80,0,0,0,0,0,0
+121,"60 speed limit. Beware of speed bumps.","a",172.83,30,35,40,45,60,0,0,0,0,0,0
+122,"Shell service station. Stop and refuel.","a",174.9,0,0,0,0,60,0,0,0,0,0,0
+123,"For refueling you have","a",174.9,0,0,0,0,0,10,15,15,20,0,0
+124,"After refueling continue in the same direction as before.","a",174.9,30,30,30,30,60,0,0,0,0,0,0
+125,"Traffic light TURN RIGHT into Conner street.","a",175.59,30,30,30,30,60,0,0,0,0,0,0
+126,"Traffic light TURN RIGHT.  Victoria street.","a",175.79,30,30,30,30,60,0,0,0,0,0,0
+127,"New Apostolic church. Park this is your lunch stop.","a",175.94,0,0,0,0,60,0,0,0,0,0,0
+128,"For lunch you have","a",175.94,0,0,0,0,0,40,45,50,55,0,0
+129,"After Lunch continue in the opposite direction as before.","a",175.94,30,30,30,30,60,0,0,0,0,0,0
+130,"Traffic light TURN RIGHT into Conner street.  Carry straight on through 2 Traffic lights","a",176.07,30,30,30,30,60,0,0,0,0,0,0
+131,"Turn LEFT at Blurock Quarry sign on opposite right hand corner.","a",176.68,30,30,30,30,60,0,0,0,0,0,0
+132,"Traffic light turn RIGHT into Harding street.","a",176.92,30,30,30,30,60,0,0,0,0,0,0
+133,"Bridge","a",177.23,32,37,44,51,60,0,0,0,0,0,0
+134,"Traffic light straight on.","a",177.69,32,37,44,51,60,0,0,0,0,0,0
+135,"Farm entrance with plastered brick wing wall.  Just before white wing walls on the right. SOR on road.  START of REGULARITY.","a",180.18,46,55,64,72,80,0,0,0,0,0,0
+136,"Control at farm name board. Dot on pole and yellow line.","v",183.74,46,55,64,72,80,0,0,0,0,28.95104,28.84753
+137,"Overhead wires.  Be careful of uneven road surface in places.","a",184.49,44,52,60,68,100,0,0,0,0,0,0
+138,"Control just past gate on right. Dot on road and pole.","v",189.17,44,52,60,68,100,0,0,0,0,28.91873,29.80578
+139,"Bridge","a",189.47,39,47,55,64,100,0,0,0,0,0,0
+140,"Control under over head transmission lines. Dot on road and gate post.","v",195.25,39,47,55,64,100,0,0,0,0,28.87753,29.76686
+141,"T-Junction. STOP. ( on road ). Turn RIGHT to Colenso","a",195.76,25,25,25,25,100,0,0,0,0,0,0
+142,"Power Lines","a",196.45,43,51,59,66,100,0,0,0,0,0,0
+143,"Power Lines","a",198.41,50,60,70,80,100,0,0,0,0,0,0
+144,"Control @ Fence post + 2 stays. 2 Dots on road.","v",199.88,50,60,70,80,100,0,0,0,0,28.84562,29.79621
+145,"Control @ Fence post of farm stall fence. Dot on pole and road.","v",204.81,50,60,70,80,100,0,0,0,0,28.80708,29.81152
+146,"Control @ Steel fence post at exit of Clouston Cemetery layby. Dot on post and road.","v",207.91,50,60,70,80,100,0,0,0,0,28.78031,29.81204
+147,"Control @ Sign board R103 Ladysmith for people coming from Colenso. Dot on pole and road.","v",212.94,50,60,70,80,100,0,0,0,0,28.73758,29.81717
+148,"Aditional Lane 500m","a",216.17,44,53,64,74,100,0,0,0,0,0,0
+149,"Control @ faded Keep Left Pass Right sign on opposite side of the road.","v",216.82,44,53,64,74,100,0,0,0,0,28.71076,29.79123
+150,"Control @ Green fence post with 2 stays. Dot on pole and road.","v",223.32,44,53,64,74,100,0,0,0,0,28.67632,29.74032
+151,"Warning Speed Bumps. START of OPEN SECTION. Be carefull of unmarked speed bumps,rumble strips and stray animals ","a",223.46,35,40,45,50,100,0,0,0,0,0,0
+152,"80 Speed limit. START of REGULARATY.  Stay on R103","a",234.08,47,55,62,68,80,0,0,0,0,0,0
+153,"100 Speed limit.","a",237.17,49,58,69,78,100,0,0,0,0,0,0
+154,"Control @ Start of amco barrier before bridge . And warning Stop. Dot on armco and road.","v",238.28,49,58,69,78,100,0,0,0,0,28.55443,29.74792
+155,"60 Speed limit. START of OPEN SECTION","a",238.83,35,40,45,50,60,0,0,0,0,0,0
+156,"STOP T- Junction Turn Right This is Harrysmith Road","a",239.33,35,40,45,50,60,0,0,0,0,0,0
+157,"Warning Children .","a",240.28,35,40,45,50,60,0,0,0,0,0,0
+158,"Traffic light.  This is the Francis road/Harrismith road intersection.  Refuel at Caltex service station on the opposite LEFT corner.","a",241.49,0,0,0,0,60,0,0,0,0,0,0
+159,"For this you have","a",241.49,0,0,0,0,0,10,15,15,20,0,0
+160,"After refueling  return to Francis road and Turn RIGHT into Francis road.","a",241.49,30,30,30,30,60,0,0,0,0,0,0
+161,"45 Speed limit.  Be carefull of speed bumps","a",241.7,30,30,30,30,45,0,0,0,0,0,0
+162,"Traffic light. Carry straight on. Be carefull of Speed bumps.","a",242,30,30,30,30,60,0,0,0,0,0,0
+163,"60 Speed limit. Move to Right hand Lane.","a",242.57,30,30,30,30,60,0,0,0,0,0,0
+164,"STOP T- Junction Turn RIGHT","a",242.7,30,30,30,30,60,0,0,0,0,0,0
+165,"Turn LEFT into Osward Rapson to Newcastle.","a",243.28,30,30,30,30,60,0,0,0,0,0,0
+166,"T- Junction Turn LEFT.","a",243.56,30,30,30,30,60,0,0,0,0,0,0
+167,"STOP.  Carry straight on.","a",243.58,30,30,30,30,60,0,0,0,0,0,0
+168,"Yield.  Traffic islands.  Carry Straight on.","a",243.73,30,30,30,30,60,0,0,0,0,0,0
+169,"Department of Publicworks.   Department of Transport.      Move to Right Hand Lane.","a",244.08,30,30,30,30,60,0,0,0,0,0,0
+170,"Turn RIGHT.  This is Fairclough road.","a",244.14,30,30,30,30,60,0,0,0,0,0,0
+171,"STOP (4 Way).  Turn RIGHT into Shepston Rd","a",244.7,30,30,30,30,60,0,0,0,0,0,0
+172,"Beware of BAD road surface.","a",245.48,25,25,25,25,60,0,0,0,0,0,0
+173,"N11 Ladysmith / N11 Newcastle","a",245.95,30,30,30,30,60,0,0,0,0,0,0
+174,"Traffic Light.  Turn LEFT on to the N11 to Newecastle.  Newcastle road.","a",245.98,35,35,35,35,60,0,0,0,0,0,0
+175,"N11 Newcastle 95.","a",246.19,35,40,45,50,60,0,0,0,0,0,0
+176,"Warning - Farm animals.","a",249.01,40,45,50,54,60,0,0,0,0,0,0
+177,"Warning - Combined Curves.","a",254.79,39,44,49,52,60,0,0,0,0,0,0
+178,"Overhead Lines.","a",268.22,40,45,50,54,60,0,0,0,0,0,0
+179,"Double Farm gate on Left.  Farm entrance on Right. SOR on road.  START of REGULARATY.","a",271.06,40,45,50,54,60,0,0,0,0,0,0
+180,"100 Speed limit.  Constrution End Thank You.","a",274.16,50,60,70,80,100,0,0,0,0,0,0
+181,"80 Speed limit.","a",275.23,42,49,57,64,80,0,0,0,0,0,0
+182,"100 Speed limit. Control.  Dot on pole and road.","v",277.15,42,49,57,64,100,0,0,0,0,28.31287,29.97564
+183,"Warning. Falling Rocks.","a",279.3,50,60,70,80,100,0,0,0,0,0,0
+184,"Control @ Larksend Farm. P&A Cronje, D&H Pinder. 30.  Ducktape on Fence Pole at Cross road.","v",285.92,50,60,70,80,100,0,0,0,0,28.24047,29.96363
+185,"Diagrammatic: Aditional Lane 250m.","a",287.32,41,49,59,68,100,0,0,0,0,0,0
+186,"Traffic Movement affected by obstruction 500m.  Dot on pole and Rd.","v",292.09,41,49,59,68,100,0,0,0,0,28.18741,29.96239
+187,"Control @ 100 Speed limit. Dot on pole and rd.","v",296.67,41,49,59,68,100,0,0,0,0,28.15338,29.96943
+188,"Tree","a",298.62,50,60,70,80,100,0,0,0,0,0,0
+189,"Danger Plate at start of Amco Barrier","a",298.88,40,45,50,54,100,0,0,0,0,0,0
+190,"N11 Newcastle  / R68 Glencoe ,Dundee.","a",300.6,41,48,55,62,100,0,0,0,0,0,0
+191,"Warning - Reduced  Visibility .  No over taking.","a",302.64,50,60,70,80,100,0,0,0,0,0,0
+192,"Control @ Danger plate at start of Armco Barrier. Dot on pole and rd.","v",307.15,50,60,70,80,100,0,0,0,0,28.06158,29.97765
+193,"Bridge.","a",307.38,42,51,60,70,100,0,0,0,0,0,0
+194,"Control @ .  Traffic Movement affected by obstruction 250m . Dot on pole and rd.","v",313.39,42,51,60,70,100,0,0,0,0,28.00653,29.97301
+195,"Overhead wires","a",314.54,49,58,69,78,100,0,0,0,0,0,0
+196,"Control @ 100 Speed limit.  Dot on pole and rd.","v",317.59,49,58,69,78,100,0,0,0,0,29.97161,29.96405
+197,"Diagramatic sign:  Additional lane.  350m.  Control.  Dot on pole and Rd.","v",323.3,49,58,69,78,100,0,0,0,0,27.92231,29.97312
+198,"No Trucks in Right hand Lane. For 2,1 Km.","a",323.7,48,57,67,76,100,0,0,0,0,0,0
+199,"80  Speed limit.","a",325.94,46,55,64,72,80,0,0,0,0,0,0
+200,"Diagrammatic sign:  Traffic movement effected by obstruction. Control. Dot on pole and road.","v",328.42,46,55,64,72,100,0,0,0,0,27.87754,29.9639
+201,"Diagramatic sign:  Warning - Reduced visibility.  No overtaking.  Dot on pole and edge of tar.","v",333.4,46,55,64,72,100,0,0,0,0,27.83287,29.96053
+202,"Warning - Side road junction.  Beware of bumpy road.","a",335,40,48,57,66,100,0,0,0,0,0,0
+203,"Control @ 50,4 km plate - opposite die Padstal. Dot on pole and yellow line.","v",337.25,40,48,57,66,80,0,0,0,0,27.7989,29.95627
+204,"Newcastle. START OPEN SECTION.","a",338.32,35,40,45,50,80,0,0,0,0,0,0
+205,"Allen street. [Centre]Newcastle, (R34) Vrede.","a",338.78,30,30,30,30,80,0,0,0,0,0,0
+206,"Bear Left to Newcastle.","a",338.94,30,30,30,30,80,0,0,0,0,0,0
+207,"Yield Join Allen street","a",339.04,30,30,30,30,80,0,0,0,0,0,0
+208,"Traffic Light.  Carry straight on.","a",339.56,30,30,30,30,60,0,0,0,0,0,0
+209,"Traffic light Carry straight on.","a",339.81,30,30,30,30,60,0,0,0,0,0,0
+210,"Traffic light Carry straight on.","a",340.13,30,30,30,30,60,0,0,0,0,0,0
+211,"Warning - Gentle curve . Move to right hand Lane.","a",340.82,30,30,30,30,60,0,0,0,0,0,0
+212,"Traffic light. Turn RIGHT into Albert Wessels Dr","a",341.17,30,30,30,30,60,0,0,0,0,0,0
+213,"Bear Left Before Traffic light.","a",341.55,30,30,30,30,60,0,0,0,0,0,0
+214,"Yield.  Turn LEFT (this is Hardwick).","a",341.58,30,30,30,30,60,0,0,0,0,0,0
+215,"Traffic light. Carry straight on through 3 more traffic lights.","a",342.45,30,30,30,30,60,0,0,0,0,0,0
+216,"Traffic light. Carry straight on.","a",344.35,20,20,20,20,60,0,0,0,0,0,0
+217,"Traffic Light. Carry straight on.","a",344.48,20,20,20,20,60,0,0,0,0,0,0
+218,"Turn LEFT into Majuba Lodge.","a",344.65,20,20,20,20,60,0,0,0,0,0,0
+219,"Gate.  Bear LEFT.","a",344.67,20,20,20,20,60,0,0,0,0,0,0
+220,"FINAL OPEN CONTROL.  STOP under Reception Portal of Majuba Lodge. Continue and Park. You have 10 Minutes to hand in your Logger to the scorer.","a",344.69,0,0,0,0,60,0,0,0,0,0,0
