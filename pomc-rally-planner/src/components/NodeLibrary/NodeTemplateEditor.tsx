@@ -195,25 +195,38 @@ export default function NodeTemplateEditor() {
 
         {otherTemplates.length > 0 && (
           <>
-            <span style={{ color: 'var(--color-text-muted)' }}>or follows:</span>
-            {otherTemplates.map(other => {
-              const isSelected = !template.isStartNode && template.allowedPreviousNodes[0] === other.id;
-              return (
-                <label key={other.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name={`connRule-${editingTemplateId}`}
-                    checked={isSelected}
-                    disabled={isLocked}
-                    onChange={() => {
-                      updateNodeTemplate(editingTemplateId, { isStartNode: false });
-                      setAllowedPreviousNodes(editingTemplateId, [other.id]);
-                    }}
-                  />
-                  {other.name}
-                </label>
-              );
-            })}
+            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+              <input
+                type="radio"
+                name={`connRule-${editingTemplateId}`}
+                checked={!template.isStartNode && template.allowedPreviousNodes.length > 0}
+                disabled={isLocked}
+                onChange={() => {
+                  updateNodeTemplate(editingTemplateId, { isStartNode: false });
+                }}
+              />
+              <strong>Follows:</strong>
+            </label>
+            <select
+              value={!template.isStartNode ? (template.allowedPreviousNodes[0] ?? '') : ''}
+              disabled={isLocked || template.isStartNode}
+              onChange={e => {
+                updateNodeTemplate(editingTemplateId, { isStartNode: false });
+                setAllowedPreviousNodes(editingTemplateId, e.target.value ? [e.target.value] : []);
+              }}
+              style={{
+                padding: '4px 8px',
+                fontSize: '13px',
+                borderRadius: '4px',
+                border: '1px solid var(--color-border)',
+                opacity: template.isStartNode ? 0.5 : 1,
+              }}
+            >
+              <option value="">Select a node...</option>
+              {otherTemplates.map(other => (
+                <option key={other.id} value={other.id}>{other.name}</option>
+              ))}
+            </select>
           </>
         )}
 

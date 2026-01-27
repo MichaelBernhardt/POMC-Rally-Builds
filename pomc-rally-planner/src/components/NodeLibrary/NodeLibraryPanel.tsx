@@ -98,6 +98,9 @@ export default function NodeLibraryPanel() {
           {templates.map(template => {
             const complete = isTemplateComplete(template);
             const warnings = validateTemplate(template);
+            // Check if any other template references this one
+            const referencedBy = templates.filter(t => t.id !== template.id && t.allowedPreviousNodes.includes(template.id));
+            const isReferenced = referencedBy.length > 0;
 
             return (
               <div
@@ -150,8 +153,13 @@ export default function NodeLibraryPanel() {
                   </button>
                   {!isLocked && (
                     <button
-                      onClick={e => { e.stopPropagation(); removeNodeTemplate(template.id); }}
-                      style={{ color: 'var(--color-danger)' }}
+                      onClick={e => { e.stopPropagation(); if (!isReferenced) removeNodeTemplate(template.id); }}
+                      disabled={isReferenced}
+                      title={isReferenced ? `Referenced by: ${referencedBy.map(t => t.name).join(', ')}` : 'Delete this node'}
+                      style={{
+                        color: isReferenced ? 'var(--color-text-muted)' : 'var(--color-danger)',
+                        cursor: isReferenced ? 'not-allowed' : 'pointer',
+                      }}
                     >
                       Delete
                     </button>
@@ -243,41 +251,44 @@ export default function NodeLibraryPanel() {
 
             {/* Follows node option */}
             {templates.length > 0 && (
-              <div style={{
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 10px',
                 border: `1px solid ${ruleType === 'follow' ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 borderRadius: '6px',
-                padding: '8px 10px',
+                cursor: 'pointer',
                 marginBottom: '8px',
                 background: ruleType === 'follow' ? 'var(--color-primary-light, #EEF2FF)' : 'transparent',
               }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '8px' }}>
-                  <input
-                    type="radio"
-                    name="connectionRule"
-                    checked={ruleType === 'follow'}
-                    onChange={() => setRuleType('follow')}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>Follows another node</div>
-                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Select which node comes before this one</div>
-                  </div>
-                </label>
-                {ruleType === 'follow' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px' }}>
+                <input
+                  type="radio"
+                  name="connectionRule"
+                  checked={ruleType === 'follow'}
+                  onChange={() => setRuleType('follow')}
+                />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>Follows another node</div>
+                  <select
+                    value={followNodeId}
+                    onChange={e => { setFollowNodeId(e.target.value); setRuleType('follow'); }}
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      width: '100%',
+                      padding: '6px 8px',
+                      fontSize: '13px',
+                      borderRadius: '4px',
+                      border: '1px solid var(--color-border)',
+                    }}
+                  >
+                    <option value="">Select a node...</option>
                     {templates.map(t => (
-                      <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px' }}>
-                        <input
-                          type="radio"
-                          name="followNode"
-                          checked={followNodeId === t.id}
-                          onChange={() => setFollowNodeId(t.id)}
-                        />
-                        {t.name}
-                      </label>
+                      <option key={t.id} value={t.id}>{t.name}</option>
                     ))}
-                  </div>
-                )}
-              </div>
+                  </select>
+                </div>
+              </label>
             )}
 
             {!canCreate && newName.trim().length > 0 && ruleType === '' && (

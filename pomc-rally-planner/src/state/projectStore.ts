@@ -626,6 +626,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   removeNodeTemplate: (templateId: string) => {
     const { workspace, currentRallyId, editingTemplateId } = get();
     if (!workspace || !currentRallyId) return;
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    if (!rally) return;
+    // Prevent deletion if another template references this one
+    const isReferenced = rally.nodeLibrary.some(
+      t => t.id !== templateId && t.allowedPreviousNodes.includes(templateId)
+    );
+    if (isReferenced) return;
     set({
       workspace: updateRallyV3(workspace, currentRallyId, r => ({
         ...r,
