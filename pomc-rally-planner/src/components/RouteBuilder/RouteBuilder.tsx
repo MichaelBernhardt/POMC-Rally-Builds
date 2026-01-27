@@ -303,8 +303,8 @@ export default function RouteBuilder() {
         )}
       </div>
 
-      {/* Palette sidebar */}
-      {!isLocked && (
+      {/* Palette sidebar (nodes view only) */}
+      {!isLocked && tab === 'nodes' && (
         <div style={{
           width: '240px',
           borderLeft: '1px solid var(--color-border)',
