@@ -1,4 +1,13 @@
+import { useState, useEffect, useRef } from 'react';
 import { useProjectStore } from '../../state/projectStore';
+
+interface ContextMenu {
+  x: number;
+  y: number;
+  type: 'rally' | 'day';
+  rallyId: string;
+  dayId?: string;
+}
 
 export default function ProjectTree() {
   const workspace = useProjectStore(s => s.workspace);
@@ -11,6 +20,45 @@ export default function ProjectTree() {
   const removeDay = useProjectStore(s => s.removeDay);
   const selectRally = useProjectStore(s => s.selectRally);
   const updateRallyName = useProjectStore(s => s.updateRallyName);
+
+  const [menu, setMenu] = useState<ContextMenu | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close context menu on outside click or Escape
+  useEffect(() => {
+    if (!menu) return;
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenu(null);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenu(null);
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [menu]);
+
+  const handleRallyContext = (e: React.MouseEvent, rallyId: string) => {
+    e.preventDefault();
+    setMenu({ x: e.clientX, y: e.clientY, type: 'rally', rallyId });
+  };
+
+  const handleDayContext = (e: React.MouseEvent, rallyId: string, dayId: string) => {
+    e.preventDefault();
+    setMenu({ x: e.clientX, y: e.clientY, type: 'day', rallyId, dayId });
+  };
+
+  const menuItemStyle: React.CSSProperties = {
+    padding: '6px 16px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    whiteSpace: 'nowrap',
+  };
 
   if (!workspace || workspace.rallies.length === 0) {
     return (
@@ -63,10 +111,7 @@ export default function ProjectTree() {
             {/* Rally header */}
             <div
               onClick={() => selectRally(rally.id)}
-              onDoubleClick={() => {
-                const name = prompt('Rename rally:', rally.name);
-                if (name?.trim()) updateRallyName(rally.id, name.trim());
-              }}
+              onContextMenu={e => handleRallyContext(e, rally.id)}
               style={{
                 padding: '8px 8px',
                 cursor: 'pointer',
@@ -99,6 +144,7 @@ export default function ProjectTree() {
                   <div
                     key={day.id}
                     onClick={() => selectRallyDay(rally.id, day.id)}
+                    onContextMenu={e => handleDayContext(e, rally.id, day.id)}
                     style={{
                       padding: '6px 8px',
                       cursor: 'pointer',
@@ -119,27 +165,14 @@ export default function ProjectTree() {
                   </div>
                 ))}
 
-                {/* Add/Remove day buttons */}
-                <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                {/* Add day button */}
+                <div style={{ marginTop: '4px' }}>
                   <button
                     onClick={() => addDay(`Day ${rally.days.length + 1}`)}
-                    style={{ flex: 1, fontSize: '12px', padding: '4px 8px', minHeight: '28px' }}
+                    style={{ width: '100%', fontSize: '12px', padding: '4px 8px', minHeight: '28px' }}
                   >
                     + Day
                   </button>
-                  {rally.days.length > 1 && currentDayId && (
-                    <button
-                      onClick={() => {
-                        if (confirm('Remove this day and all its rows?')) {
-                          removeDay(currentDayId);
-                        }
-                      }}
-                      className="danger"
-                      style={{ fontSize: '12px', padding: '4px 8px', minHeight: '28px' }}
-                    >
-                      - Day
-                    </button>
-                  )}
                 </div>
               </div>
             )}
@@ -147,31 +180,88 @@ export default function ProjectTree() {
         );
       })}
 
-      {/* Add/Remove rally buttons */}
-      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', padding: '0 4px' }}>
+      {/* Add rally button */}
+      <div style={{ marginTop: '8px', padding: '0 4px' }}>
         <button
           onClick={() => {
             const name = prompt('Rally name:', 'My Rally');
             if (name?.trim()) addRally(name.trim());
           }}
-          style={{ flex: 1, fontSize: '13px' }}
+          style={{ width: '100%', fontSize: '13px' }}
         >
           + Add Rally
         </button>
-        {workspace.rallies.length > 0 && currentRallyId && (
-          <button
-            onClick={() => {
-              if (confirm('Remove this rally and all its days?')) {
-                removeRally(currentRallyId);
-              }
-            }}
-            className="danger"
-            style={{ fontSize: '13px', padding: '8px 12px' }}
-          >
-            - Rally
-          </button>
-        )}
       </div>
+
+      {/* Context menu */}
+      {menu && (
+        <div
+          ref={menuRef}
+          style={{
+            position: 'fixed',
+            left: menu.x,
+            top: menu.y,
+            background: 'var(--color-bg)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '6px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            zIndex: 1000,
+            padding: '4px 0',
+            minWidth: '140px',
+          }}
+        >
+          {menu.type === 'rally' && (
+            <>
+              <div
+                style={menuItemStyle}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                onClick={() => {
+                  setMenu(null);
+                  const rally = workspace.rallies.find(r => r.id === menu.rallyId);
+                  const name = prompt('Rename rally:', rally?.name ?? '');
+                  if (name?.trim()) updateRallyName(menu.rallyId, name.trim());
+                }}
+              >
+                Rename Rally
+              </div>
+              <div
+                style={{ ...menuItemStyle, color: 'var(--color-danger)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                onClick={() => {
+                  setMenu(null);
+                  if (confirm('Remove this rally and all its days?')) {
+                    removeRally(menu.rallyId);
+                  }
+                }}
+              >
+                Remove Rally
+              </div>
+            </>
+          )}
+          {menu.type === 'day' && menu.dayId && (
+            <div
+              style={{ ...menuItemStyle, color: 'var(--color-danger)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              onClick={() => {
+                setMenu(null);
+                const rally = workspace.rallies.find(r => r.id === menu.rallyId);
+                if (rally && rally.days.length <= 1) {
+                  alert('Cannot remove the last day in a rally.');
+                  return;
+                }
+                if (confirm('Remove this day and all its rows?')) {
+                  removeDay(menu.dayId!);
+                }
+              }}
+            >
+              Remove Day
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

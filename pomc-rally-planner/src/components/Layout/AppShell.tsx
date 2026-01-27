@@ -15,6 +15,8 @@ import SpeedTableDialog from '../Dialogs/SpeedTableDialog';
 import { detectFileVersion, migrateV1ToWorkspace } from '../../engine/migration';
 import { RallyProjectV1 } from '../../types/domain';
 
+const LAST_FILE_KEY = 'pomc:lastFilePath';
+
 export default function AppShell() {
   const [showNewRally, setShowNewRally] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -32,6 +34,29 @@ export default function AppShell() {
   const getCurrentRally = useProjectStore(s => s.getCurrentRally);
   const undo = useProjectStore(s => s.undo);
   const redo = useProjectStore(s => s.redo);
+
+  // Auto-load last workspace on startup
+  useEffect(() => {
+    const lastPath = localStorage.getItem(LAST_FILE_KEY);
+    if (!lastPath) return;
+
+    readTextFile(lastPath)
+      .then(content => {
+        const data = JSON.parse(content);
+        const version = detectFileVersion(data);
+        if (version === 1) {
+          const ws = migrateV1ToWorkspace(data as RallyProjectV1);
+          loadWorkspace(ws, lastPath);
+          useProjectStore.setState({ isDirty: true });
+        } else {
+          loadWorkspace(data, lastPath);
+        }
+      })
+      .catch(() => {
+        // File no longer exists or unreadable — clear stale path
+        localStorage.removeItem(LAST_FILE_KEY);
+      });
+  }, []);
 
   // Auto-save timer
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -95,6 +120,7 @@ export default function AppShell() {
 
     await writeTextFile(savePath, JSON.stringify(data, null, 2));
     markSaved();
+    localStorage.setItem(LAST_FILE_KEY, savePath);
   }, [filePath, getWorkspaceForSave, setFilePath, markSaved]);
 
   const handleOpen = useCallback(async () => {
@@ -117,6 +143,7 @@ export default function AppShell() {
     } else {
       loadWorkspace(data, path);
     }
+    localStorage.setItem(LAST_FILE_KEY, path);
   }, [loadWorkspace]);
 
   const handleGridReady = useCallback((api: GridApi) => {
