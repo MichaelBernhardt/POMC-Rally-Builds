@@ -2,14 +2,11 @@ import { useProjectStore } from '../../state/projectStore';
 import { flattenDayRows } from '../../state/storeHelpers';
 
 export default function DayPanel() {
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
-  const getCurrentDay = useProjectStore(s => s.getCurrentDay);
+  const rally = useProjectStore(s => s.getCurrentRally());
+  const day = useProjectStore(s => s.getCurrentDay());
   const currentDayId = useProjectStore(s => s.currentDayId);
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
-
-  const rally = getCurrentRally();
-  const day = getCurrentDay();
   if (!rally || !currentDayId || !day) return null;
   const locked = rally.locked === true;
   const totalRows = flattenDayRows(day).length;

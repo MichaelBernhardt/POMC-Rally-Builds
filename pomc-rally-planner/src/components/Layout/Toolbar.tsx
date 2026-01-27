@@ -8,7 +8,7 @@ interface ToolbarProps {
 }
 
 export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
+  const currentRally = useProjectStore(s => s.getCurrentRally());
   const addRow = useProjectStore(s => s.addRow);
   const deleteRows = useProjectStore(s => s.deleteRows);
   const duplicateRow = useProjectStore(s => s.duplicateRow);
@@ -61,7 +61,7 @@ export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
     duplicateRow(idx);
   };
 
-  const disabled = !getCurrentRally();
+  const disabled = !currentRally;
   const locked = isLocked;
 
   return (

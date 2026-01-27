@@ -20,7 +20,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 export default function NodeTemplateEditor() {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
+  const rally = useProjectStore(s => s.getCurrentRally());
   const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
   const setAllowedPreviousNodes = useProjectStore(s => s.setAllowedPreviousNodes);
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
@@ -30,8 +30,6 @@ export default function NodeTemplateEditor() {
   const pushUndo = useProjectStore(s => s.pushUndo);
   const addRow = useProjectStore(s => s.addRow);
   const deleteRows = useProjectStore(s => s.deleteRows);
-
-  const rally = getCurrentRally();
   const template = rally?.nodeLibrary.find(t => t.id === editingTemplateId);
 
   const columnDefs = useMemo(() => getColumnDefs(), []);

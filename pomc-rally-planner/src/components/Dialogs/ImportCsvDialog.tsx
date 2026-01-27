@@ -17,8 +17,7 @@ export default function ImportCsvDialog({ open: isOpen, onClose }: ImportCsvDial
   const [loading, setLoading] = useState(false);
 
   const importRows = useProjectStore(s => s.importRows);
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
-  const currentRally = getCurrentRally();
+  const currentRally = useProjectStore(s => s.getCurrentRally());
 
   if (!isOpen) return null;
 

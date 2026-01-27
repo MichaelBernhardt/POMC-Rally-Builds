@@ -3,16 +3,13 @@ import { validateNodeConnections } from '../../engine/validator';
 import NodePalette from './NodePalette';
 
 export default function RouteBuilder() {
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
-  const getCurrentDay = useProjectStore(s => s.getCurrentDay);
+  const rally = useProjectStore(s => s.getCurrentRally());
+  const day = useProjectStore(s => s.getCurrentDay());
   const selectNode = useProjectStore(s => s.selectNode);
   const removeRouteNode = useProjectStore(s => s.removeRouteNode);
   const moveRouteNode = useProjectStore(s => s.moveRouteNode);
   const renameRouteNode = useProjectStore(s => s.renameRouteNode);
   const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
-
-  const rally = getCurrentRally();
-  const day = getCurrentDay();
 
   if (!rally || !day) {
     return (

@@ -4,13 +4,10 @@ import { NodeTemplate } from '../../types/domain';
 import { isTemplateComplete } from '../../engine/validator';
 
 export default function NodePalette() {
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
-  const getCurrentDay = useProjectStore(s => s.getCurrentDay);
+  const rally = useProjectStore(s => s.getCurrentRally());
+  const day = useProjectStore(s => s.getCurrentDay());
   const placeNode = useProjectStore(s => s.placeNode);
   const setViewMode = useProjectStore(s => s.setViewMode);
-
-  const rally = getCurrentRally();
-  const day = getCurrentDay();
   if (!rally) return null;
 
   // Only consider complete templates (named + has start/link rule)

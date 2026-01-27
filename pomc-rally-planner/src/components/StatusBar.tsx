@@ -2,17 +2,13 @@ import { useProjectStore } from '../state/projectStore';
 import { flattenDayRows } from '../state/storeHelpers';
 
 export default function StatusBar() {
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
-  const getCurrentDay = useProjectStore(s => s.getCurrentDay);
-  const getCurrentNode = useProjectStore(s => s.getCurrentNode);
+  const rally = useProjectStore(s => s.getCurrentRally());
+  const day = useProjectStore(s => s.getCurrentDay());
+  const node = useProjectStore(s => s.getCurrentNode());
   const isDirty = useProjectStore(s => s.isDirty);
   const lastSaved = useProjectStore(s => s.lastSaved);
   const viewMode = useProjectStore(s => s.viewMode);
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
-
-  const rally = getCurrentRally();
-  const day = getCurrentDay();
-  const node = getCurrentNode();
 
   const dayRows = day ? flattenDayRows(day) : [];
   const nodeRows = node?.rows ?? [];

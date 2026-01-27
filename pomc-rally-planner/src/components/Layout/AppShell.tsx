@@ -46,7 +46,7 @@ export default function AppShell() {
   const setFilePath = useProjectStore(s => s.setFilePath);
   const markSaved = useProjectStore(s => s.markSaved);
   const getWorkspaceForSave = useProjectStore(s => s.getWorkspaceForSave);
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
+  const currentRally = useProjectStore(s => s.getCurrentRally());
   const undo = useProjectStore(s => s.undo);
   const redo = useProjectStore(s => s.redo);
   const viewMode = useProjectStore(s => s.viewMode);
@@ -173,7 +173,6 @@ export default function AppShell() {
     setGridApi(api);
   }, []);
 
-  const currentRally = getCurrentRally();
   const isLocked = currentRally?.locked === true;
 
   const renderMainContent = () => {

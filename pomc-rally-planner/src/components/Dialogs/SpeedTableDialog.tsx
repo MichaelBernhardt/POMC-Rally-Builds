@@ -10,13 +10,11 @@ interface SpeedTableDialogProps {
 }
 
 export default function SpeedTableDialog({ open: isOpen, onClose }: SpeedTableDialogProps) {
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
+  const rally = useProjectStore(s => s.getCurrentRally());
   const updateSpeedLookupTable = useProjectStore(s => s.updateSpeedLookupTable);
 
   const [entries, setEntries] = useState<SpeedLookupEntry[]>([]);
   const [filterType, setFilterType] = useState<TypeCode | ''>('');
-
-  const rally = getCurrentRally();
 
   useEffect(() => {
     if (rally) {

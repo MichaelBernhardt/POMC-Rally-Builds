@@ -3,7 +3,7 @@ import { useProjectStore } from '../../state/projectStore';
 import { isTemplateComplete, validateTemplate } from '../../engine/validator';
 
 export default function NodeLibraryPanel() {
-  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
+  const rally = useProjectStore(s => s.getCurrentRally());
   const addNodeTemplate = useProjectStore(s => s.addNodeTemplate);
   const removeNodeTemplate = useProjectStore(s => s.removeNodeTemplate);
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
@@ -17,7 +17,6 @@ export default function NodeLibraryPanel() {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  const rally = getCurrentRally();
   if (!rally) return null;
 
   const templates = rally.nodeLibrary;
