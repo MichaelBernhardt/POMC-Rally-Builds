@@ -73,7 +73,7 @@ export default function AppShell() {
       });
   }, []);
 
-  // Auto-save timer
+  // Auto-save to main file when dirty (every 5 seconds)
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -82,11 +82,12 @@ export default function AppShell() {
       if (state.workspace && state.filePath && state.isDirty) {
         const data = state.getWorkspaceForSave();
         if (data) {
-          const backupPath = state.filePath.replace(/\.rally\.json$/, '.backup.json');
-          writeTextFile(backupPath, JSON.stringify(data, null, 2)).catch(console.error);
+          writeTextFile(state.filePath, JSON.stringify(data, null, 2))
+            .then(() => state.markSaved())
+            .catch(console.error);
         }
       }
-    }, 30000);
+    }, 5000);
 
     return () => {
       if (autoSaveRef.current) clearInterval(autoSaveRef.current);
