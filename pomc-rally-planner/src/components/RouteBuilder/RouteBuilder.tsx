@@ -26,6 +26,7 @@ export default function RouteBuilder() {
   const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
+  const recalculateTimes = useProjectStore(s => s.recalculateTimes);
 
   const [tab, setTab] = useState<'nodes' | 'table'>('nodes');
 
@@ -153,8 +154,18 @@ export default function RouteBuilder() {
                 <button style={segmentStyle(tab === 'table')} onClick={() => setTab('table')}>Table</button>
               </div>
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-              {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button
+                onClick={recalculateTimes}
+                disabled={isLocked}
+                className="primary"
+                style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+              >
+                Recalc Times
+              </button>
+              <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}
+              </span>
             </div>
           </div>
         </div>
