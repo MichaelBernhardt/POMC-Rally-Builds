@@ -52,6 +52,8 @@ interface ProjectState {
   selectRally: (rallyId: string) => void;
   selectRallyDay: (rallyId: string, dayId: string) => void;
   updateRallyName: (rallyId: string, name: string) => void;
+  toggleRallyLock: (rallyId: string) => void;
+  isCurrentRallyLocked: () => boolean;
   getCurrentRally: () => Rally | null;
 
   // Workspace I/O
@@ -175,6 +177,26 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       })),
       isDirty: true,
     });
+  },
+
+  toggleRallyLock: (rallyId: string) => {
+    const { workspace } = get();
+    if (!workspace) return;
+    set({
+      workspace: updateCurrentRally(workspace, rallyId, r => ({
+        ...r,
+        locked: !r.locked,
+        modifiedAt: new Date().toISOString(),
+      })),
+      isDirty: true,
+    });
+  },
+
+  isCurrentRallyLocked: () => {
+    const { workspace, currentRallyId } = get();
+    if (!workspace || !currentRallyId) return false;
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    return rally?.locked === true;
   },
 
   getCurrentRally: () => {

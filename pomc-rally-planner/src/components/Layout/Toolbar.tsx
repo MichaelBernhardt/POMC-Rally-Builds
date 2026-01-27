@@ -17,6 +17,7 @@ export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
   const undoStack = useProjectStore(s => s.undoStack);
   const redoStack = useProjectStore(s => s.redoStack);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
+  const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
 
   const getSelectedRowIndex = (): number | null => {
     if (!gridApi) return null;
@@ -61,6 +62,7 @@ export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
   };
 
   const disabled = !getCurrentRally();
+  const locked = isLocked;
 
   return (
     <div style={{
@@ -71,34 +73,34 @@ export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
       borderBottom: '1px solid var(--color-border)',
       background: 'var(--color-bg)',
     }}>
-      <button onClick={handleAddRow} disabled={disabled} title="Add row after selection (Insert)">
+      <button onClick={handleAddRow} disabled={disabled || locked} title="Add row after selection (Insert)">
         + Row
       </button>
-      <button onClick={handleDeleteRows} disabled={disabled} title="Delete selected rows (Delete)">
+      <button onClick={handleDeleteRows} disabled={disabled || locked} title="Delete selected rows (Delete)">
         - Row
       </button>
-      <button onClick={handleDuplicateRow} disabled={disabled} title="Duplicate selected row">
+      <button onClick={handleDuplicateRow} disabled={disabled || locked} title="Duplicate selected row">
         Copy Row
       </button>
 
       <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
 
-      <button onClick={undo} disabled={disabled || undoStack.length === 0} title="Undo (Ctrl+Z)">
+      <button onClick={undo} disabled={disabled || locked || undoStack.length === 0} title="Undo (Ctrl+Z)">
         Undo
       </button>
-      <button onClick={redo} disabled={disabled || redoStack.length === 0} title="Redo (Ctrl+Y)">
+      <button onClick={redo} disabled={disabled || locked || redoStack.length === 0} title="Redo (Ctrl+Y)">
         Redo
       </button>
 
       <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
 
-      <button onClick={recalculateTimes} disabled={disabled} className="primary" title="Recalculate all times">
+      <button onClick={recalculateTimes} disabled={disabled || locked} className="primary" title="Recalculate all times">
         Recalc Times
       </button>
 
       <div style={{ flex: 1 }} />
 
-      <button onClick={onImport} disabled={disabled} title="Import CSV file">
+      <button onClick={onImport} disabled={disabled || locked} title="Import CSV file">
         Import CSV
       </button>
       <button onClick={onExport} disabled={disabled} title="Export to CSV">

@@ -24,6 +24,7 @@ interface RouteGridProps {
 export default function RouteGrid({ onGridReady }: RouteGridProps) {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const rows = useProjectStore(s => s.getCurrentRows());
+  const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
 
@@ -34,7 +35,8 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
     filter: false,
     resizable: true,
     suppressMovable: false,
-  }), []);
+    editable: !isLocked,
+  }), [isLocked]);
 
   const getRowId = useCallback((params: GetRowIdParams<RouteRow>) => params.data.id, []);
 

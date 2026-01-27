@@ -10,6 +10,7 @@ export default function DayPanel() {
   if (!rally || !currentDayId) return null;
   const day = rally.days.find(d => d.id === currentDayId);
   if (!day) return null;
+  const locked = rally.locked === true;
 
   return (
     <div style={{ padding: '8px', borderTop: '1px solid var(--color-border)', marginTop: '8px' }}>
@@ -25,6 +26,7 @@ export default function DayPanel() {
           type="text"
           value={day.name}
           onChange={e => updateDaySettings(currentDayId, { name: e.target.value })}
+          disabled={locked}
           style={{ width: '100%', minHeight: '36px' }}
         />
       </div>
@@ -37,6 +39,7 @@ export default function DayPanel() {
           type="text"
           value={day.startTime}
           onChange={e => updateDaySettings(currentDayId, { startTime: e.target.value })}
+          disabled={locked}
           placeholder="08:00:00"
           style={{ width: '100%', minHeight: '36px' }}
         />
@@ -50,6 +53,7 @@ export default function DayPanel() {
           type="number"
           value={day.carIntervalSeconds}
           onChange={e => updateDaySettings(currentDayId, { carIntervalSeconds: parseInt(e.target.value) || 60 })}
+          disabled={locked}
           min={1}
           style={{ width: '100%', minHeight: '36px' }}
         />
@@ -63,6 +67,7 @@ export default function DayPanel() {
           type="number"
           value={day.numberOfCars}
           onChange={e => updateDaySettings(currentDayId, { numberOfCars: parseInt(e.target.value) || 1 })}
+          disabled={locked}
           min={1}
           style={{ width: '100%', minHeight: '36px' }}
         />
@@ -70,6 +75,7 @@ export default function DayPanel() {
 
       <button
         onClick={recalculateTimes}
+        disabled={locked}
         className="primary"
         style={{ width: '100%', fontSize: '14px' }}
       >

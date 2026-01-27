@@ -94,7 +94,8 @@ export default function AppShell() {
         redo();
       } else if (e.key === 'Insert' && !ctrl) {
         e.preventDefault();
-        useProjectStore.getState().addRow();
+        const s = useProjectStore.getState();
+        if (!s.isCurrentRallyLocked()) s.addRow();
       }
     };
 
@@ -151,6 +152,7 @@ export default function AppShell() {
   }, []);
 
   const currentRally = getCurrentRally();
+  const isLocked = currentRally?.locked === true;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -169,7 +171,7 @@ export default function AppShell() {
 
         <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
 
-        <button onClick={() => setShowImport(true)} disabled={!currentRally}>Import</button>
+        <button onClick={() => setShowImport(true)} disabled={!currentRally || isLocked}>Import</button>
         <button onClick={() => setShowExport(true)} disabled={!currentRally}>Export</button>
 
         <div style={{ flex: 1 }} />
@@ -180,7 +182,7 @@ export default function AppShell() {
 
         <div style={{ flex: 1 }} />
 
-        <button onClick={() => setShowSpeedTable(true)} disabled={!currentRally}>
+        <button onClick={() => setShowSpeedTable(true)} disabled={!currentRally || isLocked}>
           Speed Tables
         </button>
       </div>

@@ -120,6 +120,7 @@ export type RallyProjectV1 = RallyProject;
 export interface Rally {
   id: string;
   name: string;
+  locked?: boolean;
   createdAt: string;
   modifiedAt: string;
   days: RallyDay[];
