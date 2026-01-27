@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { ask } from '@tauri-apps/plugin-dialog';
 import { useProjectStore } from '../../state/projectStore';
 
 interface ContextMenu {
@@ -229,11 +230,14 @@ export default function ProjectTree() {
                 style={{ ...menuItemStyle, color: 'var(--color-danger)' }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                onClick={() => {
+                onClick={async () => {
+                  const rallyId = menu.rallyId;
                   setMenu(null);
-                  if (confirm('Remove this rally and all its days?')) {
-                    removeRally(menu.rallyId);
-                  }
+                  const confirmed = await ask('Remove this rally and all its days?', {
+                    title: 'Remove Rally',
+                    kind: 'warning',
+                  });
+                  if (confirmed) removeRally(rallyId);
                 }}
               >
                 Remove Rally
@@ -245,16 +249,20 @@ export default function ProjectTree() {
               style={{ ...menuItemStyle, color: 'var(--color-danger)' }}
               onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              onClick={() => {
+              onClick={async () => {
+                const rallyId = menu.rallyId;
+                const dayId = menu.dayId!;
                 setMenu(null);
-                const rally = workspace.rallies.find(r => r.id === menu.rallyId);
+                const rally = workspace.rallies.find(r => r.id === rallyId);
                 if (rally && rally.days.length <= 1) {
-                  alert('Cannot remove the last day in a rally.');
+                  await ask('Cannot remove the last day in a rally.', { title: 'Remove Day', kind: 'info' });
                   return;
                 }
-                if (confirm('Remove this day and all its rows?')) {
-                  removeDay(menu.dayId!);
-                }
+                const confirmed = await ask('Remove this day and all its rows?', {
+                  title: 'Remove Day',
+                  kind: 'warning',
+                });
+                if (confirmed) removeDay(dayId);
               }}
             >
               Remove Day
