@@ -56,7 +56,7 @@ interface ProjectState {
   redoStack: UndoEntry[];
 
   // Rally management
-  addRally: (name: string) => void;
+  addRally: (name: string, editionName?: string) => void;
   removeRally: (rallyId: string) => void;
   selectRally: (rallyId: string) => void;
   selectRallyDay: (rallyId: string, dayId: string) => void;
@@ -147,14 +147,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   // --- Rally management ---
 
-  addRally: (name: string) => {
+  addRally: (name: string, editionName?: string) => {
     let { workspace } = get();
     if (!workspace) {
       workspace = createEmptyWorkspaceV3();
     }
     const rally = createEmptyRallyV3(name);
     rally.speedLookupTable = getDefaultSpeedLookupTable();
-    const edition = createEmptyEdition(new Date().getFullYear().toString());
+    const edition = createEmptyEdition(editionName ?? new Date().getFullYear().toString());
     const day = createEmptyRouteDay('Day 1');
     const node = createEmptyRouteNode('Segment 1');
     day.nodes.push(node);

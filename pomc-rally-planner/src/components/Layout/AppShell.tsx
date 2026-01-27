@@ -8,7 +8,7 @@ import ProjectTree from '../Sidebar/ProjectTree';
 import DayPanel from '../Sidebar/DayPanel';
 import Toolbar from './Toolbar';
 import StatusBar from '../StatusBar';
-import NewRallyDialog from '../Dialogs/NewProjectDialog';
+import NewEditionDialog from '../Dialogs/NewProjectDialog';
 import ImportCsvDialog from '../Dialogs/ImportCsvDialog';
 import ExportDialog from '../Dialogs/ExportDialog';
 import SpeedTableDialog from '../Dialogs/SpeedTableDialog';
@@ -190,10 +190,10 @@ export default function AppShell() {
           gap: '16px',
         }}>
           <div style={{ fontSize: '24px', fontWeight: 700 }}>POMC Rally Planner</div>
-          <div>Create a new rally or open an existing workspace to get started.</div>
+          <div>Create a new edition or open an existing workspace to get started.</div>
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
             <button className="primary" onClick={() => setShowNewRally(true)}>
-              New Rally
+              New Edition
             </button>
             <button onClick={handleOpen}>
               Open Workspace
@@ -229,7 +229,7 @@ export default function AppShell() {
         background: 'var(--color-bg-secondary)',
         gap: '8px',
       }}>
-        <button onClick={() => setShowNewRally(true)}>New Rally</button>
+        <button onClick={() => setShowNewRally(true)}>New Edition</button>
         <button onClick={handleOpen}>Open</button>
         <button onClick={handleSave} disabled={!workspace}>Save</button>
 
@@ -320,7 +320,7 @@ export default function AppShell() {
       </div>
 
       {/* Dialogs */}
-      <NewRallyDialog open={showNewRally} onClose={() => setShowNewRally(false)} />
+      <NewEditionDialog open={showNewRally} onClose={() => setShowNewRally(false)} />
       <ImportCsvDialog open={showImport} onClose={() => setShowImport(false)} />
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} />
       <SpeedTableDialog open={showSpeedTable} onClose={() => setShowSpeedTable(false)} />
