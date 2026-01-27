@@ -1,0 +1,201 @@
+/* POMC Rally Planner - High Contrast, Accessible Theme */
+
+:root {
+  --color-bg: #FFFFFF;
+  --color-bg-secondary: #F5F5F5;
+  --color-bg-sidebar: #F0F0F0;
+  --color-text: #1A1A1A;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+  --color-border: #D0D0D0;
+  --color-border-strong: #999999;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-light: #DBEAFE;
+  --color-danger: #DC2626;
+  --color-danger-hover: #B91C1C;
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+
+  /* Row highlighting */
+  --color-row-export: #FFFDE7;       /* yellow - exportable rows */
+  --color-row-control: #E8F5E9;      /* green - marked controls */
+  --color-row-timeadd: #E3F2FD;      /* blue - time add rows */
+  --color-row-error: #FFEBEE;        /* red - validation errors */
+  --color-row-hover: #F0F4FF;
+
+  /* Fonts */
+  --font-base: 16px;
+  --font-grid: 15px;
+  --font-header: 18px;
+  --font-small: 14px;
+
+  --min-button-height: 44px;
+  --sidebar-width: 220px;
+  --toolbar-height: 48px;
+  --statusbar-height: 36px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: var(--font-base);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Buttons */
+button {
+  font-size: var(--font-base);
+  min-height: var(--min-button-height);
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+button:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-strong);
+}
+
+button:active {
+  background: var(--color-border);
+}
+
+button.primary {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+button.primary:hover {
+  background: var(--color-primary-hover);
+}
+
+button.danger {
+  background: var(--color-danger);
+  color: white;
+  border-color: var(--color-danger);
+}
+
+button.danger:hover {
+  background: var(--color-danger-hover);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Inputs */
+input, select {
+  font-size: var(--font-base);
+  min-height: var(--min-button-height);
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+input:focus, select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -1px;
+}
+
+/* Dialog / Modal overlay */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background: var(--color-bg);
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 400px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.dialog h2 {
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+
+.dialog .form-group {
+  margin-bottom: 16px;
+}
+
+.dialog .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: var(--font-small);
+  color: var(--color-text-secondary);
+}
+
+.dialog .form-group input,
+.dialog .form-group select {
+  width: 100%;
+}
+
+.dialog .dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+/* Tooltip style */
+[title] {
+  position: relative;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}

@@ -1,0 +1,72 @@
+/* AG Grid Accessibility Overrides - High Contrast, Large Font */
+
+.ag-theme-alpine {
+  --ag-font-size: 15px;
+  --ag-header-font-size: 16px;
+  --ag-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ag-foreground-color: #1A1A1A;
+  --ag-background-color: #FFFFFF;
+  --ag-header-foreground-color: #1A1A1A;
+  --ag-header-background-color: #E8E8E8;
+  --ag-odd-row-background-color: #FAFAFA;
+  --ag-row-hover-color: #F0F4FF;
+  --ag-selected-row-background-color: #DBEAFE;
+  --ag-range-selection-background-color: rgba(37, 99, 235, 0.15);
+  --ag-border-color: #D0D0D0;
+  --ag-header-column-separator-color: #B0B0B0;
+  --ag-row-border-color: #E0E0E0;
+  --ag-cell-horizontal-padding: 10px;
+  --ag-row-height: 36px;
+  --ag-header-height: 42px;
+  --ag-grid-size: 6px;
+}
+
+/* Row type coloring */
+.row-type-export {
+  background-color: var(--color-row-export, #FFFDE7) !important;
+}
+
+.row-type-control {
+  background-color: var(--color-row-control, #E8F5E9) !important;
+}
+
+.row-type-timeadd {
+  background-color: var(--color-row-timeadd, #E3F2FD) !important;
+}
+
+.row-type-error {
+  background-color: var(--color-row-error, #FFEBEE) !important;
+}
+
+/* Type code cell coloring */
+.cell-type-o { color: #1565C0; font-weight: 600; }
+.cell-type-f { color: #2E7D32; font-weight: 600; }
+.cell-type-d { color: #E65100; font-weight: 600; }
+.cell-type-u { color: #6A1B9A; font-weight: 600; }
+.cell-type-l { color: #AD1457; font-weight: 600; }
+.cell-type-m { color: #00695C; font-weight: 700; }
+.cell-type-t { color: #0277BD; font-weight: 700; }
+
+/* Curly brace annotation rendering */
+.clue-annotation {
+  color: #888888;
+  font-style: italic;
+}
+
+/* Make column headers more readable */
+.ag-header-cell-label {
+  font-weight: 700;
+}
+
+/* Ensure inputs in cells are readable */
+.ag-cell-edit-wrapper input,
+.ag-cell-edit-wrapper select {
+  font-size: 15px !important;
+  padding: 4px 8px;
+}
+
+/* Better focus indicator */
+.ag-cell-focus {
+  outline: 2px solid #2563EB !important;
+  outline-offset: -2px;
+}

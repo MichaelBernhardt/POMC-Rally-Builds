@@ -1,0 +1,110 @@
+import { useProjectStore } from '../../state/projectStore';
+import { GridApi } from 'ag-grid-community';
+
+interface ToolbarProps {
+  gridApi: GridApi | null;
+  onImport: () => void;
+  onExport: () => void;
+}
+
+export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
+  const project = useProjectStore(s => s.project);
+  const addRow = useProjectStore(s => s.addRow);
+  const deleteRows = useProjectStore(s => s.deleteRows);
+  const duplicateRow = useProjectStore(s => s.duplicateRow);
+  const undo = useProjectStore(s => s.undo);
+  const redo = useProjectStore(s => s.redo);
+  const undoStack = useProjectStore(s => s.undoStack);
+  const redoStack = useProjectStore(s => s.redoStack);
+  const recalculateTimes = useProjectStore(s => s.recalculateTimes);
+
+  const getSelectedRowIndex = (): number | null => {
+    if (!gridApi) return null;
+    const selected = gridApi.getSelectedRows();
+    if (selected.length === 0) return null;
+    let idx: number | null = null;
+    gridApi.forEachNode(node => {
+      if (node.data && selected.includes(node.data) && idx === null) {
+        idx = node.rowIndex;
+      }
+    });
+    return idx;
+  };
+
+  const getSelectedIndices = (): number[] => {
+    if (!gridApi) return [];
+    const indices: number[] = [];
+    const selected = gridApi.getSelectedRows();
+    gridApi.forEachNode(node => {
+      if (node.data && selected.includes(node.data) && node.rowIndex !== null) {
+        indices.push(node.rowIndex);
+      }
+    });
+    return indices;
+  };
+
+  const handleAddRow = () => {
+    const idx = getSelectedRowIndex();
+    addRow(idx ?? undefined);
+  };
+
+  const handleDeleteRows = () => {
+    const indices = getSelectedIndices();
+    if (indices.length === 0) return;
+    deleteRows(indices);
+  };
+
+  const handleDuplicateRow = () => {
+    const idx = getSelectedRowIndex();
+    if (idx === null) return;
+    duplicateRow(idx);
+  };
+
+  const disabled = !project;
+
+  return (
+    <div style={{
+      height: 'var(--toolbar-height)',
+      display: 'flex',
+      alignItems: 'center',
+      padding: '0 12px',
+      gap: '8px',
+      borderBottom: '1px solid var(--color-border)',
+      background: 'var(--color-bg)',
+    }}>
+      <button onClick={handleAddRow} disabled={disabled} title="Add row after selection (Insert)">
+        + Row
+      </button>
+      <button onClick={handleDeleteRows} disabled={disabled} title="Delete selected rows (Delete)">
+        - Row
+      </button>
+      <button onClick={handleDuplicateRow} disabled={disabled} title="Duplicate selected row">
+        Copy Row
+      </button>
+
+      <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
+
+      <button onClick={undo} disabled={disabled || undoStack.length === 0} title="Undo (Ctrl+Z)">
+        Undo
+      </button>
+      <button onClick={redo} disabled={disabled || redoStack.length === 0} title="Redo (Ctrl+Y)">
+        Redo
+      </button>
+
+      <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
+
+      <button onClick={recalculateTimes} disabled={disabled} className="primary" title="Recalculate all times">
+        Recalc Times
+      </button>
+
+      <div style={{ flex: 1 }} />
+
+      <button onClick={onImport} disabled={disabled} title="Import CSV file">
+        Import CSV
+      </button>
+      <button onClick={onExport} disabled={disabled} title="Export to CSV">
+        Export CSV
+      </button>
+    </div>
+  );
+}
