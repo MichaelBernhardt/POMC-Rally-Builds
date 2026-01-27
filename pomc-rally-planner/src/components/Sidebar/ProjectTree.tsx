@@ -15,7 +15,6 @@ export default function ProjectTree() {
   const currentRallyId = useProjectStore(s => s.currentRallyId);
   const currentDayId = useProjectStore(s => s.currentDayId);
   const selectRallyDay = useProjectStore(s => s.selectRallyDay);
-  const addRally = useProjectStore(s => s.addRally);
   const removeRally = useProjectStore(s => s.removeRally);
   const addDay = useProjectStore(s => s.addDay);
   const removeDay = useProjectStore(s => s.removeDay);
@@ -92,20 +91,9 @@ export default function ProjectTree() {
         }}>
           Rallies
         </div>
-        <div style={{ color: 'var(--color-text-muted)', fontSize: '14px', marginBottom: '12px' }}>
-          No rallies yet
+        <div style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>
+          No rallies yet. Use "New Rally" above to get started.
         </div>
-        <button
-          onClick={() => {
-            addRally('New Rally');
-            const state = useProjectStore.getState();
-            setEditName('New Rally');
-            setEditingRallyId(state.currentRallyId);
-          }}
-          style={{ fontSize: '14px', width: '100%' }}
-        >
-          + Add Rally
-        </button>
       </div>
     );
   }
@@ -214,34 +202,26 @@ export default function ProjectTree() {
                 ))}
 
                 {/* Add day button */}
-                <div style={{ marginTop: '4px' }}>
-                  <button
-                    onClick={() => addDay(`Day ${rally.days.length + 1}`)}
-                    style={{ width: '100%', fontSize: '12px', padding: '4px 8px', minHeight: '28px' }}
-                  >
-                    + Day
-                  </button>
+                <div
+                  onClick={() => addDay(`Day ${rally.days.length + 1}`)}
+                  style={{
+                    padding: '4px 8px',
+                    marginTop: '2px',
+                    fontSize: '12px',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-muted)')}
+                >
+                  + Add Day
                 </div>
               </div>
             )}
           </div>
         );
       })}
-
-      {/* Add rally button */}
-      <div style={{ marginTop: '8px', padding: '0 4px' }}>
-        <button
-          onClick={() => {
-            addRally('New Rally');
-            const state = useProjectStore.getState();
-            setEditName('New Rally');
-            setEditingRallyId(state.currentRallyId);
-          }}
-          style={{ width: '100%', fontSize: '13px' }}
-        >
-          + Add Rally
-        </button>
-      </div>
 
       {/* Context menu */}
       {menu && (
