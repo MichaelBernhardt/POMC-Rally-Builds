@@ -404,8 +404,6 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const { workspace, currentRallyId, currentEditionId } = get();
     if (!workspace || !currentRallyId || !currentEditionId) return;
     const day = createEmptyRouteDay(name);
-    const node = createEmptyRouteNode('Segment 1');
-    day.nodes.push(node);
     set({
       workspace: updateRallyV3(workspace, currentRallyId, r =>
         updateEdition(r, currentEditionId, e => ({
@@ -414,8 +412,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         })),
       ),
       currentDayId: day.id,
-      currentNodeId: node.id,
-      viewMode: 'grid',
+      currentNodeId: null,
+      viewMode: 'routeBuilder',
       isDirty: true,
     });
   },

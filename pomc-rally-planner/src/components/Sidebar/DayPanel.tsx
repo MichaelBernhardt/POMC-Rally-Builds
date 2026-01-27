@@ -16,25 +16,12 @@ export default function DayPanel() {
   return (
     <div style={{ padding: '8px', borderTop: '1px solid var(--color-border)', marginTop: '8px' }}>
       <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '12px', color: 'var(--color-text-secondary)' }}>
-        Day Settings
+        {day.name} Settings
       </div>
 
       {/* Node summary */}
       <div style={{ marginBottom: '10px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
         {day.nodes.length} {day.nodes.length === 1 ? 'node' : 'nodes'} / {totalRows} total rows
-      </div>
-
-      <div style={{ marginBottom: '10px' }}>
-        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px', color: 'var(--color-text-muted)' }}>
-          Day Name
-        </label>
-        <input
-          type="text"
-          value={day.name}
-          onChange={e => updateDaySettings(currentDayId, { name: e.target.value })}
-          disabled={locked}
-          style={{ width: '100%', minHeight: '36px' }}
-        />
       </div>
 
       <div style={{ marginBottom: '10px' }}>

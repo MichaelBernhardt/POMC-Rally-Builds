@@ -139,7 +139,7 @@ export default function RouteBuilder() {
                       >
                         Edit
                       </button>
-                      {!isLocked && (
+                      {!isLocked && index === nodes.length - 1 && (
                         <button
                           onClick={e => { e.stopPropagation(); removeRouteNode(node.id); }}
                           style={{ padding: '2px 8px', fontSize: '12px', color: 'var(--color-danger)' }}
