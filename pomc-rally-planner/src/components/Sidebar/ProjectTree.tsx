@@ -24,6 +24,9 @@ export default function ProjectTree() {
 
   const [menu, setMenu] = useState<ContextMenu | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [editingRallyId, setEditingRallyId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   // Close context menu on outside click or Escape
   useEffect(() => {
@@ -43,6 +46,21 @@ export default function ProjectTree() {
       document.removeEventListener('keydown', handleKey);
     };
   }, [menu]);
+
+  // Focus the inline edit input when editing starts
+  useEffect(() => {
+    if (editingRallyId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingRallyId]);
+
+  const commitRename = () => {
+    if (editingRallyId && editName.trim()) {
+      updateRallyName(editingRallyId, editName.trim());
+    }
+    setEditingRallyId(null);
+  };
 
   const handleRallyContext = (e: React.MouseEvent, rallyId: string) => {
     e.preventDefault();
@@ -79,8 +97,10 @@ export default function ProjectTree() {
         </div>
         <button
           onClick={() => {
-            const name = prompt('Rally name:', 'My Rally');
-            if (name?.trim()) addRally(name.trim());
+            addRally('New Rally');
+            const state = useProjectStore.getState();
+            setEditName('New Rally');
+            setEditingRallyId(state.currentRallyId);
           }}
           style={{ fontSize: '14px', width: '100%' }}
         >
@@ -111,7 +131,7 @@ export default function ProjectTree() {
           <div key={rally.id} style={{ marginBottom: '8px' }}>
             {/* Rally header */}
             <div
-              onClick={() => selectRally(rally.id)}
+              onClick={() => { if (!editingRallyId) selectRally(rally.id); }}
               onContextMenu={e => handleRallyContext(e, rally.id)}
               style={{
                 padding: '8px 8px',
@@ -126,16 +146,43 @@ export default function ProjectTree() {
                 alignItems: 'center',
               }}
             >
-              <span style={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
-                {rally.name}
-              </span>
-              <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', flexShrink: 0 }}>
-                {rally.days.length} {rally.days.length === 1 ? 'day' : 'days'}
-              </span>
+              {editingRallyId === rally.id ? (
+                <input
+                  ref={editInputRef}
+                  type="text"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  onBlur={commitRename}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') commitRename();
+                    if (e.key === 'Escape') setEditingRallyId(null);
+                  }}
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    flex: 1,
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    padding: '2px 4px',
+                    minHeight: '24px',
+                    border: '1px solid var(--color-primary)',
+                    borderRadius: '4px',
+                    outline: 'none',
+                  }}
+                />
+              ) : (
+                <span style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {rally.name}
+                </span>
+              )}
+              {editingRallyId !== rally.id && (
+                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', flexShrink: 0 }}>
+                  {rally.days.length} {rally.days.length === 1 ? 'day' : 'days'}
+                </span>
+              )}
             </div>
 
             {/* Days under this rally */}
@@ -185,8 +232,10 @@ export default function ProjectTree() {
       <div style={{ marginTop: '8px', padding: '0 4px' }}>
         <button
           onClick={() => {
-            const name = prompt('Rally name:', 'My Rally');
-            if (name?.trim()) addRally(name.trim());
+            addRally('New Rally');
+            const state = useProjectStore.getState();
+            setEditName('New Rally');
+            setEditingRallyId(state.currentRallyId);
           }}
           style={{ width: '100%', fontSize: '13px' }}
         >
@@ -218,10 +267,11 @@ export default function ProjectTree() {
                 onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 onClick={() => {
+                  const rallyId = menu.rallyId;
+                  const rally = workspace.rallies.find(r => r.id === rallyId);
                   setMenu(null);
-                  const rally = workspace.rallies.find(r => r.id === menu.rallyId);
-                  const name = prompt('Rename rally:', rally?.name ?? '');
-                  if (name?.trim()) updateRallyName(menu.rallyId, name.trim());
+                  setEditName(rally?.name ?? '');
+                  setEditingRallyId(rallyId);
                 }}
               >
                 Rename Rally

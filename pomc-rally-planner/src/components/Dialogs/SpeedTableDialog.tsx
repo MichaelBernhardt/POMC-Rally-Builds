@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ask } from '@tauri-apps/plugin-dialog';
 import { useProjectStore } from '../../state/projectStore';
 import { SpeedLookupEntry, TypeCode, TYPE_CODE_LABELS } from '../../types/domain';
 import { getDefaultSpeedLookupTable } from '../../engine/speedCalculator';
@@ -59,8 +60,12 @@ export default function SpeedTableDialog({ open: isOpen, onClose }: SpeedTableDi
     onClose();
   };
 
-  const handleResetDefaults = () => {
-    if (confirm('Reset all speed tables to DJ Rally defaults?')) {
+  const handleResetDefaults = async () => {
+    const confirmed = await ask('Reset all speed tables to DJ Rally defaults?', {
+      title: 'Reset Speed Tables',
+      kind: 'warning',
+    });
+    if (confirmed) {
       setEntries(getDefaultSpeedLookupTable());
     }
   };
