@@ -32,14 +32,16 @@
 
   --min-button-height: 44px;
   --sidebar-width: 220px;
-  --toolbar-height: 48px;
+  --toolbar-height: 56px;
   --statusbar-height: 36px;
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol, figure, blockquote, dl, dd {
   margin: 0;
-  padding: 0;
 }
 
 html, body, #root {
@@ -58,33 +60,36 @@ body {
 
 /* Buttons */
 button {
-  font-size: var(--font-base);
-  min-height: var(--min-button-height);
-  padding: 8px 16px;
-  border: 1px solid var(--color-border);
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 36px;
+  padding: 10px 36px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 6px;
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: white;
+  color: #333;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  transition: background 0.15s, border-color 0.15s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: background 0.15s, box-shadow 0.15s;
 }
 
 button:hover {
-  background: var(--color-bg-secondary);
-  border-color: var(--color-border-strong);
+  background: #F5F5F5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 button:active {
-  background: var(--color-border);
+  background: #EBEBEB;
+  box-shadow: none;
 }
 
 button.primary {
   background: var(--color-primary);
   color: white;
-  border-color: var(--color-primary);
 }
 
 button.primary:hover {
@@ -94,7 +99,6 @@ button.primary:hover {
 button.danger {
   background: var(--color-danger);
   color: white;
-  border-color: var(--color-danger);
 }
 
 button.danger:hover {
@@ -102,8 +106,13 @@ button.danger:hover {
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Reset AG Grid internal buttons */
+.ag-root-wrapper button {
+  all: revert;
 }
 
 /* Inputs */
@@ -120,6 +129,12 @@ input, select {
 input:focus, select:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: -1px;
+}
+
+/* Reset AG Grid internal inputs/selects */
+.ag-root-wrapper input,
+.ag-root-wrapper select {
+  all: revert;
 }
 
 /* Dialog / Modal overlay */
@@ -176,10 +191,7 @@ input:focus, select:focus {
   margin-top: 24px;
 }
 
-/* Tooltip style */
-[title] {
-  position: relative;
-}
+/* Tooltip style - scoped to avoid breaking AG Grid positioning */
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {

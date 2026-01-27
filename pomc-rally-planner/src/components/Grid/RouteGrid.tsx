@@ -8,6 +8,7 @@ import {
   RowClassRules,
   GridReadyEvent,
   GridApi,
+  themeAlpine,
 } from 'ag-grid-community';
 import { getColumnDefs } from './GridColumns';
 import { RouteRow } from '../../types/domain';
@@ -48,30 +49,73 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
 
   const onCellEditingStopped = useCallback((event: CellEditingStoppedEvent<RouteRow>) => {
     if (!event.data || event.rowIndex === null || event.rowIndex === undefined) return;
-    if (event.oldValue === event.newValue) return;
 
     const field = event.colDef.field as keyof RouteRow | undefined;
     if (!field) return;
 
-    pushUndo('Edit cell');
+    let newVal = event.newValue;
+    let oldVal = event.oldValue;
 
-    // Handle empty string for type codes -> null
-    let value = event.newValue;
-    if ((field === 'type' || field === 'suggestedType') && (value === '' || value === undefined)) {
-      value = null;
+    // Normalize type-code fields: treat '', undefined as null
+    if (field === 'type' || field === 'suggestedType') {
+      if (newVal === '' || newVal === undefined) newVal = null;
+      if (oldVal === '' || oldVal === undefined) oldVal = null;
     }
 
-    updateRow(event.rowIndex, { [field]: value });
+    // Normalize optional number fields: treat '', undefined as null
+    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber'];
+    if (optionalNumFields.includes(field)) {
+      if (newVal === '' || newVal === undefined) newVal = null;
+      if (oldVal === '' || oldVal === undefined) oldVal = null;
+      if (newVal !== null) newVal = parseFloat(newVal);
+      if (oldVal !== null) oldVal = parseFloat(oldVal);
+    }
+
+    // Normalize required number fields: parse to number, default 0
+    const requiredNumFields = [
+      'rallyDistance', 'aSpeed', 'bSpeed', 'cSpeed', 'dSpeed',
+      'speedLimit', 'lat', 'long',
+      'addTimeA', 'addTimeB', 'addTimeC', 'addTimeD',
+    ];
+    if (requiredNumFields.includes(field)) {
+      newVal = parseFloat(newVal) || 0;
+      oldVal = parseFloat(oldVal) || 0;
+    }
+
+    // Skip if no actual change
+    if (oldVal === newVal) return;
+
+    pushUndo('Edit cell');
+    updateRow(event.rowIndex, { [field]: newVal });
   }, [updateRow, pushUndo]);
 
   const handleGridReady = useCallback((event: GridReadyEvent) => {
     onGridReady?.(event.api);
   }, [onGridReady]);
 
+  const theme = useMemo(() => themeAlpine.withParams({
+    fontSize: 15,
+    headerFontSize: 16,
+    foregroundColor: '#1A1A1A',
+    backgroundColor: '#FFFFFF',
+    headerBackgroundColor: '#E8E8E8',
+    headerForegroundColor: '#1A1A1A',
+    oddRowBackgroundColor: '#FAFAFA',
+    rowHoverColor: '#F0F4FF',
+    selectedRowBackgroundColor: '#DBEAFE',
+    borderColor: '#D0D0D0',
+    rowBorderColor: '#E0E0E0',
+    cellHorizontalPadding: 10,
+    rowHeight: 36,
+    headerHeight: 42,
+    gridSize: 6,
+  }), []);
+
   return (
-    <div className="ag-theme-alpine" style={{ width: '100%', height: '100%' }}>
+    <div style={{ width: '100%', height: '100%' }}>
       <AgGridReact<RouteRow>
         ref={gridRef}
+        theme={theme}
         rowData={rows}
         columnDefs={columnDefs}
         defaultColDef={defaultColDef}
@@ -80,15 +124,10 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
         onCellEditingStopped={onCellEditingStopped}
         onGridReady={handleGridReady}
         rowSelection="multiple"
-        enableCellTextSelection={true}
-        ensureDomOrder={true}
         animateRows={false}
         undoRedoCellEditing={false}
         stopEditingWhenCellsLoseFocus={true}
-        singleClickEdit={true}
         tooltipShowDelay={500}
-        headerHeight={42}
-        rowHeight={36}
       />
     </div>
   );

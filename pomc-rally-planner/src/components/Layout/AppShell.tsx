@@ -30,6 +30,20 @@ export default function AppShell() {
   const undo = useProjectStore(s => s.undo);
   const redo = useProjectStore(s => s.redo);
 
+  // Auto-load last project on startup
+  const didAutoLoad = useRef(false);
+  useEffect(() => {
+    if (didAutoLoad.current) return;
+    didAutoLoad.current = true;
+    const autoLoadPath = '/Users/michael/Documents/GitHub/POMC_Rallies/pomc-rally-planner/2024-DJ-Rally.rally.json';
+    readTextFile(autoLoadPath)
+      .then(content => {
+        const data = JSON.parse(content);
+        loadProject(data, autoLoadPath);
+      })
+      .catch(() => { /* file not found, skip */ });
+  }, [loadProject]);
+
   // Auto-save timer
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -116,44 +130,29 @@ export default function AppShell() {
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        padding: '0 12px',
-        height: '40px',
+        padding: '6px 12px',
         borderBottom: '1px solid var(--color-border)',
         background: 'var(--color-bg-secondary)',
-        gap: '4px',
+        gap: '8px',
       }}>
-        <button style={{ minHeight: '32px', fontSize: '14px', padding: '4px 12px' }} onClick={() => setShowNewProject(true)}>
-          New
-        </button>
-        <button style={{ minHeight: '32px', fontSize: '14px', padding: '4px 12px' }} onClick={handleOpen}>
-          Open
-        </button>
-        <button style={{ minHeight: '32px', fontSize: '14px', padding: '4px 12px' }} onClick={handleSave} disabled={!project}>
-          Save
-        </button>
+        <button onClick={() => setShowNewProject(true)}>New</button>
+        <button onClick={handleOpen}>Open</button>
+        <button onClick={handleSave} disabled={!project}>Save</button>
 
-        <div style={{ width: '1px', height: '20px', background: 'var(--color-border)', margin: '0 8px' }} />
+        <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
 
-        <button style={{ minHeight: '32px', fontSize: '14px', padding: '4px 12px' }} onClick={() => setShowImport(true)} disabled={!project}>
-          Import
-        </button>
-        <button style={{ minHeight: '32px', fontSize: '14px', padding: '4px 12px' }} onClick={() => setShowExport(true)} disabled={!project}>
-          Export
-        </button>
+        <button onClick={() => setShowImport(true)} disabled={!project}>Import</button>
+        <button onClick={() => setShowExport(true)} disabled={!project}>Export</button>
 
         <div style={{ flex: 1 }} />
 
-        <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--color-text)' }}>
+        <span style={{ fontWeight: 700, fontSize: '18px', color: 'var(--color-text)' }}>
           POMC Rally Planner
         </span>
 
         <div style={{ flex: 1 }} />
 
-        <button
-          style={{ minHeight: '32px', fontSize: '14px', padding: '4px 12px' }}
-          onClick={() => setShowSpeedTable(true)}
-          disabled={!project}
-        >
+        <button onClick={() => setShowSpeedTable(true)} disabled={!project}>
           Speed Tables
         </button>
       </div>

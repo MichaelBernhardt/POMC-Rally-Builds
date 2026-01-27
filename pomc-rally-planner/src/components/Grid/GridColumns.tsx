@@ -1,6 +1,5 @@
 import { ColDef, ValueFormatterParams, ValueParserParams } from 'ag-grid-community';
 import { RouteRow, TYPE_CODES, TypeCode } from '../../types/domain';
-import { ClueCellRenderer, TypeCellRenderer } from './CellRenderers';
 
 function numberParser(params: ValueParserParams): number {
   const val = parseFloat(params.newValue);
@@ -177,7 +176,6 @@ export function getColumnDefs(): ColDef<RouteRow>[] {
       flex: 1,
       editable: true,
       headerTooltip: 'Route instruction text. {Curly braces} contain annotations stripped on clean export.',
-      cellRenderer: ClueCellRenderer,
     },
     {
       headerName: 'Lat',

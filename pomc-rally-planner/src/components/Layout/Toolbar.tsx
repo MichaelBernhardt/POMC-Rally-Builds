@@ -64,10 +64,9 @@ export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
 
   return (
     <div style={{
-      height: 'var(--toolbar-height)',
       display: 'flex',
       alignItems: 'center',
-      padding: '0 12px',
+      padding: '6px 12px',
       gap: '8px',
       borderBottom: '1px solid var(--color-border)',
       background: 'var(--color-bg)',
