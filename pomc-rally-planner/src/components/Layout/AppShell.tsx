@@ -267,12 +267,6 @@ export default function AppShell() {
 
         <div style={{ flex: 1 }} />
 
-        {/* Back button */}
-        {viewMode !== 'grid' && (
-          <button onClick={() => setViewMode('grid')}>
-            Back to Grid
-          </button>
-        )}
         {viewMode === 'grid' && editingTemplateId && (
           <button onClick={() => useProjectStore.getState().setEditingTemplate(null)}>
             Back to Library

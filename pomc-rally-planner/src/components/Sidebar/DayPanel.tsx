@@ -5,9 +5,11 @@ export default function DayPanel() {
   const rally = useProjectStore(s => s.getCurrentRally());
   const day = useProjectStore(s => s.getCurrentDay());
   const currentDayId = useProjectStore(s => s.currentDayId);
+  const viewMode = useProjectStore(s => s.viewMode);
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
   if (!rally || !currentDayId || !day) return null;
+  if (viewMode === 'library') return null;
   const locked = rally.locked === true;
   const totalRows = flattenDayRows(day).length;
 

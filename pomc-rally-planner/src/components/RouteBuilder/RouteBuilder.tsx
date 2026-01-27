@@ -7,7 +7,6 @@ export default function RouteBuilder() {
   const day = useProjectStore(s => s.getCurrentDay());
   const selectNode = useProjectStore(s => s.selectNode);
   const removeRouteNode = useProjectStore(s => s.removeRouteNode);
-  const moveRouteNode = useProjectStore(s => s.moveRouteNode);
   const renameRouteNode = useProjectStore(s => s.renameRouteNode);
   const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
 
@@ -28,7 +27,7 @@ export default function RouteBuilder() {
       <div style={{ flex: 1, padding: '20px', overflow: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
-            Route Builder: {day.name}
+            Route Builder: <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>{rally.name}</span> {day.name}
           </h2>
           <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
             {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}
@@ -134,27 +133,6 @@ export default function RouteBuilder() {
                     </div>
 
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      {/* Move buttons */}
-                      {!isLocked && (
-                        <>
-                          <button
-                            disabled={index === 0}
-                            onClick={e => { e.stopPropagation(); moveRouteNode(index, index - 1); }}
-                            title="Move up"
-                            style={{ padding: '2px 6px', fontSize: '12px' }}
-                          >
-                            Up
-                          </button>
-                          <button
-                            disabled={index === nodes.length - 1}
-                            onClick={e => { e.stopPropagation(); moveRouteNode(index, index + 1); }}
-                            title="Move down"
-                            style={{ padding: '2px 6px', fontSize: '12px' }}
-                          >
-                            Dn
-                          </button>
-                        </>
-                      )}
                       <button
                         onClick={e => { e.stopPropagation(); selectNode(node.id); }}
                         style={{ padding: '2px 8px', fontSize: '12px' }}
