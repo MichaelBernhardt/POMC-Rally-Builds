@@ -17,7 +17,8 @@ export default function ImportCsvDialog({ open: isOpen, onClose }: ImportCsvDial
   const [loading, setLoading] = useState(false);
 
   const importRows = useProjectStore(s => s.importRows);
-  const project = useProjectStore(s => s.project);
+  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
+  const currentRally = getCurrentRally();
 
   if (!isOpen) return null;
 
@@ -69,9 +70,9 @@ export default function ImportCsvDialog({ open: isOpen, onClose }: ImportCsvDial
       <div className="dialog" onClick={e => e.stopPropagation()} style={{ minWidth: '550px' }}>
         <h2>Import CSV</h2>
 
-        {!project && (
+        {!currentRally && (
           <div style={{ color: 'var(--color-danger)', marginBottom: '16px' }}>
-            Please create or open a project first.
+            Please create or open a rally first.
           </div>
         )}
 
@@ -85,7 +86,7 @@ export default function ImportCsvDialog({ open: isOpen, onClose }: ImportCsvDial
               placeholder="Select a CSV file..."
               style={{ flex: 1 }}
             />
-            <button onClick={handleBrowse} disabled={!project}>Browse</button>
+            <button onClick={handleBrowse} disabled={!currentRally}>Browse</button>
           </div>
         </div>
 
@@ -125,7 +126,7 @@ export default function ImportCsvDialog({ open: isOpen, onClose }: ImportCsvDial
           <button
             className="primary"
             onClick={handleImport}
-            disabled={!filePath || rowCount === 0 || !project}
+            disabled={!filePath || rowCount === 0 || !currentRally}
           >
             Import {rowCount > 0 ? `${rowCount} Rows` : ''}
           </button>

@@ -1,29 +1,29 @@
 import { useState } from 'react';
 import { useProjectStore } from '../../state/projectStore';
 
-interface NewProjectDialogProps {
+interface NewRallyDialogProps {
   open: boolean;
   onClose: () => void;
 }
 
-export default function NewProjectDialog({ open, onClose }: NewProjectDialogProps) {
+export default function NewRallyDialog({ open, onClose }: NewRallyDialogProps) {
   const [name, setName] = useState('My Rally');
-  const newProject = useProjectStore(s => s.newProject);
+  const addRally = useProjectStore(s => s.addRally);
 
   if (!open) return null;
 
   const handleCreate = () => {
     if (!name.trim()) return;
-    newProject(name.trim());
+    addRally(name.trim());
     onClose();
   };
 
   return (
     <div className="dialog-overlay" onClick={onClose}>
       <div className="dialog" onClick={e => e.stopPropagation()}>
-        <h2>New Project</h2>
+        <h2>New Rally</h2>
         <div className="form-group">
-          <label>Project Name</label>
+          <label>Rally Name</label>
           <input
             type="text"
             value={name}
@@ -35,7 +35,7 @@ export default function NewProjectDialog({ open, onClose }: NewProjectDialogProp
         <div className="dialog-actions">
           <button onClick={onClose}>Cancel</button>
           <button className="primary" onClick={handleCreate} disabled={!name.trim()}>
-            Create Project
+            Create Rally
           </button>
         </div>
       </div>

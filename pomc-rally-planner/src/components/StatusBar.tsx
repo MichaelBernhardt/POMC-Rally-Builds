@@ -1,12 +1,13 @@
 import { useProjectStore } from '../state/projectStore';
 
 export default function StatusBar() {
-  const project = useProjectStore(s => s.project);
+  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
   const currentDayId = useProjectStore(s => s.currentDayId);
   const isDirty = useProjectStore(s => s.isDirty);
   const lastSaved = useProjectStore(s => s.lastSaved);
 
-  const day = project?.days.find(d => d.id === currentDayId);
+  const rally = getCurrentRally();
+  const day = rally?.days.find(d => d.id === currentDayId);
   const rows = day?.rows ?? [];
   const exportableRows = rows.filter(r => r.type !== null);
   const maxDist = rows.length > 0 ? rows[rows.length - 1]?.rallyDistance ?? 0 : 0;

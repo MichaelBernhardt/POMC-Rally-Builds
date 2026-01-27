@@ -103,7 +103,7 @@ export interface SpeedLookupEntry {
   dSpeed: number;
 }
 
-/** The complete project file */
+/** The complete project file (v1 format — single rally per file) */
 export interface RallyProject {
   version: number;
   name: string;
@@ -113,10 +113,31 @@ export interface RallyProject {
   speedLookupTable: SpeedLookupEntry[];
 }
 
-/** Create a new empty project */
-export function createEmptyProject(name: string): RallyProject {
+/** Alias for migration code */
+export type RallyProjectV1 = RallyProject;
+
+/** A single rally within a workspace */
+export interface Rally {
+  id: string;
+  name: string;
+  createdAt: string;
+  modifiedAt: string;
+  days: RallyDay[];
+  speedLookupTable: SpeedLookupEntry[];
+}
+
+/** Workspace file (v2 format — multiple rallies per file) */
+export interface RallyWorkspace {
+  version: number; // 2
+  createdAt: string;
+  modifiedAt: string;
+  rallies: Rally[];
+}
+
+/** Create a new empty rally */
+export function createEmptyRally(name: string): Rally {
   return {
-    version: 1,
+    id: crypto.randomUUID(),
     name,
     createdAt: new Date().toISOString(),
     modifiedAt: new Date().toISOString(),
@@ -124,6 +145,17 @@ export function createEmptyProject(name: string): RallyProject {
     speedLookupTable: [],
   };
 }
+
+/** Create a new empty workspace */
+export function createEmptyWorkspace(): RallyWorkspace {
+  return {
+    version: 2,
+    createdAt: new Date().toISOString(),
+    modifiedAt: new Date().toISOString(),
+    rallies: [],
+  };
+}
+
 
 /** CSV export row - matches the 15-column scoring program schema */
 export interface CsvExportRow {

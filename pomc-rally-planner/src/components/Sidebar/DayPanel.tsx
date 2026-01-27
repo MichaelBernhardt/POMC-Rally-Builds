@@ -1,13 +1,14 @@
 import { useProjectStore } from '../../state/projectStore';
 
 export default function DayPanel() {
-  const project = useProjectStore(s => s.project);
+  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
   const currentDayId = useProjectStore(s => s.currentDayId);
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
 
-  if (!project || !currentDayId) return null;
-  const day = project.days.find(d => d.id === currentDayId);
+  const rally = getCurrentRally();
+  if (!rally || !currentDayId) return null;
+  const day = rally.days.find(d => d.id === currentDayId);
   if (!day) return null;
 
   return (

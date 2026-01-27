@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import {
-  RallyProject,
+  Rally,
+  RallyWorkspace,
   RallyDay,
   RouteRow,
-  createEmptyProject,
+  createEmptyRally,
+  createEmptyWorkspace,
   createEmptyDay,
   createEmptyRow,
   SpeedLookupEntry,
@@ -16,9 +18,25 @@ interface UndoEntry {
   description: string;
 }
 
+/** Helper: immutably update the rally matching rallyId within a workspace */
+function updateCurrentRally(
+  workspace: RallyWorkspace,
+  rallyId: string,
+  updater: (rally: Rally) => Rally,
+): RallyWorkspace {
+  return {
+    ...workspace,
+    rallies: workspace.rallies.map(r =>
+      r.id === rallyId ? updater(r) : r,
+    ),
+    modifiedAt: new Date().toISOString(),
+  };
+}
+
 interface ProjectState {
-  // Project data
-  project: RallyProject | null;
+  // Workspace data
+  workspace: RallyWorkspace | null;
+  currentRallyId: string | null;
   currentDayId: string | null;
   filePath: string | null;
   isDirty: boolean;
@@ -28,11 +46,19 @@ interface ProjectState {
   undoStack: UndoEntry[];
   redoStack: UndoEntry[];
 
-  // Actions
-  newProject: (name: string) => void;
-  loadProject: (project: RallyProject, filePath: string) => void;
+  // Rally management
+  addRally: (name: string) => void;
+  removeRally: (rallyId: string) => void;
+  selectRally: (rallyId: string) => void;
+  selectRallyDay: (rallyId: string, dayId: string) => void;
+  updateRallyName: (rallyId: string, name: string) => void;
+  getCurrentRally: () => Rally | null;
+
+  // Workspace I/O
+  loadWorkspace: (workspace: RallyWorkspace, filePath: string) => void;
   setFilePath: (path: string) => void;
   markSaved: () => void;
+  getWorkspaceForSave: () => RallyWorkspace | null;
 
   // Day management
   addDay: (name: string) => void;
@@ -63,11 +89,11 @@ interface ProjectState {
   // Getters
   getCurrentDay: () => RallyDay | null;
   getCurrentRows: () => RouteRow[];
-  getProjectForSave: () => RallyProject | null;
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
-  project: null,
+  workspace: null,
+  currentRallyId: null,
   currentDayId: null,
   filePath: null,
   isDirty: false,
@@ -75,25 +101,96 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   undoStack: [],
   redoStack: [],
 
-  newProject: (name: string) => {
-    const project = createEmptyProject(name);
-    project.speedLookupTable = getDefaultSpeedLookupTable();
+  // --- Rally management ---
+
+  addRally: (name: string) => {
+    let { workspace } = get();
+    if (!workspace) {
+      workspace = createEmptyWorkspace();
+    }
+    const rally = createEmptyRally(name);
+    rally.speedLookupTable = getDefaultSpeedLookupTable();
     const day = createEmptyDay('Day 1');
-    project.days.push(day);
+    rally.days.push(day);
     set({
-      project,
+      workspace: {
+        ...workspace,
+        rallies: [...workspace.rallies, rally],
+        modifiedAt: new Date().toISOString(),
+      },
+      currentRallyId: rally.id,
       currentDayId: day.id,
-      filePath: null,
-      isDirty: false,
+      isDirty: true,
       undoStack: [],
       redoStack: [],
     });
   },
 
-  loadProject: (project: RallyProject, filePath: string) => {
+  removeRally: (rallyId: string) => {
+    const { workspace, currentRallyId } = get();
+    if (!workspace) return;
+    const rallies = workspace.rallies.filter(r => r.id !== rallyId);
+    const removedCurrent = currentRallyId === rallyId;
+    const nextRally = removedCurrent ? (rallies[0] ?? null) : workspace.rallies.find(r => r.id === currentRallyId) ?? null;
     set({
-      project,
-      currentDayId: project.days[0]?.id ?? null,
+      workspace: { ...workspace, rallies, modifiedAt: new Date().toISOString() },
+      currentRallyId: removedCurrent ? (nextRally?.id ?? null) : currentRallyId,
+      currentDayId: removedCurrent ? (nextRally?.days[0]?.id ?? null) : get().currentDayId,
+      isDirty: true,
+      undoStack: [],
+      redoStack: [],
+    });
+  },
+
+  selectRally: (rallyId: string) => {
+    const { workspace } = get();
+    if (!workspace) return;
+    const rally = workspace.rallies.find(r => r.id === rallyId);
+    if (!rally) return;
+    set({
+      currentRallyId: rallyId,
+      currentDayId: rally.days[0]?.id ?? null,
+      undoStack: [],
+      redoStack: [],
+    });
+  },
+
+  selectRallyDay: (rallyId: string, dayId: string) => {
+    set({
+      currentRallyId: rallyId,
+      currentDayId: dayId,
+      undoStack: [],
+      redoStack: [],
+    });
+  },
+
+  updateRallyName: (rallyId: string, name: string) => {
+    const { workspace } = get();
+    if (!workspace) return;
+    set({
+      workspace: updateCurrentRally(workspace, rallyId, r => ({
+        ...r,
+        name,
+        modifiedAt: new Date().toISOString(),
+      })),
+      isDirty: true,
+    });
+  },
+
+  getCurrentRally: () => {
+    const { workspace, currentRallyId } = get();
+    if (!workspace || !currentRallyId) return null;
+    return workspace.rallies.find(r => r.id === currentRallyId) ?? null;
+  },
+
+  // --- Workspace I/O ---
+
+  loadWorkspace: (workspace: RallyWorkspace, filePath: string) => {
+    const firstRally = workspace.rallies[0] ?? null;
+    set({
+      workspace,
+      currentRallyId: firstRally?.id ?? null,
+      currentDayId: firstRally?.days[0]?.id ?? null,
       filePath,
       isDirty: false,
       lastSaved: new Date().toLocaleTimeString(),
@@ -109,27 +206,44 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     lastSaved: new Date().toLocaleTimeString(),
   }),
 
+  getWorkspaceForSave: () => {
+    const { workspace } = get();
+    if (!workspace) return null;
+    return {
+      ...workspace,
+      modifiedAt: new Date().toISOString(),
+    };
+  },
+
+  // --- Day management (scoped to current rally) ---
+
   addDay: (name: string) => {
-    const { project } = get();
-    if (!project) return;
+    const { workspace, currentRallyId } = get();
+    if (!workspace || !currentRallyId) return;
     const day = createEmptyDay(name);
     set({
-      project: {
-        ...project,
-        days: [...project.days, day],
+      workspace: updateCurrentRally(workspace, currentRallyId, r => ({
+        ...r,
+        days: [...r.days, day],
         modifiedAt: new Date().toISOString(),
-      },
+      })),
       currentDayId: day.id,
       isDirty: true,
     });
   },
 
   removeDay: (dayId: string) => {
-    const { project, currentDayId } = get();
-    if (!project) return;
-    const days = project.days.filter(d => d.id !== dayId);
+    const { workspace, currentRallyId, currentDayId } = get();
+    if (!workspace || !currentRallyId) return;
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    if (!rally) return;
+    const days = rally.days.filter(d => d.id !== dayId);
     set({
-      project: { ...project, days, modifiedAt: new Date().toISOString() },
+      workspace: updateCurrentRally(workspace, currentRallyId, r => ({
+        ...r,
+        days,
+        modifiedAt: new Date().toISOString(),
+      })),
       currentDayId: currentDayId === dayId ? (days[0]?.id ?? null) : currentDayId,
       isDirty: true,
     });
@@ -138,31 +252,29 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   selectDay: (dayId: string) => set({ currentDayId: dayId, undoStack: [], redoStack: [] }),
 
   updateDaySettings: (dayId, settings) => {
-    const { project } = get();
-    if (!project) return;
+    const { workspace, currentRallyId } = get();
+    if (!workspace || !currentRallyId) return;
     set({
-      project: {
-        ...project,
-        days: project.days.map(d =>
-          d.id === dayId ? { ...d, ...settings } : d
-        ),
+      workspace: updateCurrentRally(workspace, currentRallyId, r => ({
+        ...r,
+        days: r.days.map(d => d.id === dayId ? { ...d, ...settings } : d),
         modifiedAt: new Date().toISOString(),
-      },
+      })),
       isDirty: true,
     });
   },
 
+  // --- Row management (scoped to current rally + current day) ---
+
   setRows: (rows: RouteRow[]) => {
-    const { project, currentDayId } = get();
-    if (!project || !currentDayId) return;
+    const { workspace, currentRallyId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentDayId) return;
     set({
-      project: {
-        ...project,
-        days: project.days.map(d =>
-          d.id === currentDayId ? { ...d, rows } : d
-        ),
+      workspace: updateCurrentRally(workspace, currentRallyId, r => ({
+        ...r,
+        days: r.days.map(d => d.id === currentDayId ? { ...d, rows } : d),
         modifiedAt: new Date().toISOString(),
-      },
+      })),
       isDirty: true,
     });
   },
@@ -175,7 +287,6 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const rows = [...day.rows];
     const newRow = createEmptyRow();
     if (afterIndex !== undefined && afterIndex >= 0) {
-      // Copy distance from previous row as starting point
       if (rows[afterIndex]) {
         newRow.rallyDistance = rows[afterIndex].rallyDistance;
         newRow.speedLimit = rows[afterIndex].speedLimit;
@@ -208,22 +319,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   updateRow: (index: number, updates: Partial<RouteRow>) => {
-    const { project, currentDayId } = get();
-    if (!project || !currentDayId) return;
-    const day = project.days.find(d => d.id === currentDayId);
+    const { workspace, currentRallyId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentDayId) return;
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    if (!rally) return;
+    const day = rally.days.find(d => d.id === currentDayId);
     if (!day || !day.rows[index]) return;
 
     const newRows = [...day.rows];
     newRows[index] = { ...newRows[index], ...updates };
 
     set({
-      project: {
-        ...project,
-        days: project.days.map(d =>
-          d.id === currentDayId ? { ...d, rows: newRows } : d
-        ),
+      workspace: updateCurrentRally(workspace, currentRallyId, r => ({
+        ...r,
+        days: r.days.map(d => d.id === currentDayId ? { ...d, rows: newRows } : d),
         modifiedAt: new Date().toISOString(),
-      },
+      })),
       isDirty: true,
     });
   },
@@ -235,11 +346,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (!day) return;
     const rows = [...day.rows];
     const moved = fromIndices.sort((a, b) => a - b).map(i => rows[i]);
-    // Remove from original positions (reverse order to preserve indices)
     for (let i = fromIndices.length - 1; i >= 0; i--) {
       rows.splice(fromIndices[i], 1);
     }
-    // Insert at target
     const insertAt = Math.min(toIndex, rows.length);
     rows.splice(insertAt, 0, ...moved);
     get().setRows(rows);
@@ -254,6 +363,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
     get().setRows(rows);
   },
+
+  // --- Undo/redo ---
 
   undo: () => {
     const { undoStack, redoStack, getCurrentDay, setRows } = get();
@@ -286,15 +397,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const day = getCurrentDay();
     if (!day) return;
     const newStack = [...undoStack, { rows: [...day.rows], description }];
-    // Limit undo stack to 50 entries
     if (newStack.length > 50) newStack.shift();
     set({ undoStack: newStack, redoStack: [] });
   },
 
+  // --- Computation ---
+
   recalculateTimes: () => {
-    const { project, currentDayId, setRows } = get();
-    if (!project || !currentDayId) return;
-    const day = project.days.find(d => d.id === currentDayId);
+    const { currentDayId, setRows, getCurrentDay } = get();
+    if (!currentDayId) return;
+    const day = getCurrentDay();
     if (!day) return;
 
     const updatedRows = computeTimes(
@@ -306,38 +418,37 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     setRows(updatedRows);
   },
 
+  // --- Speed tables (scoped to current rally) ---
+
   updateSpeedLookupTable: (table: SpeedLookupEntry[]) => {
-    const { project } = get();
-    if (!project) return;
+    const { workspace, currentRallyId } = get();
+    if (!workspace || !currentRallyId) return;
     set({
-      project: {
-        ...project,
+      workspace: updateCurrentRally(workspace, currentRallyId, r => ({
+        ...r,
         speedLookupTable: table,
         modifiedAt: new Date().toISOString(),
-      },
+      })),
       isDirty: true,
     });
   },
 
+  // --- Getters ---
+
   getCurrentDay: () => {
-    const { project, currentDayId } = get();
-    if (!project || !currentDayId) return null;
-    return project.days.find(d => d.id === currentDayId) ?? null;
+    const { workspace, currentRallyId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentDayId) return null;
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    if (!rally) return null;
+    return rally.days.find(d => d.id === currentDayId) ?? null;
   },
 
   getCurrentRows: () => {
-    const { project, currentDayId } = get();
-    if (!project || !currentDayId) return [];
-    const day = project.days.find(d => d.id === currentDayId);
+    const { workspace, currentRallyId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentDayId) return [];
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    if (!rally) return [];
+    const day = rally.days.find(d => d.id === currentDayId);
     return day?.rows ?? [];
-  },
-
-  getProjectForSave: () => {
-    const { project } = get();
-    if (!project) return null;
-    return {
-      ...project,
-      modifiedAt: new Date().toISOString(),
-    };
   },
 }));

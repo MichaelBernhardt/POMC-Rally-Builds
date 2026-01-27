@@ -8,41 +8,30 @@ import ProjectTree from '../Sidebar/ProjectTree';
 import DayPanel from '../Sidebar/DayPanel';
 import Toolbar from './Toolbar';
 import StatusBar from '../StatusBar';
-import NewProjectDialog from '../Dialogs/NewProjectDialog';
+import NewRallyDialog from '../Dialogs/NewProjectDialog';
 import ImportCsvDialog from '../Dialogs/ImportCsvDialog';
 import ExportDialog from '../Dialogs/ExportDialog';
 import SpeedTableDialog from '../Dialogs/SpeedTableDialog';
+import { detectFileVersion, migrateV1ToWorkspace } from '../../engine/migration';
+import { RallyProjectV1 } from '../../types/domain';
 
 export default function AppShell() {
-  const [showNewProject, setShowNewProject] = useState(false);
+  const [showNewRally, setShowNewRally] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showSpeedTable, setShowSpeedTable] = useState(false);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
 
-  const project = useProjectStore(s => s.project);
+  const workspace = useProjectStore(s => s.workspace);
   const filePath = useProjectStore(s => s.filePath);
   const isDirty = useProjectStore(s => s.isDirty);
-  const loadProject = useProjectStore(s => s.loadProject);
+  const loadWorkspace = useProjectStore(s => s.loadWorkspace);
   const setFilePath = useProjectStore(s => s.setFilePath);
   const markSaved = useProjectStore(s => s.markSaved);
-  const getProjectForSave = useProjectStore(s => s.getProjectForSave);
+  const getWorkspaceForSave = useProjectStore(s => s.getWorkspaceForSave);
+  const getCurrentRally = useProjectStore(s => s.getCurrentRally);
   const undo = useProjectStore(s => s.undo);
   const redo = useProjectStore(s => s.redo);
-
-  // Auto-load last project on startup
-  const didAutoLoad = useRef(false);
-  useEffect(() => {
-    if (didAutoLoad.current) return;
-    didAutoLoad.current = true;
-    const autoLoadPath = '/Users/michael/Documents/GitHub/POMC_Rallies/pomc-rally-planner/2024-DJ-Rally.rally.json';
-    readTextFile(autoLoadPath)
-      .then(content => {
-        const data = JSON.parse(content);
-        loadProject(data, autoLoadPath);
-      })
-      .catch(() => { /* file not found, skip */ });
-  }, [loadProject]);
 
   // Auto-save timer
   const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -50,8 +39,8 @@ export default function AppShell() {
   useEffect(() => {
     autoSaveRef.current = setInterval(() => {
       const state = useProjectStore.getState();
-      if (state.project && state.filePath && state.isDirty) {
-        const data = state.getProjectForSave();
+      if (state.workspace && state.filePath && state.isDirty) {
+        const data = state.getWorkspaceForSave();
         if (data) {
           const backupPath = state.filePath.replace(/\.rally\.json$/, '.backup.json');
           writeTextFile(backupPath, JSON.stringify(data, null, 2)).catch(console.error);
@@ -89,14 +78,15 @@ export default function AppShell() {
   }, [undo, redo]);
 
   const handleSave = useCallback(async () => {
-    const data = getProjectForSave();
+    const data = getWorkspaceForSave();
     if (!data) return;
 
     let savePath = filePath;
     if (!savePath) {
+      const firstRallyName = data.rallies[0]?.name ?? 'workspace';
       const selected = await saveDialog({
-        defaultPath: `${data.name}.rally.json`,
-        filters: [{ name: 'Rally Project', extensions: ['rally.json'] }],
+        defaultPath: `${firstRallyName}.rally.json`,
+        filters: [{ name: 'Rally Workspace', extensions: ['rally.json'] }],
       });
       if (!selected) return;
       savePath = selected;
@@ -105,24 +95,35 @@ export default function AppShell() {
 
     await writeTextFile(savePath, JSON.stringify(data, null, 2));
     markSaved();
-  }, [filePath, getProjectForSave, setFilePath, markSaved]);
+  }, [filePath, getWorkspaceForSave, setFilePath, markSaved]);
 
   const handleOpen = useCallback(async () => {
     const selected = await openDialog({
       multiple: false,
-      filters: [{ name: 'Rally Project', extensions: ['rally.json'] }],
+      filters: [{ name: 'Rally Workspace', extensions: ['rally.json'] }],
     });
     if (!selected) return;
 
     const path = typeof selected === 'string' ? selected : selected;
     const content = await readTextFile(path);
     const data = JSON.parse(content);
-    loadProject(data, path);
-  }, [loadProject]);
+
+    const version = detectFileVersion(data);
+    if (version === 1) {
+      const ws = migrateV1ToWorkspace(data as RallyProjectV1);
+      loadWorkspace(ws, path);
+      // Mark dirty so saving converts to v2 format
+      useProjectStore.setState({ isDirty: true });
+    } else {
+      loadWorkspace(data, path);
+    }
+  }, [loadWorkspace]);
 
   const handleGridReady = useCallback((api: GridApi) => {
     setGridApi(api);
   }, []);
+
+  const currentRally = getCurrentRally();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -135,14 +136,14 @@ export default function AppShell() {
         background: 'var(--color-bg-secondary)',
         gap: '8px',
       }}>
-        <button onClick={() => setShowNewProject(true)}>New</button>
+        <button onClick={() => setShowNewRally(true)}>New Rally</button>
         <button onClick={handleOpen}>Open</button>
-        <button onClick={handleSave} disabled={!project}>Save</button>
+        <button onClick={handleSave} disabled={!workspace}>Save</button>
 
         <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
 
-        <button onClick={() => setShowImport(true)} disabled={!project}>Import</button>
-        <button onClick={() => setShowExport(true)} disabled={!project}>Export</button>
+        <button onClick={() => setShowImport(true)} disabled={!currentRally}>Import</button>
+        <button onClick={() => setShowExport(true)} disabled={!currentRally}>Export</button>
 
         <div style={{ flex: 1 }} />
 
@@ -152,7 +153,7 @@ export default function AppShell() {
 
         <div style={{ flex: 1 }} />
 
-        <button onClick={() => setShowSpeedTable(true)} disabled={!project}>
+        <button onClick={() => setShowSpeedTable(true)} disabled={!currentRally}>
           Speed Tables
         </button>
       </div>
@@ -182,7 +183,7 @@ export default function AppShell() {
           />
 
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            {project ? (
+            {currentRally ? (
               <RouteGrid onGridReady={handleGridReady} />
             ) : (
               <div style={{
@@ -196,13 +197,13 @@ export default function AppShell() {
                 gap: '16px',
               }}>
                 <div style={{ fontSize: '24px', fontWeight: 700 }}>POMC Rally Planner</div>
-                <div>Create a new project or open an existing one to get started.</div>
+                <div>Create a new rally or open an existing workspace to get started.</div>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-                  <button className="primary" onClick={() => setShowNewProject(true)}>
-                    New Project
+                  <button className="primary" onClick={() => setShowNewRally(true)}>
+                    New Rally
                   </button>
                   <button onClick={handleOpen}>
-                    Open Project
+                    Open Workspace
                   </button>
                 </div>
               </div>
@@ -214,7 +215,7 @@ export default function AppShell() {
       </div>
 
       {/* Dialogs */}
-      <NewProjectDialog open={showNewProject} onClose={() => setShowNewProject(false)} />
+      <NewRallyDialog open={showNewRally} onClose={() => setShowNewRally(false)} />
       <ImportCsvDialog open={showImport} onClose={() => setShowImport(false)} />
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} />
       <SpeedTableDialog open={showSpeedTable} onClose={() => setShowSpeedTable(false)} />
