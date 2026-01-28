@@ -104,6 +104,7 @@ interface ProjectState {
   setNodeTemplateRows: (templateId: string, rows: RouteRow[]) => void;
   setAllowedPreviousNodes: (templateId: string, allowedIds: string[]) => void;
   setEditingTemplate: (templateId: string | null) => void;
+  pushToTemplate: (nodeId: string) => boolean;
 
   // Row management (scoped to current node or editing template)
   setRows: (rows: RouteRow[]) => void;
@@ -722,6 +723,42 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     });
   },
 
+  pushToTemplate: (nodeId: string) => {
+    const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return false;
+
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    if (!rally) return false;
+
+    const edition = rally.editions.find(e => e.id === currentEditionId);
+    if (!edition) return false;
+
+    const day = edition.days.find(d => d.id === currentDayId);
+    if (!day) return false;
+
+    const node = day.nodes.find(n => n.id === nodeId);
+    if (!node || !node.sourceNodeId) return false;
+
+    const template = rally.nodeLibrary.find(t => t.id === node.sourceNodeId);
+    if (!template) return false;
+
+    // Deep copy node's rows with new UUIDs to template
+    const newRows = node.rows.map(r => ({ ...r, id: crypto.randomUUID() }));
+
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r => ({
+        ...r,
+        nodeLibrary: r.nodeLibrary.map(t =>
+          t.id === node.sourceNodeId ? { ...t, rows: newRows } : t,
+        ),
+        modifiedAt: new Date().toISOString(),
+      })),
+      isDirty: true,
+    });
+
+    return true;
+  },
+
   // --- Row management ---
 
   setRows: (rows: RouteRow[]) => {
@@ -1028,4 +1065,25 @@ export const selectCurrentRows = (s: ProjectState): RouteRow[] => {
   }
   const node = selectCurrentNode(s);
   return node?.rows ?? EMPTY_ROWS;
+};
+
+/** Find the source template for a given node ID */
+export const selectSourceTemplateForNode = (s: ProjectState, nodeId: string): NodeTemplate | null => {
+  const rally = selectCurrentRally(s);
+  if (!rally) return null;
+
+  const day = selectCurrentDay(s);
+  if (!day) return null;
+
+  const node = day.nodes.find(n => n.id === nodeId);
+  if (!node || !node.sourceNodeId) return null;
+
+  return rally.nodeLibrary.find(t => t.id === node.sourceNodeId) ?? null;
+};
+
+/** Find a node by ID in the current day */
+export const selectNodeById = (s: ProjectState, nodeId: string): RouteNode | null => {
+  const day = selectCurrentDay(s);
+  if (!day) return null;
+  return day.nodes.find(n => n.id === nodeId) ?? null;
 };
