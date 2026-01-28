@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import {
   AllCommunityModule,
@@ -14,6 +14,7 @@ import { RouteRow } from '../../types/domain';
 import { useProjectStore } from '../../state/projectStore';
 import { validateNodeConnections } from '../../engine/validator';
 import NodePalette from './NodePalette';
+import ExportDialog from '../Dialogs/ExportDialog';
 import '../../styles/grid-theme.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -29,6 +30,7 @@ export default function RouteBuilder() {
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
   const tab = useProjectStore(s => s.routeBuilderTab);
   const setTab = useProjectStore(s => s.setRouteBuilderTab);
+  const [showExport, setShowExport] = useState(false);
 
   const columnDefs = useMemo(() => getColumnDefs(), []);
   const getRowId = useCallback((params: GetRowIdParams<RouteRow>) => params.data.id, []);
@@ -155,14 +157,24 @@ export default function RouteBuilder() {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <button
-                onClick={recalculateTimes}
-                disabled={isLocked}
-                className="primary"
-                style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
-              >
-                Recalc Times
-              </button>
+              {tab === 'table' && (
+                <>
+                  <button
+                    onClick={recalculateTimes}
+                    disabled={isLocked}
+                    className="primary"
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                  >
+                    Recalc Times
+                  </button>
+                  <button
+                    onClick={() => setShowExport(true)}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                  >
+                    Export CSV
+                  </button>
+                </>
+              )}
               <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
                 {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}
               </span>
@@ -314,6 +326,8 @@ export default function RouteBuilder() {
           <NodePalette />
         </div>
       )}
+
+      <ExportDialog open={showExport} onClose={() => setShowExport(false)} />
     </div>
   );
 }

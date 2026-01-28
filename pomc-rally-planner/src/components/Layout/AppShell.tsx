@@ -10,7 +10,6 @@ import Toolbar from './Toolbar';
 import StatusBar from '../StatusBar';
 import NewEditionDialog from '../Dialogs/NewProjectDialog';
 import ImportCsvDialog from '../Dialogs/ImportCsvDialog';
-import ExportDialog from '../Dialogs/ExportDialog';
 import SpeedTableDialog from '../Dialogs/SpeedTableDialog';
 import NodeLibraryPanel from '../NodeLibrary/NodeLibraryPanel';
 import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
@@ -35,7 +34,6 @@ function migrateToV3(data: unknown): RallyWorkspaceV3 {
 export default function AppShell() {
   const [showNewRally, setShowNewRally] = useState(false);
   const [showImport, setShowImport] = useState(false);
-  const [showExport, setShowExport] = useState(false);
   const [showSpeedTable, setShowSpeedTable] = useState(false);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -279,10 +277,6 @@ export default function AppShell() {
         <button onClick={handleSave} disabled={!workspace}>Save</button>
         <button onClick={handleSaveAs} disabled={!workspace}>Save As</button>
 
-        <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
-
-        <button onClick={() => setShowImport(true)} disabled={!currentRally || isLocked}>Import</button>
-
         <div style={{ flex: 1 }} />
 
         {/* Breadcrumb */}
@@ -372,7 +366,6 @@ export default function AppShell() {
             <Toolbar
               gridApi={gridApi}
               onImport={() => setShowImport(true)}
-              onExport={() => setShowExport(true)}
             />
           )}
 
@@ -387,7 +380,6 @@ export default function AppShell() {
       {/* Dialogs */}
       <NewEditionDialog open={showNewRally} onClose={() => setShowNewRally(false)} />
       <ImportCsvDialog open={showImport} onClose={() => setShowImport(false)} />
-      <ExportDialog open={showExport} onClose={() => setShowExport(false)} />
       <SpeedTableDialog open={showSpeedTable} onClose={() => setShowSpeedTable(false)} />
     </div>
   );

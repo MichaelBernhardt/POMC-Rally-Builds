@@ -4,10 +4,9 @@ import { GridApi } from 'ag-grid-community';
 interface ToolbarProps {
   gridApi: GridApi | null;
   onImport: () => void;
-  onExport: () => void;
 }
 
-export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
+export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
   const currentRally = useProjectStore(s => s.getCurrentRally());
   const addRow = useProjectStore(s => s.addRow);
   const deleteRows = useProjectStore(s => s.deleteRows);
@@ -102,9 +101,6 @@ export default function Toolbar({ gridApi, onImport, onExport }: ToolbarProps) {
 
       <button onClick={onImport} disabled={disabled || locked} title="Import CSV file">
         Import CSV
-      </button>
-      <button onClick={onExport} disabled={disabled} title="Export to CSV">
-        Export CSV
       </button>
     </div>
   );
