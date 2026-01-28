@@ -137,7 +137,7 @@ export default function ProjectTree() {
           Rallies
         </div>
         <div style={{ color: 'var(--color-text-muted)', fontSize: '14px' }}>
-          No rallies yet. Use "New Rally" above to get started.
+          No rallies yet. Use "New Edition" to get started.
         </div>
       </div>
     );
