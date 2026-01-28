@@ -362,7 +362,7 @@ export default function AppShell() {
 
         {/* Main area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {viewMode === 'grid' && (
+          {viewMode === 'grid' && currentRally && (
             <Toolbar
               gridApi={gridApi}
               onImport={() => setShowImport(true)}
