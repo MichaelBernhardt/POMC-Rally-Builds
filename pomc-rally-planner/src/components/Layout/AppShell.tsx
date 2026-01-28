@@ -38,6 +38,7 @@ export default function AppShell() {
   const [showExport, setShowExport] = useState(false);
   const [showSpeedTable, setShowSpeedTable] = useState(false);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const workspace = useProjectStore(s => s.workspace);
   const filePath = useProjectStore(s => s.filePath);
@@ -302,17 +303,43 @@ export default function AppShell() {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Sidebar */}
         <div style={{
-          width: 'var(--sidebar-width)',
-          borderRight: '1px solid var(--color-border)',
+          width: sidebarOpen ? 'var(--sidebar-width)' : '0px',
+          minWidth: sidebarOpen ? 'var(--sidebar-width)' : '0px',
+          borderRight: sidebarOpen ? '1px solid var(--color-border)' : 'none',
           background: 'var(--color-bg-sidebar)',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'auto',
+          overflow: 'hidden',
+          transition: 'width 0.2s ease, min-width 0.2s ease',
         }}>
-          <ProjectTree />
-          <div style={{ flex: 1 }} />
-          <DayPanel />
+          <div style={{ width: 'var(--sidebar-width)', overflow: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <ProjectTree />
+            <div style={{ flex: 1 }} />
+            <DayPanel />
+          </div>
         </div>
+
+        {/* Sidebar toggle */}
+        <button
+          onClick={() => setSidebarOpen(o => !o)}
+          title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+          style={{
+            width: '20px',
+            minWidth: '20px',
+            border: 'none',
+            borderRight: '1px solid var(--color-border)',
+            background: 'var(--color-bg-secondary)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            fontSize: '12px',
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          {sidebarOpen ? '\u25C0' : '\u25B6'}
+        </button>
 
         {/* Main area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
