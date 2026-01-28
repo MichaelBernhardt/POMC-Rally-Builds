@@ -401,7 +401,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       currentEditionId: editionId,
       currentDayId: day?.id ?? null,
       currentNodeId: node?.id ?? null,
-      viewMode: 'grid',
+      viewMode: 'routeBuilder',
       editingTemplateId: null,
       undoStack: [],
       redoStack: [],
