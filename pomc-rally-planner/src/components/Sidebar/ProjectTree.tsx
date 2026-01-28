@@ -451,23 +451,28 @@ export default function ProjectTree() {
                 }}>
                   Rename Day
                 </div>
-                {!menuRally?.locked && (
-                  <div style={{ ...menuItemStyle, color: 'var(--color-danger)' }} {...hoverHandlers} onClick={async () => {
-                    const dayId = menu.dayId!;
-                    setMenu(null);
-                    if (edition && edition.days.length <= 1) {
-                      await ask('Cannot remove the last day in an edition.', { title: 'Remove Day', kind: 'info' });
-                      return;
-                    }
-                    const confirmed = await ask('Remove this day and all its nodes?', {
-                      title: 'Remove Day',
-                      kind: 'warning',
-                    });
-                    if (confirmed) removeDay(dayId);
-                  }}>
-                    Remove Day
-                  </div>
-                )}
+                {!menuRally?.locked && (() => {
+                  const isLastDay = edition != null && edition.days.length <= 1;
+                  return (
+                    <div style={{
+                      ...menuItemStyle,
+                      color: isLastDay ? 'var(--color-text-muted)' : 'var(--color-danger)',
+                      cursor: isLastDay ? 'default' : 'pointer',
+                      opacity: isLastDay ? 0.5 : 1,
+                    }} {...(isLastDay ? {} : hoverHandlers)} onClick={async () => {
+                      if (isLastDay) return;
+                      const dayId = menu.dayId!;
+                      setMenu(null);
+                      const confirmed = await ask('Remove this day and all its nodes?', {
+                        title: 'Remove Day',
+                        kind: 'warning',
+                      });
+                      if (confirmed) removeDay(dayId);
+                    }}>
+                      Remove Day
+                    </div>
+                  );
+                })()}
               </>
             );
           })()}
