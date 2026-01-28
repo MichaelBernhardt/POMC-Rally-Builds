@@ -24,6 +24,8 @@ export interface RouteRow {
   suggestedType: TypeCode | null;
   suggestedASpeed: number | null;
   rallyDistance: number;
+  checkDist: number | null;
+  verified: boolean;
   type: TypeCode | null;
   instructionNumber: number | null;
   aSpeed: number;
@@ -52,6 +54,8 @@ export function createEmptyRow(id?: string): RouteRow {
     suggestedType: null,
     suggestedASpeed: null,
     rallyDistance: 0,
+    checkDist: null,
+    verified: false,
     type: null,
     instructionNumber: null,
     aSpeed: 0,
@@ -190,6 +194,7 @@ export interface RouteDay {
   startTime: string; // HH:MM:SS
   carIntervalSeconds: number;
   numberOfCars: number;
+  reconDistanceTolerance: number;
   nodes: RouteNode[];
 }
 
@@ -201,6 +206,7 @@ export function createEmptyRouteDay(name: string): RouteDay {
     startTime: '08:00:00',
     carIntervalSeconds: 60,
     numberOfCars: 30,
+    reconDistanceTolerance: 0.01,
     nodes: [],
   };
 }

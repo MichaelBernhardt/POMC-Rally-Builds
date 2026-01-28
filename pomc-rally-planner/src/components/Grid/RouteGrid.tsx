@@ -12,7 +12,7 @@ import {
 } from 'ag-grid-community';
 import { getColumnDefs } from './GridColumns';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore, selectCurrentRows, selectIsCurrentRallyLocked } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRows, selectIsCurrentRallyLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import '../../styles/grid-theme.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -25,10 +25,12 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const rows = useProjectStore(selectCurrentRows);
   const isLocked = useProjectStore(selectIsCurrentRallyLocked);
+  const reconMode = useProjectStore(selectReconMode);
+  const reconTolerance = useProjectStore(selectReconTolerance);
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
 
-  const columnDefs = useMemo(() => getColumnDefs(), []);
+  const columnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance }), [reconMode, reconTolerance]);
 
   const defaultColDef = useMemo(() => ({
     sortable: false,
@@ -65,7 +67,7 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
     }
 
     // Normalize optional number fields: treat '', undefined as null
-    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber'];
+    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist'];
     if (optionalNumFields.includes(field)) {
       if (newVal === '' || newVal === undefined) newVal = null;
       if (oldVal === '' || oldVal === undefined) oldVal = null;

@@ -66,6 +66,24 @@ export default function DayPanel() {
         />
       </div>
 
+      <div style={{ marginBottom: '12px' }}>
+        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px', color: 'var(--color-text-muted)' }}>
+          Recon Distance Tolerance (km)
+        </label>
+        <input
+          type="number"
+          step="0.01"
+          min={0}
+          value={day.reconDistanceTolerance ?? 0.01}
+          onChange={e => {
+            const next = parseFloat(e.target.value);
+            updateDaySettings(currentDayId, { reconDistanceTolerance: Number.isFinite(next) ? next : 0.01 });
+          }}
+          disabled={locked}
+          style={{ width: '100%', minHeight: '36px' }}
+        />
+      </div>
+
       <button
         onClick={recalculateTimes}
         disabled={locked}

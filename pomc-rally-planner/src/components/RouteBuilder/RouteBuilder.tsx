@@ -11,7 +11,7 @@ import {
 import { getColumnDefs } from '../Grid/GridColumns';
 import { flattenDayRows } from '../../state/storeHelpers';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentRallyLocked } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentRallyLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import { validateNodeConnections } from '../../engine/validator';
 import NodePalette from './NodePalette';
 import ExportDialog from '../Dialogs/ExportDialog';
@@ -28,11 +28,14 @@ export default function RouteBuilder() {
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
+  const reconMode = useProjectStore(selectReconMode);
+  const reconTolerance = useProjectStore(selectReconTolerance);
+  const toggleReconMode = useProjectStore(s => s.toggleReconMode);
   const tab = useProjectStore(s => s.routeBuilderTab);
   const setTab = useProjectStore(s => s.setRouteBuilderTab);
   const [showExport, setShowExport] = useState(false);
 
-  const columnDefs = useMemo(() => getColumnDefs(), []);
+  const columnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance }), [reconMode, reconTolerance]);
   const getRowId = useCallback((params: GetRowIdParams<RouteRow>) => params.data.id, []);
 
   const rowClassRules = useMemo<RowClassRules<RouteRow>>(() => ({
@@ -83,7 +86,7 @@ export default function RouteBuilder() {
     }
 
     // Normalize optional number fields: treat '', undefined as null
-    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber'];
+    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist'];
     if (optionalNumFields.includes(field)) {
       if (newVal === '' || newVal === undefined) newVal = null;
       if (oldVal === '' || oldVal === undefined) oldVal = null;
@@ -166,6 +169,13 @@ export default function RouteBuilder() {
                     style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
                   >
                     Recalc Times
+                  </button>
+                  <button
+                    onClick={toggleReconMode}
+                    className={reconMode ? 'primary' : undefined}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                  >
+                    Recon Mode
                   </button>
                   <button
                     onClick={() => setShowExport(true)}

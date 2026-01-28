@@ -52,6 +52,9 @@ interface ProjectState {
   routeBuilderTab: 'nodes' | 'table';
   editingTemplateId: string | null;
 
+  // Recon mode (UI-only, not persisted)
+  reconMode: boolean;
+
   // Undo/redo
   undoStack: UndoEntry[];
   redoStack: UndoEntry[];
@@ -83,7 +86,7 @@ interface ProjectState {
   addDay: (name: string) => void;
   removeDay: (dayId: string) => void;
   selectDay: (dayId: string) => void;
-  updateDaySettings: (dayId: string, settings: Partial<Pick<RouteDay, 'startTime' | 'carIntervalSeconds' | 'numberOfCars' | 'name'>>) => void;
+  updateDaySettings: (dayId: string, settings: Partial<Pick<RouteDay, 'startTime' | 'carIntervalSeconds' | 'numberOfCars' | 'name' | 'reconDistanceTolerance'>>) => void;
 
   // Node management (route building)
   placeNode: (templateId: string, afterIndex?: number) => void;
@@ -125,6 +128,7 @@ interface ProjectState {
   // View mode
   setViewMode: (mode: ViewMode) => void;
   setRouteBuilderTab: (tab: 'nodes' | 'table') => void;
+  toggleReconMode: () => void;
 
   // Getters
   getCurrentEdition: () => RallyEdition | null;
@@ -146,6 +150,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   viewMode: 'grid',
   routeBuilderTab: 'nodes',
   editingTemplateId: null,
+  reconMode: false,
   undoStack: [],
   redoStack: [],
 
@@ -912,6 +917,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({ routeBuilderTab: tab });
   },
 
+  toggleReconMode: () => {
+    set(s => ({ reconMode: !s.reconMode }));
+  },
+
   // --- Getters ---
 
   getCurrentEdition: () => {
@@ -999,6 +1008,13 @@ export const selectIsCurrentRallyLocked = (s: ProjectState): boolean => {
   if (!s.workspace || !s.currentRallyId) return false;
   const rally = s.workspace.rallies.find(r => r.id === s.currentRallyId);
   return rally?.locked === true;
+};
+
+export const selectReconMode = (s: ProjectState): boolean => s.reconMode;
+
+export const selectReconTolerance = (s: ProjectState): number => {
+  const day = selectCurrentDay(s);
+  return day?.reconDistanceTolerance ?? 0.01;
 };
 
 export const selectCurrentRows = (s: ProjectState): RouteRow[] => {

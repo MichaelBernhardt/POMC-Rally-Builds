@@ -1,4 +1,4 @@
-import { useProjectStore, selectCurrentRally, selectIsCurrentRallyLocked } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectIsCurrentRallyLocked, selectReconMode } from '../../state/projectStore';
 import { GridApi } from 'ag-grid-community';
 
 interface ToolbarProps {
@@ -16,6 +16,8 @@ export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
   const undoStack = useProjectStore(s => s.undoStack);
   const redoStack = useProjectStore(s => s.redoStack);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
+  const reconMode = useProjectStore(selectReconMode);
+  const toggleReconMode = useProjectStore(s => s.toggleReconMode);
   const isLocked = useProjectStore(selectIsCurrentRallyLocked);
 
   const getSelectedRowIndex = (): number | null => {
@@ -95,6 +97,14 @@ export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
 
       <button onClick={recalculateTimes} disabled={disabled || locked} className="primary" title="Recalculate all times">
         Recalc Times
+      </button>
+      <button
+        onClick={toggleReconMode}
+        disabled={disabled}
+        className={reconMode ? 'primary' : undefined}
+        title="Toggle reconnaissance mode (show check/verify columns)"
+      >
+        Recon Mode
       </button>
 
       <div style={{ flex: 1 }} />

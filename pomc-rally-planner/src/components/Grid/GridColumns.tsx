@@ -1,4 +1,5 @@
-import { ColDef, ValueFormatterParams, ValueParserParams } from 'ag-grid-community';
+import { ColDef, ValueFormatterParams, ValueParserParams, ValueGetterParams } from 'ag-grid-community';
+import type { CSSProperties } from 'react';
 import { RouteRow, TYPE_CODES, TypeCode } from '../../types/domain';
 
 function numberParser(params: ValueParserParams): number {
@@ -22,13 +23,60 @@ function numberFormatter(decimals: number) {
   };
 }
 
+function percentFormatter(decimals: number) {
+  return (params: ValueFormatterParams): string => {
+    const val = params.value;
+    if (val === null || val === undefined || val === '') return '';
+    return `${(Number(val) * 100).toFixed(decimals)}%`;
+  };
+}
+
 function typeCodeFormatter(params: ValueFormatterParams): string {
   const val = params.value as TypeCode | null;
   if (!val) return '';
   return val;
 }
 
-export function getColumnDefs(): ColDef<RouteRow>[] {
+interface ReconOptions {
+  reconMode: boolean;
+  tolerance: number;
+}
+
+export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
+  const reconOn = recon?.reconMode ?? false;
+  const tolerance = Math.max(0, recon?.tolerance ?? 0.01);
+  const criticalTolerance = tolerance * 2;
+  const epsilon = tolerance * 0.1;
+
+  const getBaseDistances = (params: ValueGetterParams<RouteRow>) => {
+    const first = params.api.getDisplayedRowAtIndex(0)?.data;
+    if (!first) return null;
+    const baseCheck = first.checkDist ?? 0;
+    const baseRally = first.rallyDistance ?? 0;
+    return { baseCheck, baseRally };
+  };
+
+  const getDelta = (params: ValueGetterParams<RouteRow>): number | null => {
+    const base = getBaseDistances(params);
+    const row = params.data;
+    if (!base || !row) return null;
+    if (row.checkDist === null || row.checkDist === undefined) return null;
+    if (row.rallyDistance === null || row.rallyDistance === undefined) return null;
+    return (row.checkDist - base.baseCheck) - (row.rallyDistance - base.baseRally);
+  };
+
+  const getError = (params: ValueGetterParams<RouteRow>): number | null => {
+    const base = getBaseDistances(params);
+    const row = params.data;
+    if (!base || !row) return null;
+    if (row.checkDist === null || row.checkDist === undefined) return null;
+    if (row.rallyDistance === null || row.rallyDistance === undefined) return null;
+    const denom = row.checkDist - base.baseCheck;
+    if (denom === 0) return 0;
+    const delta = (row.checkDist - base.baseCheck) - (row.rallyDistance - base.baseRally);
+    return delta / denom;
+  };
+
   return [
     {
       headerName: '#',
@@ -40,6 +88,16 @@ export function getColumnDefs(): ColDef<RouteRow>[] {
       filter: false,
       suppressMovable: true,
       cellStyle: { color: '#888', textAlign: 'center' },
+    },
+    {
+      headerName: 'V',
+      field: 'verified',
+      width: 40,
+      pinned: 'left',
+      hide: !reconOn,
+      cellRenderer: 'agCheckboxCellRenderer',
+      cellEditor: 'agCheckboxCellEditor',
+      headerTooltip: 'Verified during reconnaissance',
     },
     {
       headerName: 'BB Pg',
@@ -80,6 +138,62 @@ export function getColumnDefs(): ColDef<RouteRow>[] {
       valueFormatter: numberFormatter(2),
       headerTooltip: 'Cumulative rally distance (km)',
       cellStyle: { fontWeight: '600' },
+    },
+    {
+      headerName: 'Check Dist',
+      field: 'checkDist',
+      width: 100,
+      hide: !reconOn,
+      valueParser: optionalNumberParser,
+      valueFormatter: numberFormatter(2),
+      headerTooltip: 'Measured distance during reconnaissance (km)',
+      cellStyle: { textAlign: 'right' },
+    },
+    {
+      headerName: 'Δ',
+      valueGetter: getDelta,
+      width: 80,
+      hide: !reconOn,
+      editable: false,
+      valueFormatter: numberFormatter(2),
+      headerTooltip: 'Delta between checked and planned distance (km)',
+      cellStyle: (params) => {
+        const base: CSSProperties = { textAlign: 'right' };
+        if (!reconOn) return base;
+        const delta = params.value;
+        if (delta === null || delta === undefined || delta === '') return base;
+        const absDelta = Math.abs(Number(delta));
+        if (absDelta > criticalTolerance) {
+          return { ...base, backgroundColor: '#FFC7CE' };
+        }
+        if (absDelta >= tolerance && absDelta <= criticalTolerance + epsilon) {
+          return { ...base, backgroundColor: '#FFEB9C' };
+        }
+        if (absDelta <= tolerance + epsilon) {
+          return { ...base, backgroundColor: '#C6EFCE' };
+        }
+        return base;
+      },
+    },
+    {
+      headerName: 'Err %',
+      valueGetter: getError,
+      width: 80,
+      hide: !reconOn,
+      editable: false,
+      valueFormatter: percentFormatter(1),
+      headerTooltip: 'Percent error vs planned distance',
+      cellStyle: (params) => {
+        const base: CSSProperties = { textAlign: 'right' };
+        if (!reconOn) return base;
+        const err = params.value;
+        if (err === null || err === undefined || err === '') return base;
+        const val = Number(err);
+        if (val > 0.01 || val < -0.01) {
+          return { ...base, backgroundColor: '#FFC7CE' };
+        }
+        return base;
+      },
     },
     {
       headerName: 'Typ',
@@ -132,7 +246,15 @@ export function getColumnDefs(): ColDef<RouteRow>[] {
       width: 70,
       valueParser: numberParser,
       headerTooltip: 'Speed group D (km/h)',
-      cellStyle: { textAlign: 'right' },
+      cellStyle: (params) => {
+        const base: CSSProperties = { textAlign: 'right' };
+        const dSpeed = params.data?.dSpeed;
+        const speedLimit = params.data?.speedLimit;
+        if (dSpeed != null && speedLimit != null && speedLimit > 0 && dSpeed > 0.9 * speedLimit) {
+          return { ...base, backgroundColor: '#FF9999' };
+        }
+        return base;
+      },
     },
     {
       headerName: 'Limit',

@@ -83,6 +83,7 @@ function migrateRallyV2ToV3(rally: Rally): RallyV3 {
       startTime: day.startTime,
       carIntervalSeconds: day.carIntervalSeconds,
       numberOfCars: day.numberOfCars,
+      reconDistanceTolerance: 0.01,
       nodes: [node],
     };
   });

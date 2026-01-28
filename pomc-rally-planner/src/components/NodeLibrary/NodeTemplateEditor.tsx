@@ -66,7 +66,7 @@ export default function NodeTemplateEditor() {
       if (oldVal === '' || oldVal === undefined) oldVal = null;
     }
 
-    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber'];
+    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist'];
     if (optionalNumFields.includes(field)) {
       if (newVal === '' || newVal === undefined) newVal = null;
       if (oldVal === '' || oldVal === undefined) oldVal = null;
