@@ -99,7 +99,10 @@ export default function AppShell() {
     const handler = (e: KeyboardEvent) => {
       const ctrl = e.ctrlKey || e.metaKey;
 
-      if (ctrl && e.key === 's') {
+      if (ctrl && e.shiftKey && e.key === 's') {
+        e.preventDefault();
+        handleSaveAs();
+      } else if (ctrl && e.key === 's') {
         e.preventDefault();
         handleSave();
       } else if (ctrl && e.key === 'z' && !e.shiftKey) {
@@ -147,6 +150,23 @@ export default function AppShell() {
     await writeTextFile(savePath, JSON.stringify(data, null, 2));
     markSaved();
     localStorage.setItem(LAST_FILE_KEY, savePath);
+  }, [filePath, getWorkspaceForSave, setFilePath, markSaved]);
+
+  const handleSaveAs = useCallback(async () => {
+    const data = getWorkspaceForSave();
+    if (!data) return;
+
+    const firstRallyName = data.rallies[0]?.name ?? 'workspace';
+    const selected = await saveDialog({
+      defaultPath: filePath ?? `${firstRallyName}.rally.json`,
+      filters: [{ name: 'Rally Workspace', extensions: ['rally.json'] }],
+    });
+    if (!selected) return;
+
+    setFilePath(selected);
+    await writeTextFile(selected, JSON.stringify(data, null, 2));
+    markSaved();
+    localStorage.setItem(LAST_FILE_KEY, selected);
   }, [filePath, getWorkspaceForSave, setFilePath, markSaved]);
 
   const handleOpen = useCallback(async () => {
@@ -231,11 +251,11 @@ export default function AppShell() {
         <button onClick={() => setShowNewRally(true)}>New Edition</button>
         <button onClick={handleOpen}>Open</button>
         <button onClick={handleSave} disabled={!workspace}>Save</button>
+        <button onClick={handleSaveAs} disabled={!workspace}>Save As</button>
 
         <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
 
         <button onClick={() => setShowImport(true)} disabled={!currentRally || isLocked}>Import</button>
-        <button onClick={() => setShowExport(true)} disabled={!currentRally}>Export</button>
 
         <div style={{ flex: 1 }} />
 
