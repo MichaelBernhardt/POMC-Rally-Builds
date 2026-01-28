@@ -51,8 +51,18 @@ export default function AppShell() {
   const undo = useProjectStore(s => s.undo);
   const redo = useProjectStore(s => s.redo);
   const viewMode = useProjectStore(s => s.viewMode);
+  const routeBuilderTab = useProjectStore(s => s.routeBuilderTab);
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
   const setViewMode = useProjectStore(s => s.setViewMode);
+
+  // Auto-hide sidebar when Route Builder is in table view
+  useEffect(() => {
+    if (viewMode === 'routeBuilder' && routeBuilderTab === 'table') {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  }, [viewMode, routeBuilderTab]);
 
   // Auto-load last workspace on startup
   useEffect(() => {

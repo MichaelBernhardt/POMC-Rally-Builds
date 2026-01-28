@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import {
   AllCommunityModule,
@@ -27,8 +27,8 @@ export default function RouteBuilder() {
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
-
-  const [tab, setTab] = useState<'nodes' | 'table'>('nodes');
+  const tab = useProjectStore(s => s.routeBuilderTab);
+  const setTab = useProjectStore(s => s.setRouteBuilderTab);
 
   const columnDefs = useMemo(() => getColumnDefs(), []);
   const getRowId = useCallback((params: GetRowIdParams<RouteRow>) => params.data.id, []);

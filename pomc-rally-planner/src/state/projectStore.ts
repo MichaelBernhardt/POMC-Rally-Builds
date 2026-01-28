@@ -49,6 +49,7 @@ interface ProjectState {
 
   // View mode
   viewMode: ViewMode;
+  routeBuilderTab: 'nodes' | 'table';
   editingTemplateId: string | null;
 
   // Undo/redo
@@ -122,6 +123,7 @@ interface ProjectState {
 
   // View mode
   setViewMode: (mode: ViewMode) => void;
+  setRouteBuilderTab: (tab: 'nodes' | 'table') => void;
 
   // Getters
   getCurrentEdition: () => RallyEdition | null;
@@ -141,6 +143,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   isDirty: false,
   lastSaved: null,
   viewMode: 'grid',
+  routeBuilderTab: 'nodes',
   editingTemplateId: null,
   undoStack: [],
   redoStack: [],
@@ -300,6 +303,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       isDirty: false,
       lastSaved: new Date().toLocaleTimeString(),
       viewMode: 'grid',
+      routeBuilderTab: 'nodes',
       editingTemplateId: null,
       undoStack: [],
       redoStack: [],
@@ -885,6 +889,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       viewMode: mode,
       editingTemplateId: mode !== 'grid' ? null : get().editingTemplateId,
     });
+  },
+
+  setRouteBuilderTab: (tab: 'nodes' | 'table') => {
+    set({ routeBuilderTab: tab });
   },
 
   // --- Getters ---
