@@ -70,6 +70,7 @@ interface ProjectState {
   loadWorkspace: (workspace: RallyWorkspaceV3, filePath: string) => void;
   setFilePath: (path: string) => void;
   markSaved: () => void;
+  resetWorkspace: () => void;
   getWorkspaceForSave: () => RallyWorkspaceV3 | null;
 
   // Edition management
@@ -315,6 +316,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   markSaved: () => set({
     isDirty: false,
     lastSaved: new Date().toLocaleTimeString(),
+  }),
+
+  resetWorkspace: () => set({
+    workspace: null,
+    currentRallyId: null,
+    currentEditionId: null,
+    currentDayId: null,
+    currentNodeId: null,
+    filePath: null,
+    isDirty: false,
+    lastSaved: null,
+    viewMode: 'grid',
+    routeBuilderTab: 'nodes',
+    editingTemplateId: null,
+    undoStack: [],
+    redoStack: [],
   }),
 
   getWorkspaceForSave: () => {

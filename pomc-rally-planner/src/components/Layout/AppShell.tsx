@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { open as openDialog, save as saveDialog } from '@tauri-apps/plugin-dialog';
+import { open as openDialog, save as saveDialog, ask } from '@tauri-apps/plugin-dialog';
 import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { GridApi } from 'ag-grid-community';
 import { useProjectStore } from '../../state/projectStore';
@@ -47,6 +47,7 @@ export default function AppShell() {
   const setFilePath = useProjectStore(s => s.setFilePath);
   const markSaved = useProjectStore(s => s.markSaved);
   const getWorkspaceForSave = useProjectStore(s => s.getWorkspaceForSave);
+  const resetWorkspace = useProjectStore(s => s.resetWorkspace);
   const currentRally = useProjectStore(s => s.getCurrentRally());
   const undo = useProjectStore(s => s.undo);
   const redo = useProjectStore(s => s.redo);
@@ -180,6 +181,18 @@ export default function AppShell() {
     localStorage.setItem(LAST_FILE_KEY, selected);
   }, [filePath, getWorkspaceForSave, setFilePath, markSaved]);
 
+  const handleNewWorkspace = useCallback(async () => {
+    if (isDirty) {
+      const confirmed = await ask('You have unsaved changes. Discard them and start a new workspace?', {
+        title: 'New Workspace',
+        kind: 'warning',
+      });
+      if (!confirmed) return;
+    }
+    resetWorkspace();
+    localStorage.removeItem(LAST_FILE_KEY);
+  }, [isDirty, resetWorkspace]);
+
   const handleOpen = useCallback(async () => {
     const selected = await openDialog({
       multiple: false,
@@ -259,6 +272,8 @@ export default function AppShell() {
         background: 'var(--color-bg-secondary)',
         gap: '8px',
       }}>
+        <button onClick={handleNewWorkspace}>New Workspace</button>
+        <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
         <button onClick={() => setShowNewRally(true)}>New Edition</button>
         <button onClick={handleOpen}>Open</button>
         <button onClick={handleSave} disabled={!workspace}>Save</button>
