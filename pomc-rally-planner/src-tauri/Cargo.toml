@@ -1,7 +1,7 @@
 [package]
 name = "pomc-rally-planner"
-version = "0.1.0"
-description = "A Tauri App"
+version = "1.0.0"
+description = "POMC Rally Planner - Route planning tool for road rallies"
 authors = ["you"]
 edition = "2021"
 

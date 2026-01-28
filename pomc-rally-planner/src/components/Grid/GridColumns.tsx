@@ -1,5 +1,4 @@
-import { ColDef, ValueFormatterParams, ValueParserParams, ValueGetterParams } from 'ag-grid-community';
-import type { CSSProperties } from 'react';
+import { ColDef, ValueFormatterParams, ValueParserParams, ValueGetterParams, CellStyle } from 'ag-grid-community';
 import { RouteRow, TYPE_CODES, TypeCode } from '../../types/domain';
 
 function numberParser(params: ValueParserParams): number {
@@ -95,9 +94,17 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       width: 40,
       pinned: 'left',
       hide: !reconOn,
-      cellRenderer: 'agCheckboxCellRenderer',
-      cellEditor: 'agCheckboxCellEditor',
+      editable: true,
       headerTooltip: 'Verified during reconnaissance',
+      cellRenderer: 'agCheckboxCellRenderer',
+      cellRendererParams: {
+        disabled: false,
+      },
+      valueGetter: (params) => params.data?.verified === true,
+      valueSetter: (params) => {
+        params.data.verified = params.newValue === true;
+        return true;
+      },
     },
     {
       headerName: 'BB Pg',
@@ -157,8 +164,8 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       editable: false,
       valueFormatter: numberFormatter(2),
       headerTooltip: 'Delta between checked and planned distance (km)',
-      cellStyle: (params) => {
-        const base: CSSProperties = { textAlign: 'right' };
+      cellStyle: (params): CellStyle => {
+        const base: CellStyle = { textAlign: 'right' };
         if (!reconOn) return base;
         const delta = params.value;
         if (delta === null || delta === undefined || delta === '') return base;
@@ -183,8 +190,8 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       editable: false,
       valueFormatter: percentFormatter(1),
       headerTooltip: 'Percent error vs planned distance',
-      cellStyle: (params) => {
-        const base: CSSProperties = { textAlign: 'right' };
+      cellStyle: (params): CellStyle => {
+        const base: CellStyle = { textAlign: 'right' };
         if (!reconOn) return base;
         const err = params.value;
         if (err === null || err === undefined || err === '') return base;
@@ -246,8 +253,8 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       width: 70,
       valueParser: numberParser,
       headerTooltip: 'Speed group D (km/h)',
-      cellStyle: (params) => {
-        const base: CSSProperties = { textAlign: 'right' };
+      cellStyle: (params): CellStyle => {
+        const base: CellStyle = { textAlign: 'right' };
         const dSpeed = params.data?.dSpeed;
         const speedLimit = params.data?.speedLimit;
         if (dSpeed != null && speedLimit != null && speedLimit > 0 && dSpeed > 0.9 * speedLimit) {
