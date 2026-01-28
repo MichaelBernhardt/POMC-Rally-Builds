@@ -11,7 +11,7 @@ import {
 import { getColumnDefs } from '../Grid/GridColumns';
 import { flattenDayRows } from '../../state/storeHelpers';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentRallyLocked } from '../../state/projectStore';
 import { validateNodeConnections } from '../../engine/validator';
 import NodePalette from './NodePalette';
 import ExportDialog from '../Dialogs/ExportDialog';
@@ -20,11 +20,11 @@ import '../../styles/grid-theme.css';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default function RouteBuilder() {
-  const rally = useProjectStore(s => s.getCurrentRally());
-  const day = useProjectStore(s => s.getCurrentDay());
+  const rally = useProjectStore(selectCurrentRally);
+  const day = useProjectStore(selectCurrentDay);
   const removeRouteNode = useProjectStore(s => s.removeRouteNode);
   const renameRouteNode = useProjectStore(s => s.renameRouteNode);
-  const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
+  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);

@@ -12,7 +12,7 @@ import {
 } from 'ag-grid-community';
 import { getColumnDefs } from './GridColumns';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRows, selectIsCurrentRallyLocked } from '../../state/projectStore';
 import '../../styles/grid-theme.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -23,8 +23,8 @@ interface RouteGridProps {
 
 export default function RouteGrid({ onGridReady }: RouteGridProps) {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
-  const rows = useProjectStore(s => s.getCurrentRows());
-  const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
+  const rows = useProjectStore(selectCurrentRows);
+  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
 

@@ -1,10 +1,10 @@
-import { useProjectStore } from '../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentDay, selectCurrentNode } from '../state/projectStore';
 import { flattenDayRows } from '../state/storeHelpers';
 
 export default function StatusBar() {
-  const rally = useProjectStore(s => s.getCurrentRally());
-  const day = useProjectStore(s => s.getCurrentDay());
-  const node = useProjectStore(s => s.getCurrentNode());
+  const rally = useProjectStore(selectCurrentRally);
+  const day = useProjectStore(selectCurrentDay);
+  const node = useProjectStore(selectCurrentNode);
   const isDirty = useProjectStore(s => s.isDirty);
   const lastSaved = useProjectStore(s => s.lastSaved);
   const viewMode = useProjectStore(s => s.viewMode);

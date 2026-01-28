@@ -11,7 +11,7 @@ import {
 } from 'ag-grid-community';
 import { getColumnDefs } from '../Grid/GridColumns';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentRows, selectIsCurrentRallyLocked } from '../../state/projectStore';
 import { validateTemplate } from '../../engine/validator';
 import '../../styles/grid-theme.css';
 
@@ -20,12 +20,12 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 export default function NodeTemplateEditor() {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
-  const rally = useProjectStore(s => s.getCurrentRally());
+  const rally = useProjectStore(selectCurrentRally);
   const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
   const setAllowedPreviousNodes = useProjectStore(s => s.setAllowedPreviousNodes);
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
-  const rows = useProjectStore(s => s.getCurrentRows());
-  const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
+  const rows = useProjectStore(selectCurrentRows);
+  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
   const addRow = useProjectStore(s => s.addRow);

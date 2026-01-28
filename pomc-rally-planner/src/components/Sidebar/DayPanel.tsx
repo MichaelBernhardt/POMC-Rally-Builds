@@ -1,9 +1,9 @@
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentDay } from '../../state/projectStore';
 import { flattenDayRows } from '../../state/storeHelpers';
 
 export default function DayPanel() {
-  const rally = useProjectStore(s => s.getCurrentRally());
-  const day = useProjectStore(s => s.getCurrentDay());
+  const rally = useProjectStore(selectCurrentRally);
+  const day = useProjectStore(selectCurrentDay);
   const currentDayId = useProjectStore(s => s.currentDayId);
   const viewMode = useProjectStore(s => s.viewMode);
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);

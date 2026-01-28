@@ -1,4 +1,4 @@
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectIsCurrentRallyLocked } from '../../state/projectStore';
 import { GridApi } from 'ag-grid-community';
 
 interface ToolbarProps {
@@ -7,7 +7,7 @@ interface ToolbarProps {
 }
 
 export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
-  const currentRally = useProjectStore(s => s.getCurrentRally());
+  const currentRally = useProjectStore(selectCurrentRally);
   const addRow = useProjectStore(s => s.addRow);
   const deleteRows = useProjectStore(s => s.deleteRows);
   const duplicateRow = useProjectStore(s => s.duplicateRow);
@@ -16,7 +16,7 @@ export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
   const undoStack = useProjectStore(s => s.undoStack);
   const redoStack = useProjectStore(s => s.redoStack);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
-  const isLocked = useProjectStore(s => s.isCurrentRallyLocked());
+  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
 
   const getSelectedRowIndex = (): number | null => {
     if (!gridApi) return null;

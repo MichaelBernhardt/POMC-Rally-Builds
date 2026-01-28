@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { open } from '@tauri-apps/plugin-dialog';
 import { readTextFile } from '@tauri-apps/plugin-fs';
 import { parseCsvToRows } from '../../engine/csvTransformer';
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally } from '../../state/projectStore';
 
 interface ImportCsvDialogProps {
   open: boolean;
@@ -17,7 +17,7 @@ export default function ImportCsvDialog({ open: isOpen, onClose }: ImportCsvDial
   const [loading, setLoading] = useState(false);
 
   const importRows = useProjectStore(s => s.importRows);
-  const currentRally = useProjectStore(s => s.getCurrentRally());
+  const currentRally = useProjectStore(selectCurrentRally);
 
   if (!isOpen) return null;
 

@@ -962,3 +962,49 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     return flattenDayRows(day);
   },
 }));
+
+// --- Standalone selectors (safe for React useSyncExternalStore) ---
+// These use the state parameter `s` directly instead of `get()`, preventing
+// infinite re-render loops with Zustand's useSyncExternalStore.
+
+export const selectCurrentRally = (s: ProjectState): RallyV3 | null => {
+  if (!s.workspace || !s.currentRallyId) return null;
+  return s.workspace.rallies.find(r => r.id === s.currentRallyId) ?? null;
+};
+
+export const selectCurrentEdition = (s: ProjectState): RallyEdition | null => {
+  const rally = selectCurrentRally(s);
+  if (!rally || !s.currentEditionId) return null;
+  return rally.editions.find(e => e.id === s.currentEditionId) ?? null;
+};
+
+export const selectCurrentDay = (s: ProjectState): RouteDay | null => {
+  const edition = selectCurrentEdition(s);
+  if (!edition || !s.currentDayId) return null;
+  return edition.days.find(d => d.id === s.currentDayId) ?? null;
+};
+
+export const selectCurrentNode = (s: ProjectState): RouteNode | null => {
+  const day = selectCurrentDay(s);
+  if (!day || !s.currentNodeId) return null;
+  return day.nodes.find(n => n.id === s.currentNodeId) ?? null;
+};
+
+export const selectIsCurrentRallyLocked = (s: ProjectState): boolean => {
+  if (!s.workspace || !s.currentRallyId) return false;
+  const rally = s.workspace.rallies.find(r => r.id === s.currentRallyId);
+  return rally?.locked === true;
+};
+
+export const selectCurrentRows = (s: ProjectState): RouteRow[] => {
+  if (s.editingTemplateId && s.workspace && s.currentRallyId) {
+    const rally = s.workspace.rallies.find(r => r.id === s.currentRallyId);
+    if (rally) {
+      const template = rally.nodeLibrary.find(t => t.id === s.editingTemplateId);
+      if (template) return template.rows;
+    }
+    return [];
+  }
+  const node = selectCurrentNode(s);
+  return node?.rows ?? [];
+};

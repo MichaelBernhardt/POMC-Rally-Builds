@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ask } from '@tauri-apps/plugin-dialog';
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally } from '../../state/projectStore';
 import { SpeedLookupEntry, TypeCode, TYPE_CODE_LABELS } from '../../types/domain';
 import { getDefaultSpeedLookupTable } from '../../engine/speedCalculator';
 
@@ -10,7 +10,7 @@ interface SpeedTableDialogProps {
 }
 
 export default function SpeedTableDialog({ open: isOpen, onClose }: SpeedTableDialogProps) {
-  const rally = useProjectStore(s => s.getCurrentRally());
+  const rally = useProjectStore(selectCurrentRally);
   const updateSpeedLookupTable = useProjectStore(s => s.updateSpeedLookupTable);
 
   const [entries, setEntries] = useState<SpeedLookupEntry[]>([]);

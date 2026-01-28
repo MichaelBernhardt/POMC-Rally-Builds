@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { open as openDialog, save as saveDialog, ask } from '@tauri-apps/plugin-dialog';
 import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { GridApi } from 'ag-grid-community';
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally } from '../../state/projectStore';
 import RouteGrid from '../Grid/RouteGrid';
 import ProjectTree from '../Sidebar/ProjectTree';
 import DayPanel from '../Sidebar/DayPanel';
@@ -10,7 +10,6 @@ import Toolbar from './Toolbar';
 import StatusBar from '../StatusBar';
 import NewEditionDialog from '../Dialogs/NewProjectDialog';
 import ImportCsvDialog from '../Dialogs/ImportCsvDialog';
-import SpeedTableDialog from '../Dialogs/SpeedTableDialog';
 import NodeLibraryPanel from '../NodeLibrary/NodeLibraryPanel';
 import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
 import RouteBuilder from '../RouteBuilder/RouteBuilder';
@@ -34,7 +33,6 @@ function migrateToV3(data: unknown): RallyWorkspaceV3 {
 export default function AppShell() {
   const [showNewRally, setShowNewRally] = useState(false);
   const [showImport, setShowImport] = useState(false);
-  const [showSpeedTable, setShowSpeedTable] = useState(false);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -46,7 +44,7 @@ export default function AppShell() {
   const markSaved = useProjectStore(s => s.markSaved);
   const getWorkspaceForSave = useProjectStore(s => s.getWorkspaceForSave);
   const resetWorkspace = useProjectStore(s => s.resetWorkspace);
-  const currentRally = useProjectStore(s => s.getCurrentRally());
+  const currentRally = useProjectStore(selectCurrentRally);
   const undo = useProjectStore(s => s.undo);
   const redo = useProjectStore(s => s.redo);
   const viewMode = useProjectStore(s => s.viewMode);
@@ -313,9 +311,6 @@ export default function AppShell() {
           </button>
         )}
 
-        <button onClick={() => setShowSpeedTable(true)} disabled={!currentRally || isLocked}>
-          Speed Tables
-        </button>
       </div>
 
       {/* Main content */}
@@ -380,7 +375,6 @@ export default function AppShell() {
       {/* Dialogs */}
       <NewEditionDialog open={showNewRally} onClose={() => setShowNewRally(false)} />
       <ImportCsvDialog open={showImport} onClose={() => setShowImport(false)} />
-      <SpeedTableDialog open={showSpeedTable} onClose={() => setShowSpeedTable(false)} />
     </div>
   );
 }

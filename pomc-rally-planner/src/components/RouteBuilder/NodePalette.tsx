@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
-import { useProjectStore } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentDay } from '../../state/projectStore';
 import { NodeTemplate } from '../../types/domain';
 import { isTemplateComplete } from '../../engine/validator';
 
 export default function NodePalette() {
-  const rally = useProjectStore(s => s.getCurrentRally());
-  const day = useProjectStore(s => s.getCurrentDay());
+  const rally = useProjectStore(selectCurrentRally);
+  const day = useProjectStore(selectCurrentDay);
   const placeNode = useProjectStore(s => s.placeNode);
   const setViewMode = useProjectStore(s => s.setViewMode);
   if (!rally) return null;

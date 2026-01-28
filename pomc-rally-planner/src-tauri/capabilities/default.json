@@ -21,6 +21,14 @@
     {
       "identifier": "fs:allow-exists",
       "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-read-dir",
+      "allow": [{ "path": "**" }]
+    },
+    {
+      "identifier": "fs:allow-stat",
+      "allow": [{ "path": "**" }]
     }
   ]
 }
