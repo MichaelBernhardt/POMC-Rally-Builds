@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { ask } from '@tauri-apps/plugin-dialog';
 import { useProjectStore } from '../../state/projectStore';
 import { flattenDayRows } from '../../state/storeHelpers';
-import SpeedTableDialog from '../Dialogs/SpeedTableDialog';
 
 interface ContextMenu {
   x: number;
@@ -39,7 +38,6 @@ export default function ProjectTree() {
   const [editingEditionId, setEditingEditionId] = useState<string | null>(null);
   const [editingDayId, setEditingDayId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-  const [showSpeedTable, setShowSpeedTable] = useState(false);
   const editInputRef = useRef<HTMLInputElement>(null);
 
   // Close context menu on outside click or Escape
@@ -237,15 +235,16 @@ export default function ProjectTree() {
 
                 {/* Speed Tables link */}
                 <div
-                  onClick={() => setShowSpeedTable(true)}
+                  onClick={() => setViewMode('speedTables')}
                   style={{
                     padding: '5px 8px',
-                    cursor: rally.locked ? 'default' : 'pointer',
+                    cursor: 'pointer',
                     borderRadius: '4px',
                     marginTop: '2px',
                     fontSize: '13px',
-                    color: rally.locked ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
-                    opacity: rally.locked ? 0.5 : 1,
+                    fontWeight: viewMode === 'speedTables' ? 600 : 400,
+                    background: viewMode === 'speedTables' ? 'var(--color-primary-light)' : 'transparent',
+                    color: viewMode === 'speedTables' ? 'var(--color-primary)' : 'var(--color-text-secondary)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
@@ -506,7 +505,6 @@ export default function ProjectTree() {
         </div>
       )}
 
-      {showSpeedTable && <SpeedTableDialog open={showSpeedTable} onClose={() => setShowSpeedTable(false)} />}
     </div>
   );
 }

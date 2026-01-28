@@ -13,6 +13,7 @@ import ImportCsvDialog from '../Dialogs/ImportCsvDialog';
 import NodeLibraryPanel from '../NodeLibrary/NodeLibraryPanel';
 import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
 import RouteBuilder from '../RouteBuilder/RouteBuilder';
+import SpeedTablePage from '../Dialogs/SpeedTableDialog';
 import { detectFileVersion, migrateV1ToWorkspace, migrateV2ToV3 } from '../../engine/migration';
 import { RallyProjectV1, RallyWorkspace, RallyWorkspaceV3 } from '../../types/domain';
 
@@ -242,6 +243,10 @@ export default function AppShell() {
       );
     }
 
+    if (viewMode === 'speedTables') {
+      return <SpeedTablePage />;
+    }
+
     if (viewMode === 'library') {
       if (editingTemplateId) {
         return <NodeTemplateEditor />;
@@ -282,6 +287,7 @@ export default function AppShell() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
             <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{currentRally.name}</span>
             {viewMode === 'routeBuilder' && <span> / Route Builder</span>}
+            {viewMode === 'speedTables' && <span> / Speed Tables</span>}
             {viewMode === 'library' && <span> / Node Library</span>}
             {viewMode === 'grid' && editingTemplateId && <span> / Template Editor</span>}
             {viewMode === 'grid' && !editingTemplateId && (

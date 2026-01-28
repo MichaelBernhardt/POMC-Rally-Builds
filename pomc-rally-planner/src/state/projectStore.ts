@@ -28,7 +28,7 @@ import {
   flattenDayRows,
 } from './storeHelpers';
 
-type ViewMode = 'grid' | 'library' | 'routeBuilder';
+type ViewMode = 'grid' | 'library' | 'routeBuilder' | 'speedTables';
 
 interface UndoEntry {
   rows: RouteRow[];
