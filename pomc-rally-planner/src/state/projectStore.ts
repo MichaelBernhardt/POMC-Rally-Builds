@@ -966,6 +966,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 // --- Standalone selectors (safe for React useSyncExternalStore) ---
 // These use the state parameter `s` directly instead of `get()`, preventing
 // infinite re-render loops with Zustand's useSyncExternalStore.
+// IMPORTANT: Selectors returning arrays/objects must return stable references
+// for empty cases, since Object.is([], []) is false and would cause infinite
+// re-renders via useSyncExternalStore.
+
+const EMPTY_ROWS: RouteRow[] = [];
 
 export const selectCurrentRally = (s: ProjectState): RallyV3 | null => {
   if (!s.workspace || !s.currentRallyId) return null;
@@ -1003,8 +1008,8 @@ export const selectCurrentRows = (s: ProjectState): RouteRow[] => {
       const template = rally.nodeLibrary.find(t => t.id === s.editingTemplateId);
       if (template) return template.rows;
     }
-    return [];
+    return EMPTY_ROWS;
   }
   const node = selectCurrentNode(s);
-  return node?.rows ?? [];
+  return node?.rows ?? EMPTY_ROWS;
 };
