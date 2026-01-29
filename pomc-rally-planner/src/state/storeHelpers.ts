@@ -70,6 +70,25 @@ export function flattenDayRows(day: RouteDay): RouteRow[] {
   return day.nodes.flatMap(n => n.rows);
 }
 
+/**
+ * Find which node contains a given flattened row index.
+ * Returns the node index and the local row index within that node.
+ */
+export function findNodeForFlatIndex(
+  day: RouteDay,
+  flatIndex: number,
+): { nodeIndex: number; localIndex: number } | null {
+  let offset = 0;
+  for (let i = 0; i < day.nodes.length; i++) {
+    const node = day.nodes[i];
+    if (flatIndex < offset + node.rows.length) {
+      return { nodeIndex: i, localIndex: flatIndex - offset };
+    }
+    offset += node.rows.length;
+  }
+  return null;
+}
+
 /** Deep-update helper: workspace -> rally -> edition -> day -> node -> rows */
 export function setNodeRows(
   workspace: RallyWorkspaceV3,

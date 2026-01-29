@@ -26,6 +26,7 @@ import {
   updateRouteNode,
   setNodeRows,
   flattenDayRows,
+  findNodeForFlatIndex,
 } from './storeHelpers';
 
 type ViewMode = 'grid' | 'library' | 'routeBuilder' | 'speedTables';
@@ -114,6 +115,11 @@ interface ProjectState {
   updateRow: (index: number, updates: Partial<RouteRow>) => void;
   moveRows: (fromIndices: number[], toIndex: number) => void;
   importRows: (rows: RouteRow[]) => void;
+
+  // Day-level row management (for Route Builder table view)
+  addRowToDay: (afterFlatIndex?: number) => void;
+  updateDayRow: (flatIndex: number, updates: Partial<RouteRow>) => void;
+  deleteDayRows: (flatIndices: number[]) => void;
 
   // Undo/redo
   undo: () => void;
@@ -844,6 +850,132 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       state.pushUndo('Import rows');
     }
     get().setRows(rows);
+  },
+
+  // --- Day-level row management (for Route Builder table view) ---
+
+  addRowToDay: (afterFlatIndex?: number) => {
+    const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return;
+
+    const day = get().getCurrentDay();
+    if (!day || day.nodes.length === 0) return;
+
+    const newRow = createEmptyRow();
+
+    // If afterFlatIndex provided, find which node and insert there
+    if (afterFlatIndex !== undefined && afterFlatIndex >= 0) {
+      const location = findNodeForFlatIndex(day, afterFlatIndex);
+      if (location) {
+        const { nodeIndex, localIndex } = location;
+        const targetNode = day.nodes[nodeIndex];
+        // Copy distance/speed from current row
+        if (targetNode.rows[localIndex]) {
+          newRow.rallyDistance = targetNode.rows[localIndex].rallyDistance;
+          newRow.speedLimit = targetNode.rows[localIndex].speedLimit;
+        }
+
+        const updatedNodes = day.nodes.map((node, idx) => {
+          if (idx === nodeIndex) {
+            const newRows = [...node.rows];
+            newRows.splice(localIndex + 1, 0, newRow);
+            return { ...node, rows: newRows };
+          }
+          return node;
+        });
+
+        set({
+          workspace: updateRallyV3(workspace, currentRallyId, r =>
+            updateEdition(r, currentEditionId, ed =>
+              updateRouteDay(ed, currentDayId, d => ({ ...d, nodes: updatedNodes })),
+            ),
+          ),
+          isDirty: true,
+        });
+        return;
+      }
+    }
+
+    // Default: append to last node
+    const lastNode = day.nodes[day.nodes.length - 1];
+    if (lastNode.rows.length > 0) {
+      const lastRow = lastNode.rows[lastNode.rows.length - 1];
+      newRow.rallyDistance = lastRow.rallyDistance;
+      newRow.speedLimit = lastRow.speedLimit;
+    }
+
+    const updatedNodes = day.nodes.map((node, idx) => {
+      if (idx === day.nodes.length - 1) {
+        return { ...node, rows: [...node.rows, newRow] };
+      }
+      return node;
+    });
+
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r =>
+        updateEdition(r, currentEditionId, ed =>
+          updateRouteDay(ed, currentDayId, d => ({ ...d, nodes: updatedNodes })),
+        ),
+      ),
+      isDirty: true,
+    });
+  },
+
+  updateDayRow: (flatIndex: number, updates: Partial<RouteRow>) => {
+    const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return;
+
+    const day = get().getCurrentDay();
+    if (!day) return;
+
+    const location = findNodeForFlatIndex(day, flatIndex);
+    if (!location) return;
+
+    const { nodeIndex, localIndex } = location;
+    const updatedNodes = day.nodes.map((node, idx) => {
+      if (idx === nodeIndex) {
+        const newRows = [...node.rows];
+        newRows[localIndex] = { ...newRows[localIndex], ...updates };
+        return { ...node, rows: newRows };
+      }
+      return node;
+    });
+
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r =>
+        updateEdition(r, currentEditionId, ed =>
+          updateRouteDay(ed, currentDayId, d => ({ ...d, nodes: updatedNodes })),
+        ),
+      ),
+      isDirty: true,
+    });
+  },
+
+  deleteDayRows: (flatIndices: number[]) => {
+    const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return;
+    if (flatIndices.length === 0) return;
+
+    const day = get().getCurrentDay();
+    if (!day) return;
+
+    // Build a set of row IDs to delete
+    const flatRows = flattenDayRows(day);
+    const idsToDelete = new Set(flatIndices.map(i => flatRows[i]?.id).filter(Boolean));
+
+    const updatedNodes = day.nodes.map(node => ({
+      ...node,
+      rows: node.rows.filter(row => !idsToDelete.has(row.id)),
+    }));
+
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r =>
+        updateEdition(r, currentEditionId, ed =>
+          updateRouteDay(ed, currentDayId, d => ({ ...d, nodes: updatedNodes })),
+        ),
+      ),
+      isDirty: true,
+    });
   },
 
   // --- Undo/redo ---

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import {
   AllCommunityModule,
@@ -20,13 +20,15 @@ import '../../styles/grid-theme.css';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default function RouteBuilder() {
+  const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const rally = useProjectStore(selectCurrentRally);
   const day = useProjectStore(selectCurrentDay);
   const removeRouteNode = useProjectStore(s => s.removeRouteNode);
   const renameRouteNode = useProjectStore(s => s.renameRouteNode);
   const isLocked = useProjectStore(selectIsCurrentRallyLocked);
-  const updateRow = useProjectStore(s => s.updateRow);
-  const pushUndo = useProjectStore(s => s.pushUndo);
+  const updateDayRow = useProjectStore(s => s.updateDayRow);
+  const addRowToDay = useProjectStore(s => s.addRowToDay);
+  const deleteDayRows = useProjectStore(s => s.deleteDayRows);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
   const reconMode = useProjectStore(selectReconMode);
   const reconTolerance = useProjectStore(selectReconTolerance);
@@ -114,9 +116,47 @@ export default function RouteBuilder() {
     // Skip if no actual change
     if (oldVal === newVal) return;
 
-    pushUndo('Edit cell');
-    updateRow(event.rowIndex, { [field]: newVal });
-  }, [updateRow, pushUndo]);
+    // Use day-level update for flattened table view
+    updateDayRow(event.rowIndex, { [field]: newVal });
+  }, [updateDayRow]);
+
+  const getSelectedRowIndex = useCallback((): number | null => {
+    const api = gridRef.current?.api;
+    if (!api) return null;
+    const selected = api.getSelectedRows();
+    if (selected.length === 0) return null;
+    let idx: number | null = null;
+    api.forEachNode(node => {
+      if (node.data && selected.includes(node.data) && idx === null) {
+        idx = node.rowIndex;
+      }
+    });
+    return idx;
+  }, []);
+
+  const getSelectedIndices = useCallback((): number[] => {
+    const api = gridRef.current?.api;
+    if (!api) return [];
+    const indices: number[] = [];
+    const selected = api.getSelectedRows();
+    api.forEachNode(node => {
+      if (node.data && selected.includes(node.data) && node.rowIndex !== null) {
+        indices.push(node.rowIndex);
+      }
+    });
+    return indices;
+  }, []);
+
+  const handleAddRow = useCallback(() => {
+    const idx = getSelectedRowIndex();
+    addRowToDay(idx ?? undefined);
+  }, [addRowToDay, getSelectedRowIndex]);
+
+  const handleDeleteRows = useCallback(() => {
+    const indices = getSelectedIndices();
+    if (indices.length === 0) return;
+    deleteDayRows(indices);
+  }, [deleteDayRows, getSelectedIndices]);
 
   if (!rally || !day) {
     return (
@@ -169,6 +209,21 @@ export default function RouteBuilder() {
               {tab === 'table' && (
                 <>
                   <button
+                    onClick={handleAddRow}
+                    disabled={isLocked}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                  >
+                    + Row
+                  </button>
+                  <button
+                    onClick={handleDeleteRows}
+                    disabled={isLocked}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                  >
+                    - Row
+                  </button>
+                  <div style={{ width: '1px', height: '20px', background: 'var(--color-border)' }} />
+                  <button
                     onClick={recalculateTimes}
                     disabled={isLocked}
                     className="primary"
@@ -192,7 +247,7 @@ export default function RouteBuilder() {
                 </>
               )}
               <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}
+                {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}{tab === 'table' && ` • ${rowData.length} rows`}
               </span>
             </div>
           </div>
@@ -315,6 +370,7 @@ export default function RouteBuilder() {
         ) : (
           <div style={{ flex: 1, padding: '0 20px 20px 20px' }}>
             <AgGridReact<RouteRow>
+              ref={gridRef}
               theme={theme}
               rowData={rowData}
               columnDefs={columnDefs}
@@ -322,6 +378,7 @@ export default function RouteBuilder() {
               getRowId={getRowId}
               rowClassRules={rowClassRules}
               onCellEditingStopped={onCellEditingStopped}
+              rowSelection="multiple"
               animateRows={false}
               undoRedoCellEditing={false}
               stopEditingWhenCellsLoseFocus={true}
