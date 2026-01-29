@@ -1,6 +1,6 @@
 [package]
 name = "pomc-rally-planner"
-version = "1.0.0"
+version = "1.1.0"
 description = "POMC Rally Planner - Route planning tool for road rallies"
 authors = ["you"]
 edition = "2021"
