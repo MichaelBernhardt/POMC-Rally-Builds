@@ -383,6 +383,8 @@ export default function RouteBuilder() {
               undoRedoCellEditing={false}
               stopEditingWhenCellsLoseFocus={true}
               tooltipShowDelay={500}
+              enterNavigatesVertically={true}
+              enterNavigatesVerticallyAfterEdit={true}
             />
           </div>
         )}

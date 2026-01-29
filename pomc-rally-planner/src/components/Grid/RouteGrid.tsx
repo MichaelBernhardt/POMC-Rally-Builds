@@ -86,6 +86,12 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
       oldVal = parseFloat(oldVal) || 0;
     }
 
+    // Normalize boolean fields
+    if (field === 'verified') {
+      newVal = newVal === true;
+      oldVal = oldVal === true;
+    }
+
     // Skip if no actual change
     if (oldVal === newVal) return;
 
@@ -132,6 +138,8 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
         undoRedoCellEditing={false}
         stopEditingWhenCellsLoseFocus={true}
         tooltipShowDelay={500}
+        enterNavigatesVertically={true}
+        enterNavigatesVerticallyAfterEdit={true}
       />
     </div>
   );
