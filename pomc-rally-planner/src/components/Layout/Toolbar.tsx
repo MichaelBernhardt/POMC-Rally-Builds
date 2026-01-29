@@ -95,69 +95,158 @@ export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
     duplicateRow(idx);
   };
 
+  const handleRecalculateTimes = () => {
+    recalculateTimes();
+    setToast('Times recalculated');
+    setTimeout(() => setToast(null), 2000);
+  };
+
   const disabled = !currentRally;
   const locked = isLocked;
+
+  const buttonStyle: React.CSSProperties = {
+    padding: '5px 10px',
+    fontSize: '13px',
+    minHeight: '28px',
+    lineHeight: '1',
+  };
+
+  const groupStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1px',
+    background: 'var(--color-border)',
+    borderRadius: '6px',
+    padding: '1px',
+  };
+
+  const groupButtonStyle: React.CSSProperties = {
+    ...buttonStyle,
+    borderRadius: '0',
+    border: 'none',
+    background: 'var(--color-bg)',
+  };
+
+  const groupButtonFirstStyle: React.CSSProperties = {
+    ...groupButtonStyle,
+    borderRadius: '5px 0 0 5px',
+  };
+
+  const groupButtonLastStyle: React.CSSProperties = {
+    ...groupButtonStyle,
+    borderRadius: '0 5px 5px 0',
+  };
+
+  const groupButtonOnlyStyle: React.CSSProperties = {
+    ...groupButtonStyle,
+    borderRadius: '5px',
+  };
 
   return (
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      padding: '6px 12px',
-      gap: '8px',
+      padding: '8px 12px',
+      gap: '12px',
       borderBottom: '1px solid var(--color-border)',
       background: 'var(--color-bg)',
     }}>
-      <button onClick={handleAddRow} disabled={disabled || locked} title="Add row after selection (Insert)">
-        + Row
-      </button>
-      <button onClick={handleDeleteRows} disabled={disabled || locked} title="Delete selected rows (Delete)">
-        - Row
-      </button>
-      <button onClick={handleDuplicateRow} disabled={disabled || locked} title="Duplicate selected row">
-        Copy Row
-      </button>
+      {/* Row operations group */}
+      <div style={groupStyle}>
+        <button
+          onClick={handleAddRow}
+          disabled={disabled || locked}
+          title="Add row after selection (Insert)"
+          style={groupButtonFirstStyle}
+        >
+          + Row
+        </button>
+        <button
+          onClick={handleDeleteRows}
+          disabled={disabled || locked}
+          title="Delete selected rows (Delete)"
+          style={groupButtonStyle}
+        >
+          - Row
+        </button>
+        <button
+          onClick={handleDuplicateRow}
+          disabled={disabled || locked}
+          title="Duplicate selected row"
+          style={groupButtonLastStyle}
+        >
+          Copy
+        </button>
+      </div>
 
-      <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
+      {/* History group */}
+      <div style={groupStyle}>
+        <button
+          onClick={undo}
+          disabled={disabled || locked || undoStack.length === 0}
+          title="Undo (Ctrl+Z)"
+          style={groupButtonFirstStyle}
+        >
+          Undo
+        </button>
+        <button
+          onClick={redo}
+          disabled={disabled || locked || redoStack.length === 0}
+          title="Redo (Ctrl+Y)"
+          style={groupButtonLastStyle}
+        >
+          Redo
+        </button>
+      </div>
 
-      <button onClick={undo} disabled={disabled || locked || undoStack.length === 0} title="Undo (Ctrl+Z)">
-        Undo
-      </button>
-      <button onClick={redo} disabled={disabled || locked || redoStack.length === 0} title="Redo (Ctrl+Y)">
-        Redo
-      </button>
+      {/* Calculation group */}
+      <div style={groupStyle}>
+        <button
+          onClick={handleRecalculateTimes}
+          disabled={disabled || locked}
+          title="Recalculate all times"
+          style={groupButtonFirstStyle}
+        >
+          Recalc Times
+        </button>
+        <button
+          onClick={toggleReconMode}
+          disabled={disabled}
+          className={reconMode ? 'primary' : undefined}
+          title="Toggle reconnaissance mode (show check/verify columns)"
+          style={{ ...groupButtonLastStyle, background: reconMode ? undefined : 'var(--color-bg)' }}
+        >
+          Recon
+        </button>
+      </div>
 
-      <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
-
-      <button onClick={recalculateTimes} disabled={disabled || locked} className="primary" title="Recalculate all times">
-        Recalc Times
-      </button>
-      <button
-        onClick={toggleReconMode}
-        disabled={disabled}
-        className={reconMode ? 'primary' : undefined}
-        title="Toggle reconnaissance mode (show check/verify columns)"
-      >
-        Recon Mode
-      </button>
-
+      {/* Template sync */}
       {canPushToTemplate && (
-        <>
-          <div style={{ width: '1px', height: '28px', background: 'var(--color-border)', margin: '0 4px' }} />
+        <div style={groupStyle}>
           <button
             onClick={() => setShowPushDialog(true)}
             disabled={disabled || locked}
             title="Push changes back to the source template in the Node Library"
+            style={groupButtonOnlyStyle}
           >
-            Push changes to Node Library
+            Push to Library
           </button>
-        </>
+        </div>
       )}
 
       <div style={{ flex: 1 }} />
 
-      <button onClick={onImport} disabled={disabled || locked} title="Import CSV file">
-        Import CSV
-      </button>
+      {/* Import */}
+      <div style={groupStyle}>
+        <button
+          onClick={onImport}
+          disabled={disabled || locked}
+          title="Import CSV file"
+          style={groupButtonOnlyStyle}
+        >
+          Import CSV
+        </button>
+      </div>
 
       <PushToTemplateDialog
         open={showPushDialog}

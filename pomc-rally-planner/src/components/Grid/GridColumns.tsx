@@ -93,7 +93,7 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       field: 'verified',
       width: 40,
       pinned: 'left',
-      hide: !reconOn,
+      hide: true, // Hidden in UI but data field preserved for backwards compatibility
       editable: true,
       headerTooltip: 'Verified during reconnaissance',
       cellRenderer: 'agCheckboxCellRenderer',
