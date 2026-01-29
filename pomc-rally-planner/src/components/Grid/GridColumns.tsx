@@ -276,7 +276,10 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       field: 'clue',
       minWidth: 250,
       flex: 1,
+      wrapText: true,
+      autoHeight: true,
       headerTooltip: 'Route instruction text. {Curly braces} contain annotations stripped on clean export.',
+      cellStyle: { lineHeight: '1.4', paddingTop: '8px', paddingBottom: '8px' },
     },
     {
       headerName: 'Lat',
