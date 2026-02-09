@@ -275,14 +275,14 @@ export default function RouteBuilder() {
                   <button
                     onClick={handleAddRow}
                     disabled={isLocked}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
                   >
                     + Row
                   </button>
                   <button
                     onClick={handleDeleteRows}
                     disabled={isLocked}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
                   >
                     - Row
                   </button>
@@ -291,27 +291,27 @@ export default function RouteBuilder() {
                     onClick={recalculateTimes}
                     disabled={isLocked}
                     className="primary"
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
                   >
                     Recalc Times
                   </button>
                   <button
                     onClick={toggleReconMode}
                     className={reconMode ? 'primary' : undefined}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
                   >
                     Recon Mode
                   </button>
                   <button
                     onClick={() => setShowNodes(!showNodes)}
                     className={showNodes ? 'primary' : undefined}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
                   >
                     Nodes
                   </button>
                   <button
                     onClick={() => setShowExport(true)}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
                   >
                     Export CSV
                   </button>
