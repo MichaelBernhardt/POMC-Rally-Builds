@@ -136,6 +136,7 @@ interface ProjectState {
   setViewMode: (mode: ViewMode) => void;
   setRouteBuilderTab: (tab: 'nodes' | 'table') => void;
   toggleReconMode: () => void;
+  clearCheckDistances: () => void;
 
   // Getters
   getCurrentEdition: () => RallyEdition | null;
@@ -784,18 +785,44 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (!template) return false;
 
     // Process each node row: merge checkDist into history, compute avg rallyDistance
-    const newRows = node.rows.map((r, i) =>
+    const newTemplateRows = node.rows.map((r, i) =>
       processDistanceHistory(r, template.rows[i] ?? null),
     );
 
+    // Refresh the node's rows: pick up new averaged rallyDistance, clear checkDist
+    const refreshedNodeRows = node.rows.map((r, i) => {
+      const updated = newTemplateRows[i];
+      return updated
+        ? { ...r, rallyDistance: updated.rallyDistance, checkDist: null }
+        : r;
+    });
+
     set({
-      workspace: updateRallyV3(workspace, currentRallyId, r => ({
-        ...r,
-        nodeLibrary: r.nodeLibrary.map(t =>
-          t.id === node.sourceNodeId ? { ...t, rows: newRows } : t,
-        ),
-        modifiedAt: new Date().toISOString(),
-      })),
+      workspace: updateRallyV3(workspace, currentRallyId, r => {
+        // Update the template in the library
+        const updatedRally = {
+          ...r,
+          nodeLibrary: r.nodeLibrary.map(t =>
+            t.id === node.sourceNodeId ? { ...t, rows: newTemplateRows } : t,
+          ),
+          modifiedAt: new Date().toISOString(),
+        };
+        // Update the node's rows in the current day
+        const editionIdx = updatedRally.editions.findIndex(e => e.id === currentEditionId);
+        if (editionIdx >= 0) {
+          const dayIdx = updatedRally.editions[editionIdx].days.findIndex(d => d.id === currentDayId);
+          if (dayIdx >= 0) {
+            const nodeIdx = updatedRally.editions[editionIdx].days[dayIdx].nodes.findIndex(n => n.id === nodeId);
+            if (nodeIdx >= 0) {
+              updatedRally.editions[editionIdx].days[dayIdx].nodes[nodeIdx] = {
+                ...updatedRally.editions[editionIdx].days[dayIdx].nodes[nodeIdx],
+                rows: refreshedNodeRows,
+              };
+            }
+          }
+        }
+        return updatedRally;
+      }),
       isDirty: true,
     });
 
@@ -1133,6 +1160,28 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   toggleReconMode: () => {
     set(s => ({ reconMode: !s.reconMode }));
+  },
+
+  clearCheckDistances: () => {
+    const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return;
+
+    const day = get().getCurrentDay();
+    if (!day) return;
+
+    const updatedNodes = day.nodes.map(node => ({
+      ...node,
+      rows: node.rows.map(r => ({ ...r, checkDist: null })),
+    }));
+
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r =>
+        updateEdition(r, currentEditionId, ed =>
+          updateRouteDay(ed, currentDayId, d => ({ ...d, nodes: updatedNodes })),
+        ),
+      ),
+      isDirty: true,
+    });
   },
 
   // --- Getters ---

@@ -1,4 +1,4 @@
-import { ColDef, ValueFormatterParams, ValueParserParams, ValueGetterParams, CellStyle } from 'ag-grid-community';
+import { ColDef, ValueFormatterParams, ValueParserParams, ValueGetterParams, CellStyle, GridApi } from 'ag-grid-community';
 import { RouteRow, TYPE_CODES, TypeCode } from '../../types/domain';
 import AutocompleteCellEditor from './AutocompleteCellEditor';
 
@@ -55,6 +55,25 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
     const baseCheck = first.checkDist ?? 0;
     const baseRally = first.rallyDistance ?? 0;
     return { baseCheck, baseRally };
+  };
+
+  /** Estimate checkDist for a row based on drift from nearest previous row with checkDist */
+  const getEstimatedCheckDist = (api: GridApi, data: RouteRow | undefined, rowIndex: number | null | undefined): number | null => {
+    if (!data || rowIndex === null || rowIndex === undefined || rowIndex <= 0) return null;
+    const first = api.getDisplayedRowAtIndex(0)?.data as RouteRow | undefined;
+    if (!first) return null;
+    const baseCheck = first.checkDist ?? 0;
+    const baseRally = first.rallyDistance ?? 0;
+    for (let i = rowIndex - 1; i >= 0; i--) {
+      const prev = api.getDisplayedRowAtIndex(i)?.data as RouteRow | undefined;
+      if (!prev || prev.checkDist == null) continue;
+      const denom = prev.checkDist - baseCheck;
+      if (denom === 0) return Math.round((baseCheck + (data.rallyDistance - baseRally)) * 100) / 100;
+      const delta = (prev.checkDist - baseCheck) - (prev.rallyDistance - baseRally);
+      const error = delta / denom;
+      return Math.round((baseCheck + (data.rallyDistance - baseRally) * (1 + error)) * 100) / 100;
+    }
+    return null;
   };
 
   const getDelta = (params: ValueGetterParams<RouteRow>): number | null => {
@@ -154,9 +173,24 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       width: 100,
       hide: !reconOn,
       valueParser: optionalNumberParser,
-      valueFormatter: numberFormatter(2),
-      headerTooltip: 'Measured distance during reconnaissance (km)',
-      cellStyle: { textAlign: 'right' },
+      valueFormatter: (params: ValueFormatterParams<RouteRow>): string => {
+        if (params.value != null && params.value !== '') {
+          return Number(params.value).toFixed(2);
+        }
+        if (!reconOn) return '';
+        const suggestion = getEstimatedCheckDist(params.api, params.data, params.node?.rowIndex);
+        if (suggestion == null) return '';
+        return suggestion.toFixed(2);
+      },
+      cellEditorParams: { useFormatter: true },
+      headerTooltip: 'Measured distance during reconnaissance (km). Grey values are estimates — press Enter to accept.',
+      cellStyle: (params): CellStyle => {
+        const base: CellStyle = { textAlign: 'right' };
+        if (params.data?.checkDist == null && reconOn) {
+          return { ...base, color: '#9CA3AF', fontStyle: 'italic' };
+        }
+        return base;
+      },
     },
     {
       headerName: 'Δ',

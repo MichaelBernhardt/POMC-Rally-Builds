@@ -37,6 +37,7 @@ export default function RouteBuilder() {
   const reconMode = useProjectStore(selectReconMode);
   const reconTolerance = useProjectStore(selectReconTolerance);
   const toggleReconMode = useProjectStore(s => s.toggleReconMode);
+  const clearCheckDistances = useProjectStore(s => s.clearCheckDistances);
   const pushToTemplate = useProjectStore(s => s.pushToTemplate);
   const tab = useProjectStore(s => s.routeBuilderTab);
   const setTab = useProjectStore(s => s.setRouteBuilderTab);
@@ -78,20 +79,38 @@ export default function RouteBuilder() {
 
   const handlePushAll = useCallback(() => {
     let totalChanges = 0;
+    let nodesPushed = 0;
     for (const { node, template } of pushableNodes) {
       const summary = compareRows(node.rows, template.rows);
       const changes = summary.added + summary.removed + summary.modified;
       if (changes > 0) {
         pushToTemplate(node.id);
         totalChanges += changes;
+        nodesPushed++;
       }
     }
     setShowPushDialog(false);
     if (totalChanges > 0) {
-      setToast(`Pushed ${totalChanges} change${totalChanges !== 1 ? 's' : ''} to library`);
-      setTimeout(() => setToast(null), 3000);
+      const msg = reconMode
+        ? `Pushed ${nodesPushed} node${nodesPushed !== 1 ? 's' : ''} to library — recon distances recorded and rally distances updated`
+        : `Pushed ${totalChanges} change${totalChanges !== 1 ? 's' : ''} to ${nodesPushed} node${nodesPushed !== 1 ? 's' : ''} in library`;
+      setToast(msg);
+      setTimeout(() => setToast(null), 4000);
     }
-  }, [pushableNodes, pushToTemplate]);
+  }, [pushableNodes, pushToTemplate, reconMode]);
+
+  const hasCheckDistValues = useMemo(() => {
+    if (!day) return false;
+    return day.nodes.some(n => n.rows.some(r => r.checkDist != null));
+  }, [day]);
+
+  const handleClearRecon = useCallback(() => {
+    if (!hasCheckDistValues) return;
+    pushUndo('Clear recon distances');
+    clearCheckDistances();
+    setToast('Cleared all recon check distances');
+    setTimeout(() => setToast(null), 3000);
+  }, [hasCheckDistValues, pushUndo, clearCheckDistances]);
 
   // Build node metadata: map row ID → node name, and track first row of each node
   const { nodeNameMap, nodeFirstRowIds } = useMemo(() => {
@@ -352,6 +371,16 @@ export default function RouteBuilder() {
                   >
                     Recon Mode
                   </button>
+                  {reconMode && hasCheckDistValues && (
+                    <button
+                      onClick={handleClearRecon}
+                      disabled={isLocked}
+                      style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
+                      title="Clear all recon check distances from the current route"
+                    >
+                      Clear Recon
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowNodes(!showNodes)}
                     className={showNodes ? 'primary' : undefined}
@@ -548,6 +577,8 @@ export default function RouteBuilder() {
             <h2>Push to Library</h2>
             <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
               Push route changes back to their source templates in the Node Library.
+              Any recon distance checks will be added to the template's distance history
+              and rally distances will be updated based on the average of recent recordings.
             </p>
 
             {pushSummaries.map(({ nodeName, templateName, nodeId, summary }) => {
