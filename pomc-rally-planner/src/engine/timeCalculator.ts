@@ -1,4 +1,5 @@
-import { RouteRow } from '../types/domain';
+import { RouteRow, SpeedLookupEntry, TypeCode } from '../types/domain';
+import { lookupSpeeds } from './speedCalculator';
 
 /**
  * Parse a time string "HH:MM:SS" into fractional hours.
@@ -22,6 +23,50 @@ export function formatHoursToTime(hours: number): string {
   const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+/**
+ * Recalculate B/C/D speeds from type code, A-speed, and speed lookup table.
+ * Only updates rows that have a type code and a positive A-speed.
+ * For 'm' (marked control) rows, inherits speeds from the previous regularity row.
+ */
+export function recalculateSpeeds(
+  rows: RouteRow[],
+  customTable?: SpeedLookupEntry[],
+): RouteRow[] {
+  let lastRegularitySpeeds: [number, number, number, number] | null = null;
+
+  return rows.map(row => {
+    if (!row.type || row.type === 't') {
+      // Time-add rows: speeds are 0
+      if (row.type === 't') {
+        return { ...row, aSpeed: 0, bSpeed: 0, cSpeed: 0, dSpeed: 0 };
+      }
+      return row;
+    }
+
+    if (row.type === 'm') {
+      // Marked control: inherit from last regularity row's speeds
+      if (lastRegularitySpeeds) {
+        return {
+          ...row,
+          aSpeed: lastRegularitySpeeds[0],
+          bSpeed: lastRegularitySpeeds[1],
+          cSpeed: lastRegularitySpeeds[2],
+          dSpeed: lastRegularitySpeeds[3],
+        };
+      }
+      return row;
+    }
+
+    if (row.aSpeed > 0) {
+      const [a, b, c, d] = lookupSpeeds(row.type, row.aSpeed, row.speedLimit, customTable);
+      lastRegularitySpeeds = [a, b, c, d];
+      return { ...row, aSpeed: a, bSpeed: b, cSpeed: c, dSpeed: d };
+    }
+
+    return row;
+  });
 }
 
 /**

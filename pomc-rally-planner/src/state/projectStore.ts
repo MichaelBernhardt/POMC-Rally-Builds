@@ -17,7 +17,7 @@ import {
   createEmptyNodeTemplate,
   SpeedLookupEntry,
 } from '../types/domain';
-import { computeTimes } from '../engine/timeCalculator';
+import { computeTimes, recalculateSpeeds } from '../engine/timeCalculator';
 import { getDefaultSpeedLookupTable } from '../engine/speedCalculator';
 import {
   updateRallyV3,
@@ -1028,13 +1028,21 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
     if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return;
 
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    if (!rally) return;
+
     const day = get().getCurrentDay();
     if (!day) return;
 
-    // Flatten all nodes' rows, compute times, split back
+    // Flatten all nodes' rows
     const allRows = flattenDayRows(day);
+
+    // Step 1: Recalculate B/C/D speeds from type + A-speed + speed lookup table
+    const withSpeeds = recalculateSpeeds(allRows, rally.speedLookupTable);
+
+    // Step 2: Compute first/last car arrival times
     const updatedRows = computeTimes(
-      allRows,
+      withSpeeds,
       day.startTime,
       day.carIntervalSeconds,
       day.numberOfCars,

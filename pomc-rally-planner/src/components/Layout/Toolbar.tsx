@@ -97,7 +97,7 @@ export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
 
   const handleRecalculateTimes = () => {
     recalculateTimes();
-    setToast('Times recalculated');
+    setToast('Speeds and times recalculated');
     setTimeout(() => setToast(null), 2000);
   };
 
