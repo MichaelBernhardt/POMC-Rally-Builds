@@ -5,6 +5,7 @@ import {
   ModuleRegistry,
   CellEditingStoppedEvent,
   GetRowIdParams,
+  ColDef,
   RowClassRules,
   themeAlpine,
 } from 'ag-grid-community';
@@ -44,7 +45,56 @@ export default function RouteBuilder() {
     return [...new Set(clues)];
   }, [day]);
 
-  const columnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance, clueSuggestions }), [reconMode, reconTolerance, clueSuggestions]);
+  // Build node metadata: map row ID → node name, and track first row of each node
+  const { nodeNameMap, nodeFirstRowIds } = useMemo(() => {
+    const nameMap = new Map<string, string>();
+    const firstIds = new Set<string>();
+    if (day) {
+      for (const node of day.nodes) {
+        for (let i = 0; i < node.rows.length; i++) {
+          nameMap.set(node.rows[i].id, node.name);
+          if (i === 0) firstIds.add(node.rows[i].id);
+        }
+      }
+    }
+    return { nodeNameMap: nameMap, nodeFirstRowIds: firstIds };
+  }, [day]);
+
+  const baseColumnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance, clueSuggestions }), [reconMode, reconTolerance, clueSuggestions]);
+
+  // Prepend a "Node" column for the table view
+  const columnDefs = useMemo(() => {
+    const nodeCol: ColDef<RouteRow> = {
+      headerName: 'Node',
+      width: 140,
+      pinned: 'left',
+      editable: false,
+      sortable: false,
+      filter: false,
+      suppressMovable: true,
+      valueGetter: (params) => {
+        if (!params.data) return '';
+        // Show node name only on the first row of each node
+        if (nodeFirstRowIds.has(params.data.id)) {
+          return nodeNameMap.get(params.data.id) ?? '';
+        }
+        return '';
+      },
+      cellStyle: (params) => {
+        const base: Record<string, string> = {
+          fontWeight: '600',
+          fontSize: '13px',
+          color: '#6B7280',
+        };
+        if (params.data && nodeFirstRowIds.has(params.data.id)) {
+          return { ...base, color: '#1F2937' };
+        }
+        return base;
+      },
+    };
+    return [nodeCol, ...baseColumnDefs];
+  }, [baseColumnDefs, nodeNameMap, nodeFirstRowIds]);
+
   const getRowId = useCallback((params: GetRowIdParams<RouteRow>) => params.data.id, []);
 
   const rowClassRules = useMemo<RowClassRules<RouteRow>>(() => ({
@@ -54,7 +104,12 @@ export default function RouteBuilder() {
     },
     'row-type-control': (params) => params.data?.type === 'm',
     'row-type-timeadd': (params) => params.data?.type === 't',
-  }), []);
+    'row-node-boundary': (params) => {
+      if (!params.data) return false;
+      // First row of a node (but not the very first row in the table)
+      return nodeFirstRowIds.has(params.data.id) && params.node?.rowIndex !== 0;
+    },
+  }), [nodeFirstRowIds]);
 
   const theme = useMemo(() => themeAlpine.withParams({
     fontSize: 15,

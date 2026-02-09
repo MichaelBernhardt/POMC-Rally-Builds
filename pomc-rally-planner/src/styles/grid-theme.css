@@ -45,6 +45,11 @@
   padding: 4px 8px;
 }
 
+/* Node boundary separator in Route Builder table view */
+.row-node-boundary {
+  border-top: 3px solid #6366F1 !important;
+}
+
 /* Better focus indicator */
 .ag-cell-focus {
   outline: 2px solid #2563EB !important;
