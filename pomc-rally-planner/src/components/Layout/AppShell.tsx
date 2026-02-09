@@ -36,6 +36,7 @@ export default function AppShell() {
   const [showImport, setShowImport] = useState(false);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [toast, setToast] = useState<string | null>(null);
 
   const workspace = useProjectStore(s => s.workspace);
   const filePath = useProjectStore(s => s.filePath);
@@ -140,6 +141,11 @@ export default function AppShell() {
     return () => window.removeEventListener('keydown', handler);
   }, [undo, redo]);
 
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
   const handleSave = useCallback(async () => {
     const data = getWorkspaceForSave();
     if (!data) return;
@@ -148,7 +154,7 @@ export default function AppShell() {
     if (!savePath) {
       const firstRallyName = data.rallies[0]?.name ?? 'workspace';
       const selected = await saveDialog({
-        defaultPath: `${firstRallyName}.rally.json`,
+        defaultPath: firstRallyName,
         filters: [{ name: 'Rally Workspace', extensions: ['rally.json'] }],
       });
       if (!selected) return;
@@ -156,27 +162,33 @@ export default function AppShell() {
       setFilePath(savePath);
     }
 
+    const changeCount = useProjectStore.getState().undoStack.length;
     await writeTextFile(savePath, JSON.stringify(data, null, 2));
     markSaved();
     localStorage.setItem(LAST_FILE_KEY, savePath);
-  }, [filePath, getWorkspaceForSave, setFilePath, markSaved]);
+    showToast(`Saved! ${changeCount} change${changeCount !== 1 ? 's' : ''}`);
+  }, [filePath, getWorkspaceForSave, setFilePath, markSaved, showToast]);
 
   const handleSaveAs = useCallback(async () => {
     const data = getWorkspaceForSave();
     if (!data) return;
 
     const firstRallyName = data.rallies[0]?.name ?? 'workspace';
+    // Strip .rally.json from existing path so the dialog filter doesn't double it
+    const basePath = filePath?.replace(/\.rally\.json$/i, '') ?? firstRallyName;
     const selected = await saveDialog({
-      defaultPath: filePath ?? `${firstRallyName}.rally.json`,
+      defaultPath: basePath,
       filters: [{ name: 'Rally Workspace', extensions: ['rally.json'] }],
     });
     if (!selected) return;
 
+    const changeCount = useProjectStore.getState().undoStack.length;
     setFilePath(selected);
     await writeTextFile(selected, JSON.stringify(data, null, 2));
     markSaved();
     localStorage.setItem(LAST_FILE_KEY, selected);
-  }, [filePath, getWorkspaceForSave, setFilePath, markSaved]);
+    showToast(`Saved! ${changeCount} change${changeCount !== 1 ? 's' : ''}`);
+  }, [filePath, getWorkspaceForSave, setFilePath, markSaved, showToast]);
 
   const handleNewWorkspace = useCallback(async () => {
     if (isDirty) {
@@ -381,6 +393,26 @@ export default function AppShell() {
       {/* Dialogs */}
       <NewEditionDialog open={showNewRally} onClose={() => setShowNewRally(false)} />
       <ImportCsvDialog open={showImport} onClose={() => setShowImport(false)} />
+
+      {/* Toast notification */}
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#333',
+          color: '#fff',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: 500,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          zIndex: 9999,
+        }}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
