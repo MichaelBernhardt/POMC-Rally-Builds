@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useProjectStore, selectCurrentRally, selectCurrentNode, selectIsCurrentRallyLocked, selectReconMode, selectSourceTemplateForNode } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentNode, selectIsCurrentEditionLocked, selectReconMode, selectSourceTemplateForNode } from '../../state/projectStore';
 import { GridApi } from 'ag-grid-community';
 import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
 import PushToTemplateDialog from '../Dialogs/PushToTemplateDialog';
@@ -22,7 +22,7 @@ export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
   const reconMode = useProjectStore(selectReconMode);
   const toggleReconMode = useProjectStore(s => s.toggleReconMode);
-  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
+  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
   const pushToTemplate = useProjectStore(s => s.pushToTemplate);
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
 

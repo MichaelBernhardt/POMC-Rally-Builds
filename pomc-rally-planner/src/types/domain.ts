@@ -217,6 +217,7 @@ export function createEmptyRouteDay(name: string): RouteDay {
 export interface RallyEdition {
   id: string;
   name: string;
+  locked?: boolean;
   days: RouteDay[];
 }
 

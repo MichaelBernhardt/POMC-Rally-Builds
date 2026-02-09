@@ -91,13 +91,13 @@ function migrateRallyV2ToV3(rally: Rally): RallyV3 {
   const edition: RallyEdition = {
     id: crypto.randomUUID(),
     name: 'Default',
+    locked: rally.locked,
     days,
   };
 
   return {
     id: rally.id,
     name: rally.name,
-    locked: rally.locked,
     createdAt: rally.createdAt,
     modifiedAt: rally.modifiedAt,
     nodeLibrary: [],

@@ -22,7 +22,7 @@ export default function ProjectTree() {
   const selectEdition = useProjectStore(s => s.selectEdition);
   const selectDay = useProjectStore(s => s.selectDay);
   const removeRally = useProjectStore(s => s.removeRally);
-  const toggleRallyLock = useProjectStore(s => s.toggleRallyLock);
+  const toggleEditionLock = useProjectStore(s => s.toggleEditionLock);
   const addDay = useProjectStore(s => s.addDay);
   const removeDay = useProjectStore(s => s.removeDay);
   const addEdition = useProjectStore(s => s.addEdition);
@@ -187,16 +187,7 @@ export default function ProjectTree() {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
                 }}>
-                  {rally.locked && (
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.5 }}>
-                      <rect x="3" y="7" width="10" height="8" rx="1.5" fill="currentColor" />
-                      <path d="M5 7V5a3 3 0 1 1 6 0v2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                    </svg>
-                  )}
                   {rally.name}
                 </span>
               )}
@@ -284,7 +275,15 @@ export default function ProjectTree() {
                       >
                         {editingEditionId === edition.id ? inlineEditInput : (
                           <>
-                            <span>{edition.name}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              {edition.locked && (
+                                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.5 }}>
+                                  <rect x="3" y="7" width="10" height="8" rx="1.5" fill="currentColor" />
+                                  <path d="M5 7V5a3 3 0 1 1 6 0v2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                                </svg>
+                              )}
+                              {edition.name}
+                            </span>
                             <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
                               {edition.days.length} {edition.days.length === 1 ? 'day' : 'days'}
                             </span>
@@ -342,7 +341,7 @@ export default function ProjectTree() {
                           })}
 
                           {/* Add day button */}
-                          {!rally.locked && (
+                          {!edition.locked && (
                             <div
                               onClick={() => addDay(`Day ${edition.days.length + 1}`)}
                               style={{
@@ -390,7 +389,6 @@ export default function ProjectTree() {
           {/* Rally context menu */}
           {menu.type === 'rally' && (() => {
             const menuRally = workspace.rallies.find(r => r.id === menu.rallyId);
-            const isLocked = menuRally?.locked === true;
             return (
               <>
                 <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
@@ -398,13 +396,6 @@ export default function ProjectTree() {
                   addEdition(new Date().getFullYear().toString());
                 }}>
                   Add Edition
-                </div>
-                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
-                  const rallyId = menu.rallyId;
-                  setMenu(null);
-                  toggleRallyLock(rallyId);
-                }}>
-                  {isLocked ? 'Unlock Rally' : 'Lock Rally'}
                 </div>
                 <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
                   const rallyId = menu.rallyId;
@@ -433,8 +424,16 @@ export default function ProjectTree() {
           {menu.type === 'edition' && menu.editionId && (() => {
             const menuRally = workspace.rallies.find(r => r.id === menu.rallyId);
             const edition = menuRally?.editions.find(e => e.id === menu.editionId);
+            const isEditionLocked = edition?.locked === true;
             return (
               <>
+                <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
+                  const edId = menu.editionId!;
+                  setMenu(null);
+                  toggleEditionLock(edId);
+                }}>
+                  {isEditionLocked ? 'Unlock Edition' : 'Lock Edition'}
+                </div>
                 <div style={menuItemStyle} {...hoverHandlers} onClick={() => {
                   const edId = menu.editionId!;
                   setMenu(null);
@@ -443,7 +442,7 @@ export default function ProjectTree() {
                 }}>
                   Rename Edition
                 </div>
-                {menuRally && menuRally.editions.length > 1 && !menuRally.locked && (
+                {menuRally && menuRally.editions.length > 1 && !isEditionLocked && (
                   <div style={{ ...menuItemStyle, color: 'var(--color-danger)' }} {...hoverHandlers} onClick={async () => {
                     const edId = menu.editionId!;
                     setMenu(null);
@@ -475,7 +474,7 @@ export default function ProjectTree() {
                 }}>
                   Rename Day
                 </div>
-                {!menuRally?.locked && (() => {
+                {!edition?.locked && (() => {
                   const isLastDay = edition != null && edition.days.length <= 1;
                   return (
                     <div style={{

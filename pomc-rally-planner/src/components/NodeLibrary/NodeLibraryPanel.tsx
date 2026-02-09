@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useProjectStore, selectCurrentRally, selectIsCurrentRallyLocked } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectIsCurrentEditionLocked } from '../../state/projectStore';
 import { isTemplateComplete, validateTemplate } from '../../engine/validator';
 
 export default function NodeLibraryPanel() {
@@ -8,7 +8,7 @@ export default function NodeLibraryPanel() {
   const removeNodeTemplate = useProjectStore(s => s.removeNodeTemplate);
   const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
-  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
+  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
 
   const [showDialog, setShowDialog] = useState(false);
   const [newName, setNewName] = useState('');

@@ -1,4 +1,4 @@
-import { useProjectStore, selectCurrentRally, selectCurrentDay } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentEditionLocked } from '../../state/projectStore';
 import { flattenDayRows } from '../../state/storeHelpers';
 
 export default function DayPanel() {
@@ -8,9 +8,9 @@ export default function DayPanel() {
   const viewMode = useProjectStore(s => s.viewMode);
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
+  const locked = useProjectStore(selectIsCurrentEditionLocked);
   if (!rally || !currentDayId || !day) return null;
   if (viewMode === 'library') return null;
-  const locked = rally.locked === true;
   const totalRows = flattenDayRows(day).length;
 
   return (

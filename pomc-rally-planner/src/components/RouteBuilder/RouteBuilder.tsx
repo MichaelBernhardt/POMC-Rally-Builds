@@ -12,7 +12,7 @@ import {
 import { getColumnDefs } from '../Grid/GridColumns';
 import { flattenDayRows } from '../../state/storeHelpers';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentRallyLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentEditionLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import { validateNodeConnections } from '../../engine/validator';
 import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
 import NodePalette from './NodePalette';
@@ -28,7 +28,7 @@ export default function RouteBuilder() {
   const removeRouteNode = useProjectStore(s => s.removeRouteNode);
   const renameRouteNode = useProjectStore(s => s.renameRouteNode);
   const selectNode = useProjectStore(s => s.selectNode);
-  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
+  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
   const pushUndo = useProjectStore(s => s.pushUndo);
   const updateDayRow = useProjectStore(s => s.updateDayRow);
   const addRowToDay = useProjectStore(s => s.addRowToDay);

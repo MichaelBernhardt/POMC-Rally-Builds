@@ -12,7 +12,7 @@ import {
 } from 'ag-grid-community';
 import { getColumnDefs } from './GridColumns';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore, selectCurrentRows, selectCurrentDay, selectIsCurrentRallyLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRows, selectCurrentDay, selectIsCurrentEditionLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import { flattenDayRows } from '../../state/storeHelpers';
 import '../../styles/grid-theme.css';
 
@@ -26,7 +26,7 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const rows = useProjectStore(selectCurrentRows);
   const day = useProjectStore(selectCurrentDay);
-  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
+  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
   const reconMode = useProjectStore(selectReconMode);
   const reconTolerance = useProjectStore(selectReconTolerance);
   const updateRow = useProjectStore(s => s.updateRow);

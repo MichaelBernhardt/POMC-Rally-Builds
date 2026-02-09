@@ -64,8 +64,6 @@ export default function SpeedTablePage() {
     }
   };
 
-  const isLocked = rally.locked === true;
-
   return (
     <div style={{ padding: '20px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -81,7 +79,7 @@ export default function SpeedTablePage() {
           {hasChanges && (
             <span style={{ fontSize: '13px', color: 'var(--color-warning)', fontWeight: 600 }}>Unsaved changes</span>
           )}
-          <button className="primary" onClick={handleSave} disabled={!hasChanges || isLocked}>
+          <button className="primary" onClick={handleSave} disabled={!hasChanges}>
             Save Changes
           </button>
         </div>
@@ -103,10 +101,10 @@ export default function SpeedTablePage() {
         <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
           {filteredEntries.length} entries shown. {entries.length} total.
         </span>
-        <button onClick={handleResetDefaults} disabled={isLocked} style={{ fontSize: '13px' }}>
+        <button onClick={handleResetDefaults} disabled={false} style={{ fontSize: '13px' }}>
           Reset Defaults
         </button>
-        <button onClick={handleAddEntry} disabled={isLocked} style={{ fontSize: '13px' }}>
+        <button onClick={handleAddEntry} disabled={false} style={{ fontSize: '13px' }}>
           + Add Entry
         </button>
       </div>
@@ -135,7 +133,7 @@ export default function SpeedTablePage() {
                   <select
                     value={entry.type}
                     onChange={e => handleUpdate(i, 'type', e.target.value)}
-                    disabled={isLocked}
+                    
                     style={{ minHeight: '30px', width: '100%' }}
                   >
                     {(['f', 'd', 'u', 'l'] as TypeCode[]).map(t => (
@@ -146,30 +144,30 @@ export default function SpeedTablePage() {
                 <td style={{ padding: '4px 8px' }}>
                   <input type="number" value={entry.aSpeed}
                     onChange={e => handleUpdate(i, 'aSpeed', parseInt(e.target.value) || 0)}
-                    disabled={isLocked}
+                    
                     style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
                 </td>
                 <td style={{ padding: '4px 8px' }}>
                   <input type="number" value={entry.bSpeed}
                     onChange={e => handleUpdate(i, 'bSpeed', parseInt(e.target.value) || 0)}
-                    disabled={isLocked}
+                    
                     style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
                 </td>
                 <td style={{ padding: '4px 8px' }}>
                   <input type="number" value={entry.cSpeed}
                     onChange={e => handleUpdate(i, 'cSpeed', parseInt(e.target.value) || 0)}
-                    disabled={isLocked}
+                    
                     style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
                 </td>
                 <td style={{ padding: '4px 8px' }}>
                   <input type="number" value={entry.dSpeed}
                     onChange={e => handleUpdate(i, 'dSpeed', parseInt(e.target.value) || 0)}
-                    disabled={isLocked}
+                    
                     style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
                 </td>
                 <td style={{ padding: '4px' }}>
                   <button onClick={() => handleDelete(i)}
-                    disabled={isLocked}
+                    
                     style={{ minHeight: '28px', padding: '2px 8px', fontSize: '12px', color: 'var(--color-danger)' }}>
                     X
                   </button>

@@ -66,8 +66,8 @@ interface ProjectState {
   selectRally: (rallyId: string) => void;
   selectRallyDay: (rallyId: string, dayId: string) => void;
   updateRallyName: (rallyId: string, name: string) => void;
-  toggleRallyLock: (rallyId: string) => void;
-  isCurrentRallyLocked: () => boolean;
+  toggleEditionLock: (editionId: string) => void;
+  isCurrentEditionLocked: () => boolean;
   getCurrentRally: () => RallyV3 | null;
 
   // Workspace I/O
@@ -309,24 +309,27 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     });
   },
 
-  toggleRallyLock: (rallyId: string) => {
-    const { workspace } = get();
-    if (!workspace) return;
+  toggleEditionLock: (editionId: string) => {
+    const { workspace, currentRallyId } = get();
+    if (!workspace || !currentRallyId) return;
     set({
-      workspace: updateRallyV3(workspace, rallyId, r => ({
+      workspace: updateRallyV3(workspace, currentRallyId, r => ({
         ...r,
-        locked: !r.locked,
+        editions: r.editions.map(e =>
+          e.id === editionId ? { ...e, locked: !e.locked } : e,
+        ),
         modifiedAt: new Date().toISOString(),
       })),
       isDirty: true,
     });
   },
 
-  isCurrentRallyLocked: () => {
-    const { workspace, currentRallyId } = get();
-    if (!workspace || !currentRallyId) return false;
+  isCurrentEditionLocked: () => {
+    const { workspace, currentRallyId, currentEditionId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId) return false;
     const rally = workspace.rallies.find(r => r.id === currentRallyId);
-    return rally?.locked === true;
+    const edition = rally?.editions.find(e => e.id === currentEditionId);
+    return edition?.locked === true;
   },
 
   getCurrentRally: () => {
@@ -1267,11 +1270,15 @@ export const selectCurrentNode = (s: ProjectState): RouteNode | null => {
   return day.nodes.find(n => n.id === s.currentNodeId) ?? null;
 };
 
-export const selectIsCurrentRallyLocked = (s: ProjectState): boolean => {
-  if (!s.workspace || !s.currentRallyId) return false;
+export const selectIsCurrentEditionLocked = (s: ProjectState): boolean => {
+  if (!s.workspace || !s.currentRallyId || !s.currentEditionId) return false;
   const rally = s.workspace.rallies.find(r => r.id === s.currentRallyId);
-  return rally?.locked === true;
+  const edition = rally?.editions.find(e => e.id === s.currentEditionId);
+  return edition?.locked === true;
 };
+
+/** @deprecated Use selectIsCurrentEditionLocked instead */
+export const selectIsCurrentRallyLocked = selectIsCurrentEditionLocked;
 
 export const selectReconMode = (s: ProjectState): boolean => s.reconMode;
 

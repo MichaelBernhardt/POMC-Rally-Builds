@@ -12,7 +12,7 @@ import {
 } from 'ag-grid-community';
 import { getColumnDefs } from '../Grid/GridColumns';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore, selectCurrentRally, selectCurrentRows, selectIsCurrentRallyLocked } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentRows, selectIsCurrentEditionLocked } from '../../state/projectStore';
 import { validateTemplate } from '../../engine/validator';
 import '../../styles/grid-theme.css';
 
@@ -31,7 +31,7 @@ export default function NodeTemplateEditor() {
 
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
   const rows = useProjectStore(selectCurrentRows);
-  const isLocked = useProjectStore(selectIsCurrentRallyLocked);
+  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
   const addRow = useProjectStore(s => s.addRow);
