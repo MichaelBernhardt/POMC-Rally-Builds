@@ -1,5 +1,6 @@
 import { ColDef, ValueFormatterParams, ValueParserParams, ValueGetterParams, CellStyle } from 'ag-grid-community';
 import { RouteRow, TYPE_CODES, TypeCode } from '../../types/domain';
+import AutocompleteCellEditor from './AutocompleteCellEditor';
 
 function numberParser(params: ValueParserParams): number {
   const val = parseFloat(params.newValue);
@@ -39,6 +40,7 @@ function typeCodeFormatter(params: ValueFormatterParams): string {
 interface ReconOptions {
   reconMode: boolean;
   tolerance: number;
+  clueSuggestions?: string[];
 }
 
 export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
@@ -280,6 +282,11 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       autoHeight: true,
       headerTooltip: 'Route instruction text. {Curly braces} contain annotations stripped on clean export.',
       cellStyle: { lineHeight: '1.4', paddingTop: '8px', paddingBottom: '8px' },
+      cellEditor: AutocompleteCellEditor,
+      cellEditorParams: {
+        suggestions: recon?.clueSuggestions ?? [],
+      },
+      cellEditorPopup: true,
     },
     {
       headerName: 'Lat',

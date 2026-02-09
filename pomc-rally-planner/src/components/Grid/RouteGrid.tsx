@@ -13,6 +13,7 @@ import {
 import { getColumnDefs } from './GridColumns';
 import { RouteRow } from '../../types/domain';
 import { useProjectStore, selectCurrentRows, selectIsCurrentRallyLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
+import AutocompleteCellEditor from './AutocompleteCellEditor';
 import '../../styles/grid-theme.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -24,13 +25,20 @@ interface RouteGridProps {
 export default function RouteGrid({ onGridReady }: RouteGridProps) {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const rows = useProjectStore(selectCurrentRows);
+  const dayRows = useProjectStore(s => s.getDayRows());
   const isLocked = useProjectStore(selectIsCurrentRallyLocked);
   const reconMode = useProjectStore(selectReconMode);
   const reconTolerance = useProjectStore(selectReconTolerance);
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
 
-  const columnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance }), [reconMode, reconTolerance]);
+  // Collect all unique clue values from the entire day for autocomplete
+  const clueSuggestions = useMemo(() => {
+    const clues = dayRows.map(r => r.clue).filter(c => c && c.trim().length > 0);
+    return [...new Set(clues)];
+  }, [dayRows]);
+
+  const columnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance, clueSuggestions }), [reconMode, reconTolerance, clueSuggestions]);
 
   const defaultColDef = useMemo(() => ({
     sortable: false,
