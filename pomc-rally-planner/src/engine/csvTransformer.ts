@@ -78,6 +78,16 @@ export function parseCsvToRows(csvText: string): RouteRow[] {
   return rows;
 }
 
+/** Sanitise a string for CSV: strip commas so they can't break unquoted fields */
+function csvSafe(s: string): string {
+  return s.replace(/,/g, '');
+}
+
+/** Ensure a number uses '.' as decimal separator (guards against locale issues) */
+function csvNum(n: number): number {
+  return Number(String(n).replace(/,/g, '.'));
+}
+
 /**
  * Export rows to "clean" CSV format.
  * Sequential numbering, curly braces stripped from instructions.
@@ -89,29 +99,28 @@ export function exportCleanCsv(rows: RouteRow[]): string {
   const csvRows: CsvExportRow[] = exportRows.map(row => {
     const exportType = row.type === 'm' ? 'v' : 'a';
     const isControl = row.type === 'm';
-    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
+    const instruction = csvSafe(row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim());
 
     return {
       No: seqNum++,
       Instruction: instruction,
       Type: exportType,
-      Distance: row.rallyDistance,
-      A_Speed: row.aSpeed,
-      B_Speed: row.bSpeed,
-      C_Speed: row.cSpeed,
-      D_Speed: row.dSpeed,
-      Limit: row.speedLimit,
-      AddTime_A: row.type === 't' ? row.addTimeA : 0,
-      AddTime_B: row.type === 't' ? row.addTimeB : 0,
-      AddTime_C: row.type === 't' ? row.addTimeC : 0,
-      AddTime_D: row.type === 't' ? row.addTimeD : 0,
-      Lat: isControl ? row.lat : 0,
-      Long: isControl ? row.long : 0,
+      Distance: csvNum(row.rallyDistance),
+      A_Speed: csvNum(row.aSpeed),
+      B_Speed: csvNum(row.bSpeed),
+      C_Speed: csvNum(row.cSpeed),
+      D_Speed: csvNum(row.dSpeed),
+      Limit: csvNum(row.speedLimit),
+      AddTime_A: row.type === 't' ? csvNum(row.addTimeA) : 0,
+      AddTime_B: row.type === 't' ? csvNum(row.addTimeB) : 0,
+      AddTime_C: row.type === 't' ? csvNum(row.addTimeC) : 0,
+      AddTime_D: row.type === 't' ? csvNum(row.addTimeD) : 0,
+      Lat: isControl ? csvNum(row.lat) : 0,
+      Long: isControl ? csvNum(row.long) : 0,
     };
   });
 
   return Papa.unparse(csvRows, {
-    quotes: true,
     columns: [
       'No', 'Instruction', 'Type', 'Distance',
       'A_Speed', 'B_Speed', 'C_Speed', 'D_Speed',
@@ -134,20 +143,20 @@ export function exportBlackbookCsv(rows: RouteRow[]): string {
 
     return {
       No: row.type ?? '',
-      Instruction: row.clue,
+      Instruction: csvSafe(row.clue),
       Type: exportType,
-      Distance: parseFloat(row.rallyDistance.toFixed(2)),
-      A_Speed: row.aSpeed,
-      B_Speed: row.bSpeed,
-      C_Speed: row.cSpeed,
-      D_Speed: row.dSpeed,
-      Limit: row.speedLimit,
-      AddTime_A: row.type === 't' ? row.addTimeA : 0,
-      AddTime_B: row.type === 't' ? row.addTimeB : 0,
-      AddTime_C: row.type === 't' ? row.addTimeC : 0,
-      AddTime_D: row.type === 't' ? row.addTimeD : 0,
-      Lat: isControl ? row.lat : 0,
-      Long: isControl ? row.long : 0,
+      Distance: csvNum(parseFloat(row.rallyDistance.toFixed(2))),
+      A_Speed: csvNum(row.aSpeed),
+      B_Speed: csvNum(row.bSpeed),
+      C_Speed: csvNum(row.cSpeed),
+      D_Speed: csvNum(row.dSpeed),
+      Limit: csvNum(row.speedLimit),
+      AddTime_A: row.type === 't' ? csvNum(row.addTimeA) : 0,
+      AddTime_B: row.type === 't' ? csvNum(row.addTimeB) : 0,
+      AddTime_C: row.type === 't' ? csvNum(row.addTimeC) : 0,
+      AddTime_D: row.type === 't' ? csvNum(row.addTimeD) : 0,
+      Lat: isControl ? csvNum(row.lat) : 0,
+      Long: isControl ? csvNum(row.long) : 0,
     };
   });
 
@@ -175,20 +184,21 @@ export function exportSpeedAbcdCsv(
 
   const data = exportRows.map((row, i) => {
     const idx = rows.indexOf(row);
+    const instruction = csvSafe(row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim());
     return {
-      Distance: row.rallyDistance,
-      Speed_A: row.aSpeed,
-      Speed_B: row.bSpeed,
-      Speed_C: row.cSpeed,
-      Speed_D: row.dSpeed,
-      Time_A: cumulativeTimesA[idx] ?? 0,
-      Time_B: cumulativeTimesB[idx] ?? 0,
-      Time_C: cumulativeTimesC[idx] ?? 0,
-      Time_D: cumulativeTimesD[idx] ?? 0,
-      Instruction_A: row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim(),
-      Instruction_B: row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim(),
-      Instruction_C: row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim(),
-      Instruction_D: row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim(),
+      Distance: csvNum(row.rallyDistance),
+      Speed_A: csvNum(row.aSpeed),
+      Speed_B: csvNum(row.bSpeed),
+      Speed_C: csvNum(row.cSpeed),
+      Speed_D: csvNum(row.dSpeed),
+      Time_A: csvNum(cumulativeTimesA[idx] ?? 0),
+      Time_B: csvNum(cumulativeTimesB[idx] ?? 0),
+      Time_C: csvNum(cumulativeTimesC[idx] ?? 0),
+      Time_D: csvNum(cumulativeTimesD[idx] ?? 0),
+      Instruction_A: instruction,
+      Instruction_B: instruction,
+      Instruction_C: instruction,
+      Instruction_D: instruction,
     };
   });
 
