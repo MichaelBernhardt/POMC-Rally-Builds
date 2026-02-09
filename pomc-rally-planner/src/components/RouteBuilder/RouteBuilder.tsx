@@ -37,7 +37,14 @@ export default function RouteBuilder() {
   const setTab = useProjectStore(s => s.setRouteBuilderTab);
   const [showExport, setShowExport] = useState(false);
 
-  const columnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance }), [reconMode, reconTolerance]);
+  // Collect all unique clue values from the day for autocomplete
+  const clueSuggestions = useMemo(() => {
+    if (!day) return [];
+    const clues = flattenDayRows(day).map(r => r.clue).filter(c => c && c.trim().length > 0);
+    return [...new Set(clues)];
+  }, [day]);
+
+  const columnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance, clueSuggestions }), [reconMode, reconTolerance, clueSuggestions]);
   const getRowId = useCallback((params: GetRowIdParams<RouteRow>) => params.data.id, []);
 
   const rowClassRules = useMemo<RowClassRules<RouteRow>>(() => ({
