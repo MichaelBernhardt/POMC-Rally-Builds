@@ -123,7 +123,7 @@ export default function PushToTemplateDialog({
                 marginBottom: '16px',
                 border: '1px solid var(--color-warning, #F59E0B)',
               }}>
-                This will update the template. Already-placed nodes will not be affected.
+                This will overwrite the source template in the Node Library with the route data.
               </div>
             )}
           </>

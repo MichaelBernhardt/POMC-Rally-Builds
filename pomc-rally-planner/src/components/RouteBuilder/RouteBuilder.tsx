@@ -14,6 +14,7 @@ import { flattenDayRows } from '../../state/storeHelpers';
 import { RouteRow } from '../../types/domain';
 import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentRallyLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import { validateNodeConnections } from '../../engine/validator';
+import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
 import NodePalette from './NodePalette';
 import ExportDialog from '../Dialogs/ExportDialog';
 import '../../styles/grid-theme.css';
@@ -26,6 +27,7 @@ export default function RouteBuilder() {
   const day = useProjectStore(selectCurrentDay);
   const removeRouteNode = useProjectStore(s => s.removeRouteNode);
   const renameRouteNode = useProjectStore(s => s.renameRouteNode);
+  const selectNode = useProjectStore(s => s.selectNode);
   const isLocked = useProjectStore(selectIsCurrentRallyLocked);
   const updateDayRow = useProjectStore(s => s.updateDayRow);
   const addRowToDay = useProjectStore(s => s.addRowToDay);
@@ -34,10 +36,13 @@ export default function RouteBuilder() {
   const reconMode = useProjectStore(selectReconMode);
   const reconTolerance = useProjectStore(selectReconTolerance);
   const toggleReconMode = useProjectStore(s => s.toggleReconMode);
+  const pushToTemplate = useProjectStore(s => s.pushToTemplate);
   const tab = useProjectStore(s => s.routeBuilderTab);
   const setTab = useProjectStore(s => s.setRouteBuilderTab);
   const [showExport, setShowExport] = useState(false);
   const [showNodes, setShowNodes] = useState(true);
+  const [showPushDialog, setShowPushDialog] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   // Collect all unique clue values from the day for autocomplete
   const clueSuggestions = useMemo(() => {
@@ -45,6 +50,47 @@ export default function RouteBuilder() {
     const clues = flattenDayRows(day).map(r => r.clue).filter(c => c && c.trim().length > 0);
     return [...new Set(clues)];
   }, [day]);
+
+  // Compute which nodes can be pushed to library templates
+  const pushableNodes = useMemo(() => {
+    if (!day || !rally) return [];
+    return day.nodes
+      .filter(n => n.sourceNodeId)
+      .map(n => {
+        const template = rally.nodeLibrary.find(t => t.id === n.sourceNodeId);
+        if (!template) return null;
+        return { node: n, template };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+  }, [day, rally]);
+
+  // Compute change summaries when push dialog is open
+  const pushSummaries = useMemo(() => {
+    if (!showPushDialog) return [];
+    return pushableNodes.map(({ node, template }) => ({
+      nodeName: node.name,
+      templateName: template.name,
+      nodeId: node.id,
+      summary: compareRows(node.rows, template.rows),
+    }));
+  }, [showPushDialog, pushableNodes]);
+
+  const handlePushAll = useCallback(() => {
+    let totalChanges = 0;
+    for (const { node, template } of pushableNodes) {
+      const summary = compareRows(node.rows, template.rows);
+      const changes = summary.added + summary.removed + summary.modified;
+      if (changes > 0) {
+        pushToTemplate(node.id);
+        totalChanges += changes;
+      }
+    }
+    setShowPushDialog(false);
+    if (totalChanges > 0) {
+      setToast(`Pushed ${totalChanges} change${totalChanges !== 1 ? 's' : ''} to library`);
+      setTimeout(() => setToast(null), 3000);
+    }
+  }, [pushableNodes, pushToTemplate]);
 
   // Build node metadata: map row ID → node name, and track first row of each node
   const { nodeNameMap, nodeFirstRowIds } = useMemo(() => {
@@ -315,6 +361,16 @@ export default function RouteBuilder() {
                   >
                     Export CSV
                   </button>
+                  {pushableNodes.length > 0 && (
+                    <button
+                      onClick={() => setShowPushDialog(true)}
+                      disabled={isLocked}
+                      style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
+                      title="Push route changes back to source templates in Node Library"
+                    >
+                      Push to Library
+                    </button>
+                  )}
                 </>
               )}
               <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
@@ -422,6 +478,12 @@ export default function RouteBuilder() {
                         </div>
 
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <button
+                            onClick={e => { e.stopPropagation(); selectNode(node.id); }}
+                            style={{ padding: '2px 8px', fontSize: '12px' }}
+                          >
+                            Edit Rows
+                          </button>
                           {!isLocked && index === nodes.length - 1 && (
                             <button
                               onClick={e => { e.stopPropagation(); removeRouteNode(node.id); }}
@@ -474,6 +536,88 @@ export default function RouteBuilder() {
       )}
 
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} />
+
+      {/* Push to Library dialog */}
+      {showPushDialog && (
+        <div className="dialog-overlay" onClick={() => setShowPushDialog(false)}>
+          <div className="dialog" onClick={e => e.stopPropagation()} style={{ minWidth: '500px' }}>
+            <h2>Push to Library</h2>
+            <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', marginBottom: '16px' }}>
+              Push route changes back to their source templates in the Node Library.
+            </p>
+
+            {pushSummaries.map(({ nodeName, templateName, nodeId, summary }) => {
+              const hasChanges = summary.added + summary.removed + summary.modified > 0;
+              return (
+                <div key={nodeId} style={{
+                  marginBottom: '12px',
+                  padding: '12px',
+                  background: 'var(--color-bg-secondary)',
+                  borderRadius: '6px',
+                  border: '1px solid var(--color-border)',
+                }}>
+                  <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>
+                    {nodeName} → {templateName}
+                  </div>
+                  {hasChanges ? (
+                    <div style={{ display: 'flex', gap: '12px', fontSize: '13px' }}>
+                      {summary.added > 0 && <span style={{ color: 'var(--color-success)' }}>+{summary.added} added</span>}
+                      {summary.removed > 0 && <span style={{ color: 'var(--color-danger)' }}>-{summary.removed} removed</span>}
+                      {summary.modified > 0 && <span style={{ color: 'var(--color-warning)' }}>{summary.modified} modified</span>}
+                      {summary.unchanged > 0 && <span style={{ color: 'var(--color-text-muted)' }}>{summary.unchanged} unchanged</span>}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>No changes</div>
+                  )}
+                </div>
+              );
+            })}
+
+            {pushSummaries.some(s => s.summary.added + s.summary.removed + s.summary.modified > 0) && (
+              <div style={{
+                padding: '12px',
+                background: 'var(--color-warning-bg, #FEF3C7)',
+                borderRadius: '6px',
+                fontSize: '13px',
+                color: 'var(--color-warning-text, #92400E)',
+                marginBottom: '16px',
+                border: '1px solid var(--color-warning, #F59E0B)',
+              }}>
+                This will overwrite the source templates in the Node Library with the route data.
+              </div>
+            )}
+
+            <div className="dialog-actions">
+              <button onClick={() => setShowPushDialog(false)}>Cancel</button>
+              {pushSummaries.some(s => s.summary.added + s.summary.removed + s.summary.modified > 0) && (
+                <button className="primary" onClick={handlePushAll}>
+                  Push Changes
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'var(--color-text)',
+          color: 'var(--color-bg)',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: 500,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+        }}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
