@@ -29,6 +29,7 @@ export default function RouteBuilder() {
   const renameRouteNode = useProjectStore(s => s.renameRouteNode);
   const selectNode = useProjectStore(s => s.selectNode);
   const isLocked = useProjectStore(selectIsCurrentRallyLocked);
+  const pushUndo = useProjectStore(s => s.pushUndo);
   const updateDayRow = useProjectStore(s => s.updateDayRow);
   const addRowToDay = useProjectStore(s => s.addRowToDay);
   const deleteDayRows = useProjectStore(s => s.deleteDayRows);
@@ -227,8 +228,9 @@ export default function RouteBuilder() {
     if (oldVal === newVal) return;
 
     // Use day-level update for flattened table view
+    pushUndo('Edit cell');
     updateDayRow(event.rowIndex, { [field]: newVal });
-  }, [updateDayRow]);
+  }, [updateDayRow, pushUndo]);
 
   const getSelectedRowIndex = useCallback((): number | null => {
     const api = gridRef.current?.api;
@@ -258,15 +260,17 @@ export default function RouteBuilder() {
   }, []);
 
   const handleAddRow = useCallback(() => {
+    pushUndo('Add row');
     const idx = getSelectedRowIndex();
     addRowToDay(idx ?? undefined);
-  }, [addRowToDay, getSelectedRowIndex]);
+  }, [addRowToDay, getSelectedRowIndex, pushUndo]);
 
   const handleDeleteRows = useCallback(() => {
     const indices = getSelectedIndices();
     if (indices.length === 0) return;
+    pushUndo('Delete rows');
     deleteDayRows(indices);
-  }, [deleteDayRows, getSelectedIndices]);
+  }, [deleteDayRows, getSelectedIndices, pushUndo]);
 
   if (!rally || !day) {
     return (
