@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import {
   AllCommunityModule,
   ModuleRegistry,
   CellEditingStoppedEvent,
   GetRowIdParams,
+  GridApi,
   RowClassRules,
   GridReadyEvent,
   themeAlpine,
@@ -15,10 +16,15 @@ import { useProjectStore, selectCurrentRally, selectCurrentRows, selectIsCurrent
 import { validateTemplate } from '../../engine/validator';
 import '../../styles/grid-theme.css';
 
+// Module-level clipboard that persists across template switches
+let rowClipboard: RouteRow[] = [];
+let clipboardMode: 'copy' | 'cut' = 'copy';
+
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 export default function NodeTemplateEditor() {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
+  const gridApiRef = useRef<GridApi | null>(null);
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
   const rally = useProjectStore(selectCurrentRally);
   const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
@@ -30,7 +36,84 @@ export default function NodeTemplateEditor() {
   const pushUndo = useProjectStore(s => s.pushUndo);
   const addRow = useProjectStore(s => s.addRow);
   const deleteRows = useProjectStore(s => s.deleteRows);
+  const setRows = useProjectStore(s => s.setRows);
   const template = rally?.nodeLibrary.find(t => t.id === editingTemplateId);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const getSelectedIndices = useCallback((): number[] => {
+    const api = gridApiRef.current;
+    if (!api) return [];
+    const indices: number[] = [];
+    const selected = api.getSelectedRows();
+    api.forEachNode(node => {
+      if (node.data && selected.includes(node.data) && node.rowIndex !== null) {
+        indices.push(node.rowIndex);
+      }
+    });
+    return indices.sort((a, b) => a - b);
+  }, []);
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  }, []);
+
+  const handleCopy = useCallback(() => {
+    const indices = getSelectedIndices();
+    if (indices.length === 0) return;
+    rowClipboard = indices.map(i => ({ ...rows[i] }));
+    clipboardMode = 'copy';
+    showToast(`Copied ${indices.length} row${indices.length > 1 ? 's' : ''}`);
+  }, [rows, getSelectedIndices, showToast]);
+
+  const handleCut = useCallback(() => {
+    if (isLocked) return;
+    const indices = getSelectedIndices();
+    if (indices.length === 0) return;
+    pushUndo('Cut rows');
+    rowClipboard = indices.map(i => ({ ...rows[i] }));
+    clipboardMode = 'cut';
+    const newRows = rows.filter((_, i) => !indices.includes(i));
+    setRows(newRows);
+    showToast(`Cut ${indices.length} row${indices.length > 1 ? 's' : ''}`);
+  }, [rows, isLocked, getSelectedIndices, pushUndo, setRows, showToast]);
+
+  const handlePaste = useCallback(() => {
+    if (isLocked || rowClipboard.length === 0) return;
+    pushUndo('Paste rows');
+    const indices = getSelectedIndices();
+    const insertAfter = indices.length > 0 ? Math.max(...indices) : rows.length - 1;
+    const newClipRows = rowClipboard.map(r => ({ ...r, id: crypto.randomUUID() }));
+    const newRows = [...rows];
+    newRows.splice(insertAfter + 1, 0, ...newClipRows);
+    setRows(newRows);
+    showToast(`Pasted ${newClipRows.length} row${newClipRows.length > 1 ? 's' : ''}`);
+  }, [rows, isLocked, getSelectedIndices, pushUndo, setRows, showToast]);
+
+  // Keyboard shortcuts for copy/cut/paste
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Only handle if this component is mounted (editing a template)
+      if (!editingTemplateId) return;
+      // Don't intercept if user is typing in an input/textarea
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.key === 'c') {
+        e.preventDefault();
+        handleCopy();
+      } else if (mod && e.key === 'x') {
+        e.preventDefault();
+        handleCut();
+      } else if (mod && e.key === 'v') {
+        e.preventDefault();
+        handlePaste();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [editingTemplateId, handleCopy, handleCut, handlePaste]);
 
   const columnDefs = useMemo(() => getColumnDefs(), []);
 
@@ -82,6 +165,12 @@ export default function NodeTemplateEditor() {
     if (requiredNumFields.includes(field)) {
       newVal = parseFloat(newVal) || 0;
       oldVal = parseFloat(oldVal) || 0;
+    }
+
+    // Normalize boolean fields
+    if (field === 'verified') {
+      newVal = newVal === true;
+      oldVal = oldVal === true;
     }
 
     if (oldVal === newVal) return;
@@ -160,6 +249,13 @@ export default function NodeTemplateEditor() {
         />
 
         <button onClick={() => addRow()} disabled={isLocked}>+ Row</button>
+        <button onClick={() => { const indices = getSelectedIndices(); if (indices.length > 0) { pushUndo('Delete rows'); deleteRows(indices); } }} disabled={isLocked}>- Row</button>
+
+        <div style={{ width: '1px', height: '20px', background: 'var(--color-border)' }} />
+
+        <button onClick={handleCopy} title="Copy selected rows (Ctrl+C)">Copy</button>
+        <button onClick={handleCut} disabled={isLocked} title="Cut selected rows (Ctrl+X)">Cut</button>
+        <button onClick={handlePaste} disabled={isLocked || rowClipboard.length === 0} title="Paste rows (Ctrl+V)">Paste</button>
       </div>
 
       {/* Connection rule — start node or follows one previous node (mutually exclusive) */}
@@ -246,6 +342,7 @@ export default function NodeTemplateEditor() {
           getRowId={getRowId}
           rowClassRules={rowClassRules}
           onCellEditingStopped={onCellEditingStopped}
+          onGridReady={e => { gridApiRef.current = e.api; }}
           rowSelection="multiple"
           animateRows={false}
           undoRedoCellEditing={false}
@@ -253,6 +350,26 @@ export default function NodeTemplateEditor() {
           tooltipShowDelay={500}
         />
       </div>
+
+      {/* Toast notification */}
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'var(--color-text)',
+          color: 'var(--color-bg)',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: 500,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+        }}>
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
