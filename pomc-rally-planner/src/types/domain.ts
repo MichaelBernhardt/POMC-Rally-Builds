@@ -25,6 +25,7 @@ export interface RouteRow {
   suggestedASpeed: number | null;
   rallyDistance: number;
   checkDist: number | null;
+  distanceHistory: number[];
   verified: boolean;
   type: TypeCode | null;
   instructionNumber: number | null;
@@ -55,6 +56,7 @@ export function createEmptyRow(id?: string): RouteRow {
     suggestedASpeed: null,
     rallyDistance: 0,
     checkDist: null,
+    distanceHistory: [],
     verified: false,
     type: null,
     instructionNumber: null,

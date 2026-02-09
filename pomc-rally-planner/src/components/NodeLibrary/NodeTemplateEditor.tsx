@@ -28,7 +28,7 @@ export default function NodeTemplateEditor() {
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
   const rally = useProjectStore(selectCurrentRally);
   const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
-  const setAllowedPreviousNodes = useProjectStore(s => s.setAllowedPreviousNodes);
+
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
   const rows = useProjectStore(selectCurrentRows);
   const isLocked = useProjectStore(selectIsCurrentRallyLocked);
@@ -115,7 +115,37 @@ export default function NodeTemplateEditor() {
     return () => document.removeEventListener('keydown', handler);
   }, [editingTemplateId, handleCopy, handleCut, handlePaste]);
 
-  const columnDefs = useMemo(() => getColumnDefs(), []);
+  const columnDefs = useMemo(() => {
+    const cols = getColumnDefs();
+    // Insert history columns after Rally Dist
+    const rallyDistIdx = cols.findIndex(c => c.field === 'rallyDistance');
+    const historyColumns = [
+      {
+        headerName: 'Recon History',
+        valueGetter: (params: { data?: RouteRow }) => {
+          const h = params.data?.distanceHistory ?? [];
+          return h.length > 0 ? h.map(v => v.toFixed(2)).join(', ') : '';
+        },
+        width: 160,
+        editable: false,
+        sortable: false,
+      },
+      {
+        headerName: 'Recons',
+        valueGetter: (params: { data?: RouteRow }) =>
+          (params.data?.distanceHistory ?? []).length || '',
+        width: 80,
+        editable: false,
+        sortable: false,
+      },
+    ];
+    if (rallyDistIdx >= 0) {
+      cols.splice(rallyDistIdx + 1, 0, ...historyColumns);
+    } else {
+      cols.push(...historyColumns);
+    }
+    return cols;
+  }, []);
 
   const defaultColDef = useMemo(() => ({
     sortable: false,
@@ -258,7 +288,7 @@ export default function NodeTemplateEditor() {
         <button onClick={handlePaste} disabled={isLocked || rowClipboard.length === 0} title="Paste rows (Ctrl+V)">Paste</button>
       </div>
 
-      {/* Connection rule — start node or follows one previous node (mutually exclusive) */}
+      {/* Connection rule — read-only display */}
       <div style={{
         padding: '10px 16px',
         borderBottom: '1px solid var(--color-border)',
@@ -266,69 +296,18 @@ export default function NodeTemplateEditor() {
         fontSize: '13px',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
-        flexWrap: 'wrap',
+        gap: '8px',
       }}>
         <span style={{ fontWeight: 600, color: hasConnectionWarning ? 'var(--color-warning)' : 'var(--color-text-secondary)' }}>
           Connection rule:
         </span>
-
-        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-          <input
-            type="radio"
-            name={`connRule-${editingTemplateId}`}
-            checked={template.isStartNode}
-            disabled={isLocked}
-            onChange={() => {
-              updateNodeTemplate(editingTemplateId, { isStartNode: true });
-              setAllowedPreviousNodes(editingTemplateId, []);
-            }}
-          />
-          <strong>Start node</strong>
-        </label>
-
-        {otherTemplates.length > 0 && (
-          <>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-              <input
-                type="radio"
-                name={`connRule-${editingTemplateId}`}
-                checked={!template.isStartNode && template.allowedPreviousNodes.length > 0}
-                disabled={isLocked}
-                onChange={() => {
-                  updateNodeTemplate(editingTemplateId, { isStartNode: false });
-                }}
-              />
-              <strong>Follows:</strong>
-            </label>
-            <select
-              value={!template.isStartNode ? (template.allowedPreviousNodes[0] ?? '') : ''}
-              disabled={isLocked || template.isStartNode}
-              onChange={e => {
-                updateNodeTemplate(editingTemplateId, { isStartNode: false });
-                setAllowedPreviousNodes(editingTemplateId, e.target.value ? [e.target.value] : []);
-              }}
-              style={{
-                padding: '4px 8px',
-                fontSize: '13px',
-                borderRadius: '4px',
-                border: '1px solid var(--color-border)',
-                opacity: template.isStartNode ? 0.5 : 1,
-              }}
-            >
-              <option value="">Select a node...</option>
-              {otherTemplates.map(other => (
-                <option key={other.id} value={other.id}>{other.name}</option>
-              ))}
-            </select>
-          </>
-        )}
-
-        {otherTemplates.length === 0 && !template.isStartNode && (
-          <span style={{ fontSize: '12px', color: 'var(--color-warning)' }}>
-            This is the only node — mark it as a start node.
-          </span>
-        )}
+        <span>
+          {template.isStartNode
+            ? 'Start node'
+            : template.allowedPreviousNodes.length > 0
+              ? `Follows: ${otherTemplates.find(t => t.id === template.allowedPreviousNodes[0])?.name ?? 'Unknown'}`
+              : 'Not configured'}
+        </span>
       </div>
 
       {/* Grid */}

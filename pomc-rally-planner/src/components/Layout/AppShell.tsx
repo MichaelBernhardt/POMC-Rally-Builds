@@ -301,7 +301,7 @@ export default function AppShell() {
             {viewMode === 'routeBuilder' && <span> / Route Builder</span>}
             {viewMode === 'speedTables' && <span> / Speed Tables</span>}
             {viewMode === 'library' && <span> / Node Library</span>}
-            {viewMode === 'grid' && editingTemplateId && <span> / Template Editor</span>}
+            {viewMode === 'library' && editingTemplateId && <span> / Template Editor</span>}
             {viewMode === 'grid' && !editingTemplateId && (
               <>
                 {(() => {
@@ -323,7 +323,7 @@ export default function AppShell() {
 
         <div style={{ flex: 1 }} />
 
-        {viewMode === 'grid' && editingTemplateId && (
+        {viewMode === 'library' && editingTemplateId && (
           <button onClick={() => useProjectStore.getState().setEditingTemplate(null)}>
             Back to Library
           </button>

@@ -447,7 +447,7 @@ export default function RouteBuilder() {
                           alignItems: 'center',
                         }}
                       >
-                        <div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '2px' }}>
                             {isLocked ? node.name : (
                               <input

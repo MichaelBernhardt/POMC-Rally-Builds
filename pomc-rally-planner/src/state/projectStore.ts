@@ -145,6 +145,41 @@ interface ProjectState {
   getDayRows: () => RouteRow[];
 }
 
+/**
+ * Process a node row's checkDist into the template's distance history.
+ * If checkDist is non-null, appends it to history and sets rallyDistance to avg of last 3.
+ * If checkDist is null, preserves the template's existing history and rallyDistance.
+ */
+function processDistanceHistory(
+  nodeRow: RouteRow,
+  templateRow: RouteRow | null,
+): RouteRow {
+  const existingHistory = templateRow?.distanceHistory ?? [];
+
+  if (nodeRow.checkDist != null) {
+    const newHistory = [...existingHistory, nodeRow.checkDist];
+    const last3 = newHistory.slice(-3);
+    const avg = last3.reduce((sum, v) => sum + v, 0) / last3.length;
+    // Round to 2 decimal places to avoid floating point noise
+    const rallyDistance = Math.round(avg * 100) / 100;
+    return {
+      ...nodeRow,
+      id: crypto.randomUUID(),
+      checkDist: null,
+      distanceHistory: newHistory,
+      rallyDistance,
+    };
+  }
+
+  // No new recon measurement — keep template's history and rallyDistance
+  return {
+    ...nodeRow,
+    id: crypto.randomUUID(),
+    distanceHistory: existingHistory,
+    rallyDistance: templateRow?.rallyDistance ?? nodeRow.rallyDistance,
+  };
+}
+
 export const useProjectStore = create<ProjectState>((set, get) => ({
   workspace: null,
   currentRallyId: null,
@@ -723,7 +758,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   setEditingTemplate: (templateId: string | null) => {
     set({
       editingTemplateId: templateId,
-      viewMode: templateId ? 'grid' : 'library',
+      viewMode: 'library',
       undoStack: [],
       redoStack: [],
     });
@@ -748,8 +783,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const template = rally.nodeLibrary.find(t => t.id === node.sourceNodeId);
     if (!template) return false;
 
-    // Deep copy node's rows with new UUIDs to template
-    const newRows = node.rows.map(r => ({ ...r, id: crypto.randomUUID() }));
+    // Process each node row: merge checkDist into history, compute avg rallyDistance
+    const newRows = node.rows.map((r, i) =>
+      processDistanceHistory(r, template.rows[i] ?? null),
+    );
 
     set({
       workspace: updateRallyV3(workspace, currentRallyId, r => ({
