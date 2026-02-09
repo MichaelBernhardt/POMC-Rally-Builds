@@ -37,6 +37,7 @@ export default function RouteBuilder() {
   const tab = useProjectStore(s => s.routeBuilderTab);
   const setTab = useProjectStore(s => s.setRouteBuilderTab);
   const [showExport, setShowExport] = useState(false);
+  const [showNodes, setShowNodes] = useState(true);
 
   // Collect all unique clue values from the day for autocomplete
   const clueSuggestions = useMemo(() => {
@@ -68,6 +69,7 @@ export default function RouteBuilder() {
       headerName: 'Node',
       width: 140,
       pinned: 'left',
+      hide: !showNodes,
       editable: false,
       sortable: false,
       filter: false,
@@ -93,7 +95,7 @@ export default function RouteBuilder() {
       },
     };
     return [nodeCol, ...baseColumnDefs];
-  }, [baseColumnDefs, nodeNameMap, nodeFirstRowIds]);
+  }, [baseColumnDefs, nodeNameMap, nodeFirstRowIds, showNodes]);
 
   const getRowId = useCallback((params: GetRowIdParams<RouteRow>) => params.data.id, []);
 
@@ -299,6 +301,13 @@ export default function RouteBuilder() {
                     style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
                   >
                     Recon Mode
+                  </button>
+                  <button
+                    onClick={() => setShowNodes(!showNodes)}
+                    className={showNodes ? 'primary' : undefined}
+                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto' }}
+                  >
+                    Nodes
                   </button>
                   <button
                     onClick={() => setShowExport(true)}
