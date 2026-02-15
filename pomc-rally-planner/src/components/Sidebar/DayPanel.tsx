@@ -25,11 +25,10 @@ export default function DayPanel() {
   const updateDaySettings = useProjectStore(s => s.updateDaySettings);
   const recalculateTimes = useProjectStore(s => s.recalculateTimes);
   const locked = useProjectStore(selectIsCurrentEditionLocked);
-  if (!rally || !currentDayId || !day) return null;
+  const sgs = useMemo(() => day ? resolveSpeedGroupSettings(day) : null, [day]);
+  if (!rally || !currentDayId || !day || !sgs) return null;
   if (viewMode === 'library') return null;
   const totalRows = flattenDayRows(day).length;
-
-  const sgs = useMemo(() => resolveSpeedGroupSettings(day), [day]);
 
   const updateGroup = (group: 'a' | 'b' | 'c' | 'd', field: 'numberOfCars' | 'carIntervalSeconds', value: number) => {
     const updated: SpeedGroupSettings = {
