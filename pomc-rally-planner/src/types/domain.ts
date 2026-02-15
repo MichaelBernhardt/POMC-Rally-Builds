@@ -77,6 +77,23 @@ export function createEmptyRow(id?: string): RouteRow {
   };
 }
 
+/** Per-speed-group car configuration */
+export interface SpeedGroupConfig {
+  numberOfCars: number;
+  carIntervalSeconds: number;
+}
+
+/** Per-speed-group settings for a day */
+export interface SpeedGroupSettings {
+  a: SpeedGroupConfig;
+  b: SpeedGroupConfig;
+  c: SpeedGroupConfig;
+  d: SpeedGroupConfig;
+  gapABSeconds: number;
+  gapBCSeconds: number;
+  gapCDSeconds: number;
+}
+
 /** A single rally day within a project */
 export interface RallyDay {
   id: string;
@@ -197,7 +214,40 @@ export interface RouteDay {
   carIntervalSeconds: number;
   numberOfCars: number;
   reconDistanceTolerance: number;
+  /** Per-group car settings. If absent, fall back to legacy carIntervalSeconds/numberOfCars. */
+  speedGroupSettings?: SpeedGroupSettings;
   nodes: RouteNode[];
+}
+
+/** Create default speed group settings */
+export function createDefaultSpeedGroupSettings(): SpeedGroupSettings {
+  return {
+    a: { numberOfCars: 8, carIntervalSeconds: 60 },
+    b: { numberOfCars: 8, carIntervalSeconds: 60 },
+    c: { numberOfCars: 8, carIntervalSeconds: 60 },
+    d: { numberOfCars: 8, carIntervalSeconds: 60 },
+    gapABSeconds: 120,
+    gapBCSeconds: 120,
+    gapCDSeconds: 120,
+  };
+}
+
+/**
+ * Resolve speed group settings from a day.
+ * If speedGroupSettings exists, use it. Otherwise build from legacy fields.
+ */
+export function resolveSpeedGroupSettings(day: RouteDay): SpeedGroupSettings {
+  if (day.speedGroupSettings) return day.speedGroupSettings;
+  const perGroup = Math.max(1, Math.ceil(day.numberOfCars / 4));
+  return {
+    a: { numberOfCars: perGroup, carIntervalSeconds: day.carIntervalSeconds },
+    b: { numberOfCars: perGroup, carIntervalSeconds: day.carIntervalSeconds },
+    c: { numberOfCars: perGroup, carIntervalSeconds: day.carIntervalSeconds },
+    d: { numberOfCars: perGroup, carIntervalSeconds: day.carIntervalSeconds },
+    gapABSeconds: 120,
+    gapBCSeconds: 120,
+    gapCDSeconds: 120,
+  };
 }
 
 /** Create an empty RouteDay (V3) */
@@ -209,6 +259,7 @@ export function createEmptyRouteDay(name: string): RouteDay {
     carIntervalSeconds: 60,
     numberOfCars: 30,
     reconDistanceTolerance: 0.01,
+    speedGroupSettings: createDefaultSpeedGroupSettings(),
     nodes: [],
   };
 }

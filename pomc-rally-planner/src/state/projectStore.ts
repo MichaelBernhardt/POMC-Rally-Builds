@@ -7,6 +7,7 @@ import {
   RouteNode,
   RouteRow,
   NodeTemplate,
+  SpeedGroupSettings,
   createEmptyRallyV3,
   createEmptyWorkspaceV3,
   createEmptyRouteDay,
@@ -15,6 +16,7 @@ import {
   createEmptyRouteNode,
   createRouteNode,
   createEmptyNodeTemplate,
+  resolveSpeedGroupSettings,
   SpeedLookupEntry,
 } from '../types/domain';
 import { computeTimes, recalculateSpeeds } from '../engine/timeCalculator';
@@ -87,7 +89,7 @@ interface ProjectState {
   addDay: (name: string) => void;
   removeDay: (dayId: string) => void;
   selectDay: (dayId: string) => void;
-  updateDaySettings: (dayId: string, settings: Partial<Pick<RouteDay, 'startTime' | 'carIntervalSeconds' | 'numberOfCars' | 'name' | 'reconDistanceTolerance'>>) => void;
+  updateDaySettings: (dayId: string, settings: Partial<Pick<RouteDay, 'startTime' | 'carIntervalSeconds' | 'numberOfCars' | 'name' | 'reconDistanceTolerance' | 'speedGroupSettings'>>) => void;
 
   // Node management (route building)
   placeNode: (templateId: string, afterIndex?: number) => void;
@@ -1108,11 +1110,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const withSpeeds = recalculateSpeeds(allRows, rally.speedLookupTable);
 
     // Step 2: Compute first/last car arrival times
+    const sgs = resolveSpeedGroupSettings(day);
     const updatedRows = computeTimes(
       withSpeeds,
       day.startTime,
-      day.carIntervalSeconds,
-      day.numberOfCars,
+      sgs,
     );
 
     // Split results back into nodes

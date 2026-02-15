@@ -1,4 +1,4 @@
-import { RouteRow, SpeedLookupEntry, TypeCode } from '../types/domain';
+import { RouteRow, SpeedLookupEntry, SpeedGroupSettings, TypeCode } from '../types/domain';
 import { lookupSpeeds } from './speedCalculator';
 
 /**
@@ -70,6 +70,25 @@ export function recalculateSpeeds(
 }
 
 /**
+ * Compute the start offset (in seconds) of the last car in group D,
+ * accounting for per-group car counts, intervals, and inter-group gaps.
+ */
+export function computeLastCarOffsetSeconds(sgs: SpeedGroupSettings): number {
+  // Group A: cars 0..(a.numberOfCars-1)
+  const aLastSec = Math.max(0, sgs.a.numberOfCars - 1) * sgs.a.carIntervalSeconds;
+  // Group B first car starts after A last car + gap
+  const bFirstSec = aLastSec + sgs.gapABSeconds;
+  const bLastSec = bFirstSec + Math.max(0, sgs.b.numberOfCars - 1) * sgs.b.carIntervalSeconds;
+  // Group C
+  const cFirstSec = bLastSec + sgs.gapBCSeconds;
+  const cLastSec = cFirstSec + Math.max(0, sgs.c.numberOfCars - 1) * sgs.c.carIntervalSeconds;
+  // Group D
+  const dFirstSec = cLastSec + sgs.gapCDSeconds;
+  const dLastSec = dFirstSec + Math.max(0, sgs.d.numberOfCars - 1) * sgs.d.carIntervalSeconds;
+  return dLastSec;
+}
+
+/**
  * Compute cumulative times for all rows in a day.
  *
  * Convention: the segment between rows N-1 and N is traveled at row N-1's speed.
@@ -81,28 +100,24 @@ export function recalculateSpeeds(
  *   Else if segment_distance > 0 AND previous_speed > 0:
  *     cumulative_time += segment_distance / previous_speed
  *
- * @param rows - The route rows (only rows with a type are used for export timing,
- *               but ALL rows participate in cumulative distance)
+ * First car = group A first car (offset 0) using A-speed timing.
+ * Last car = group D last car using D-speed timing.
+ *
+ * @param rows - The route rows
  * @param startTime - Start time as "HH:MM:SS"
- * @param carIntervalSeconds - Interval between cars in seconds
- * @param numberOfCars - Total number of cars
+ * @param speedGroupSettings - Per-group car settings
  * @returns Updated rows with firstCarTime and lastCarTime filled in
  */
 export function computeTimes(
   rows: RouteRow[],
   startTime: string,
-  carIntervalSeconds: number,
-  numberOfCars: number,
+  speedGroupSettings: SpeedGroupSettings,
 ): RouteRow[] {
   if (rows.length === 0) return [];
 
   const startHours = parseTimeToHours(startTime);
-  const carIntervalHours = carIntervalSeconds / 3600;
-  const lastCarOffset = (numberOfCars - 1) * carIntervalHours;
+  const lastCarOffsetHours = computeLastCarOffsetSeconds(speedGroupSettings) / 3600;
 
-  // We compute cumulative time for ALL rows, but only exported rows
-  // (those with a type) get meaningful times. For the time calculation,
-  // we use the speed from the previous row to traverse each segment.
   let cumulativeTimeA = 0;
   let cumulativeTimeB = 0;
   let cumulativeTimeC = 0;
@@ -114,13 +129,11 @@ export function computeTimes(
       const prevRow = rows[i - 1];
 
       if (row.type === 't') {
-        // Time add: add the specified minutes (converted to hours)
         cumulativeTimeA += row.addTimeA / 60;
         cumulativeTimeB += row.addTimeB / 60;
         cumulativeTimeC += row.addTimeC / 60;
         cumulativeTimeD += row.addTimeD / 60;
       } else if (segmentDist > 0) {
-        // Normal segment: time = distance / speed (speed from PREVIOUS row)
         if (prevRow.aSpeed > 0) cumulativeTimeA += segmentDist / prevRow.aSpeed;
         if (prevRow.bSpeed > 0) cumulativeTimeB += segmentDist / prevRow.bSpeed;
         if (prevRow.cSpeed > 0) cumulativeTimeC += segmentDist / prevRow.cSpeed;
@@ -128,9 +141,10 @@ export function computeTimes(
       }
     }
 
-    // First car uses A-speed timing, last car uses D-speed timing
+    // First car = group A first car (offset 0) + A-speed cumulative
     const firstArrival = startHours + cumulativeTimeA;
-    const lastArrival = startHours + lastCarOffset + cumulativeTimeD;
+    // Last car = group D last car offset + D-speed cumulative
+    const lastArrival = startHours + lastCarOffsetHours + cumulativeTimeD;
 
     return {
       ...row,
