@@ -37,12 +37,9 @@ export function recalculateSpeeds(
   let lastRegularitySpeeds: [number, number, number, number] | null = null;
 
   return rows.map(row => {
-    if (!row.type || row.type === 't') {
+    if (row.type === 't') {
       // Time-add rows: speeds are 0
-      if (row.type === 't') {
-        return { ...row, aSpeed: 0, bSpeed: 0, cSpeed: 0, dSpeed: 0 };
-      }
-      return row;
+      return { ...row, aSpeed: 0, bSpeed: 0, cSpeed: 0, dSpeed: 0 };
     }
 
     if (row.type === 'm') {
@@ -59,10 +56,22 @@ export function recalculateSpeeds(
       return row;
     }
 
-    if (row.aSpeed > 0) {
+    if (row.type && row.aSpeed > 0) {
+      // Row with a type code: look up speeds from the table
       const [a, b, c, d] = lookupSpeeds(row.type, row.aSpeed, row.speedLimit, customTable);
       lastRegularitySpeeds = [a, b, c, d];
       return { ...row, aSpeed: a, bSpeed: b, cSpeed: c, dSpeed: d };
+    }
+
+    if (!row.type && lastRegularitySpeeds) {
+      // No type code: inherit speeds from the last typed row
+      return {
+        ...row,
+        aSpeed: lastRegularitySpeeds[0],
+        bSpeed: lastRegularitySpeeds[1],
+        cSpeed: lastRegularitySpeeds[2],
+        dSpeed: lastRegularitySpeeds[3],
+      };
     }
 
     return row;
