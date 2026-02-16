@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useProjectStore, selectCurrentRally, selectIsCurrentEditionLocked } from '../../state/projectStore';
 import { isTemplateComplete, validateTemplate } from '../../engine/validator';
+import ConnectionDiagram from './ConnectionDiagram';
 
 export default function NodeLibraryPanel() {
   const rally = useProjectStore(selectCurrentRally);
@@ -11,10 +12,11 @@ export default function NodeLibraryPanel() {
   const isLocked = useProjectStore(selectIsCurrentEditionLocked);
 
   const [showDialog, setShowDialog] = useState(false);
+  const [showConnections, setShowConnections] = useState(false);
   const [newName, setNewName] = useState('');
   // 'start' = start node, 'follow' = follows another node, '' = not chosen
   const [ruleType, setRuleType] = useState<'start' | 'follow' | ''>('');
-  const [followNodeId, setFollowNodeId] = useState('');
+  const [followNodeIds, setFollowNodeIds] = useState<string[]>([]);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -22,12 +24,12 @@ export default function NodeLibraryPanel() {
 
   const templates = rally.nodeLibrary;
 
-  const canCreate = newName.trim().length > 0 && (ruleType === 'start' || (ruleType === 'follow' && followNodeId !== ''));
+  const canCreate = newName.trim().length > 0 && (ruleType === 'start' || (ruleType === 'follow' && followNodeIds.length > 0));
 
   const openDialog = () => {
     setNewName('');
     setRuleType(templates.length === 0 ? 'start' : '');
-    setFollowNodeId('');
+    setFollowNodeIds([]);
     setShowDialog(true);
   };
 
@@ -36,7 +38,7 @@ export default function NodeLibraryPanel() {
     addNodeTemplate({
       name: newName.trim(),
       isStartNode: ruleType === 'start',
-      allowedPreviousNodes: ruleType === 'follow' && followNodeId ? [followNodeId] : [],
+      allowedPreviousNodes: ruleType === 'follow' ? followNodeIds : [],
     });
     setShowDialog(false);
   };
@@ -73,11 +75,19 @@ export default function NodeLibraryPanel() {
         <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 700 }}>
           Node Library {rally && <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>for {rally.name}</span>}
         </h2>
-        {!isLocked && (
-          <button className="primary" onClick={openDialog}>
-            + New Node
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setShowConnections(true)}
+            disabled={templates.length === 0}
+          >
+            Route Connections
           </button>
-        )}
+          {!isLocked && (
+            <button className="primary" onClick={openDialog}>
+              + New Node
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
@@ -103,8 +113,8 @@ export default function NodeLibraryPanel() {
             // Check if any other template references this one
             const referencedBy = templates.filter(t => t.id !== template.id && t.allowedPreviousNodes.includes(template.id));
             const isReferenced = referencedBy.length > 0;
-            const followsName = template.allowedPreviousNodes.length > 0
-              ? templates.find(t => t.id === template.allowedPreviousNodes[0])?.name ?? '?'
+            const followsNames = template.allowedPreviousNodes.length > 0
+              ? template.allowedPreviousNodes.map(id => templates.find(t => t.id === id)?.name ?? '?').join(', ')
               : null;
 
             return (
@@ -201,8 +211,8 @@ export default function NodeLibraryPanel() {
                   {template.isStartNode && (
                     <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Start node</span>
                   )}
-                  {followsName && (
-                    <span>Follows: <strong>{followsName}</strong></span>
+                  {followsNames && (
+                    <span>Follows: <strong>{followsNames}</strong></span>
                   )}
                   {isReferenced && (
                     <span>Followed by: <strong>{referencedBy.map(t => t.name).join(', ')}</strong></span>
@@ -219,6 +229,11 @@ export default function NodeLibraryPanel() {
             );
           })}
         </div>
+      )}
+
+      {/* Route Connections diagram */}
+      {showConnections && (
+        <ConnectionDiagram templates={templates} onClose={() => setShowConnections(false)} />
       )}
 
       {/* New Node dialog */}
@@ -291,7 +306,7 @@ export default function NodeLibraryPanel() {
                 type="radio"
                 name="connectionRule"
                 checked={ruleType === 'start'}
-                onChange={() => { setRuleType('start'); setFollowNodeId(''); }}
+                onChange={() => { setRuleType('start'); setFollowNodeIds([]); }}
               />
               <div>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>Start node</div>
@@ -320,23 +335,34 @@ export default function NodeLibraryPanel() {
                 />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: '14px', marginBottom: '4px' }}>Follows another node</div>
-                  <select
-                    value={followNodeId}
-                    onChange={e => { setFollowNodeId(e.target.value); setRuleType('follow'); }}
-                    onClick={e => e.stopPropagation()}
-                    style={{
-                      width: '100%',
-                      padding: '6px 8px',
-                      fontSize: '13px',
-                      borderRadius: '4px',
-                      border: '1px solid var(--color-border)',
-                    }}
-                  >
-                    <option value="">Select a node...</option>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    maxHeight: '150px',
+                    overflowY: 'auto',
+                    padding: '4px 0',
+                  }}>
                     {templates.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
+                      <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={followNodeIds.includes(t.id)}
+                          onChange={e => {
+                            setRuleType('follow');
+                            if (e.target.checked) {
+                              setFollowNodeIds(prev => [...prev, t.id]);
+                            } else {
+                              setFollowNodeIds(prev => prev.filter(id => id !== t.id));
+                            }
+                          }}
+                        />
+                        {t.name}
+                      </label>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </label>
             )}
