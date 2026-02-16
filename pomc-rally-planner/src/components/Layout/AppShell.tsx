@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { open as openDialog, save as saveDialog, ask } from '@tauri-apps/plugin-dialog';
 import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { GridApi } from 'ag-grid-community';
-import { useProjectStore, selectCurrentRally } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectIsCurrentEditionLocked } from '../../state/projectStore';
 import RouteGrid from '../Grid/RouteGrid';
 import ProjectTree from '../Sidebar/ProjectTree';
 import DayPanel from '../Sidebar/DayPanel';
@@ -14,21 +14,26 @@ import NodeLibraryPanel from '../NodeLibrary/NodeLibraryPanel';
 import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
 import RouteBuilder from '../RouteBuilder/RouteBuilder';
 import SpeedTablePage from '../Dialogs/SpeedTableDialog';
-import { detectFileVersion, migrateV1ToWorkspace, migrateV2ToV3 } from '../../engine/migration';
+import { detectFileVersion, migrateV1ToWorkspace, migrateV2ToV3, migrateV3ToV4 } from '../../engine/migration';
 import { RallyProjectV1, RallyWorkspace, RallyWorkspaceV3 } from '../../types/domain';
 
 const LAST_FILE_KEY = 'pomc:lastFilePath';
 
-function migrateToV3(data: unknown): RallyWorkspaceV3 {
+function migrateToLatest(data: unknown): RallyWorkspaceV3 {
   const version = detectFileVersion(data);
+  let ws: RallyWorkspaceV3;
   if (version === 1) {
     const v2 = migrateV1ToWorkspace(data as RallyProjectV1);
-    return migrateV2ToV3(v2);
+    ws = migrateV2ToV3(v2);
+  } else if (version === 2) {
+    ws = migrateV2ToV3(data as RallyWorkspace);
+  } else {
+    ws = data as RallyWorkspaceV3;
   }
-  if (version === 2) {
-    return migrateV2ToV3(data as RallyWorkspace);
-  }
-  return data as RallyWorkspaceV3;
+  // Always run V4 migration — it's idempotent and handles back-filling
+  // template lat/long history from route nodes for files saved before the fix.
+  ws = migrateV3ToV4(ws);
+  return ws;
 }
 
 export default function AppShell() {
@@ -54,6 +59,7 @@ export default function AppShell() {
   const routeBuilderTab = useProjectStore(s => s.routeBuilderTab);
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
   const setViewMode = useProjectStore(s => s.setViewMode);
+  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
 
   // Auto-hide sidebar when Route Builder is in table view
   useEffect(() => {
@@ -73,9 +79,9 @@ export default function AppShell() {
       .then(content => {
         const data = JSON.parse(content);
         const version = detectFileVersion(data);
-        const ws = migrateToV3(data);
+        const ws = migrateToLatest(data);
         loadWorkspace(ws, lastPath);
-        if (version < 3) {
+        if (version <= 4) {
           useProjectStore.setState({ isDirty: true });
         }
       })
@@ -215,9 +221,9 @@ export default function AppShell() {
     const data = JSON.parse(content);
 
     const version = detectFileVersion(data);
-    const ws = migrateToV3(data);
+    const ws = migrateToLatest(data);
     loadWorkspace(ws, path);
-    if (version < 3) {
+    if (version <= 4) {
       useProjectStore.setState({ isDirty: true });
     }
     localStorage.setItem(LAST_FILE_KEY, path);
@@ -297,6 +303,20 @@ export default function AppShell() {
         {currentRally && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
             <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{currentRally.name}</span>
+            {isLocked && viewMode !== 'library' && viewMode !== 'speedTables' && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '3px',
+                background: '#FEF3C7', color: '#92400E', border: '1px solid #F59E0B',
+                borderRadius: '4px', padding: '1px 6px', fontSize: '11px', fontWeight: 600,
+                marginLeft: '4px',
+              }}>
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                  <rect x="3" y="7" width="10" height="8" rx="1.5" fill="currentColor" />
+                  <path d="M5 7V5a3 3 0 1 1 6 0v2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                </svg>
+                Locked
+              </span>
+            )}
             {viewMode === 'routeBuilder' && <span> / Route Builder</span>}
             {viewMode === 'speedTables' && <span> / Speed Tables</span>}
             {viewMode === 'library' && <span> / Node Library</span>}
@@ -398,8 +418,16 @@ export default function AppShell() {
             />
           )}
 
-          <div style={{ flex: 1, overflow: 'hidden' }}>
+          <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
             {renderMainContent()}
+            {isLocked && viewMode !== 'library' && viewMode !== 'speedTables' && (
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'rgba(0, 0, 0, 0.06)',
+                pointerEvents: 'none',
+                zIndex: 1,
+              }} />
+            )}
           </div>
 
           <StatusBar />

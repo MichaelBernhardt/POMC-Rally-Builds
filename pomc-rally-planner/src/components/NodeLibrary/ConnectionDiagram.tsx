@@ -5,6 +5,8 @@ import { isTemplateComplete } from '../../engine/validator';
 interface Props {
   templates: NodeTemplate[];
   onClose: () => void;
+  activeRoute?: string[];  // sequence of template IDs from placed nodes
+  title?: string;          // custom dialog title (default: "Route Connections")
 }
 
 // Layout constants
@@ -138,8 +140,9 @@ function truncate(s: string, max: number) {
   return s.length > max ? s.slice(0, max - 1) + '\u2026' : s;
 }
 
-export default function ConnectionDiagram({ templates, onClose }: Props) {
+export default function ConnectionDiagram({ templates, onClose, activeRoute, title }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const hasRoute = activeRoute && activeRoute.length > 0;
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -167,6 +170,25 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
     () => new Map(layoutNodes.map(n => [n.id, n])),
     [layoutNodes],
   );
+
+  // Compute active node/edge sets and step numbers from the route
+  const { activeNodeIds, activeEdgeKeys, nodeSteps } = useMemo(() => {
+    const nodeIds = new Set<string>();
+    const edgeKeys = new Set<string>();
+    const steps = new Map<string, number[]>();
+    if (activeRoute) {
+      for (let i = 0; i < activeRoute.length; i++) {
+        const id = activeRoute[i];
+        nodeIds.add(id);
+        if (!steps.has(id)) steps.set(id, []);
+        steps.get(id)!.push(i + 1);
+        if (i > 0) {
+          edgeKeys.add(`${activeRoute[i - 1]}->${id}`);
+        }
+      }
+    }
+    return { activeNodeIds: nodeIds, activeEdgeKeys: edgeKeys, nodeSteps: steps };
+  }, [activeRoute]);
 
   // Compute Y offsets for multiple edges arriving at the same target
   const edgeOffsets = useMemo(() => {
@@ -236,7 +258,7 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
           borderBottom: '1px solid var(--color-border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>Route Connections</h3>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>{title ?? 'Route Connections'}</h3>
           <button onClick={onClose}>Close</button>
         </div>
 
@@ -258,6 +280,18 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
               >
                 <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-text-muted, #888)" />
               </marker>
+              {hasRoute && (
+                <marker
+                  id="arrowhead-active"
+                  markerWidth="10"
+                  markerHeight="7"
+                  refX="9"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#3B82F6" />
+                </marker>
+              )}
             </defs>
 
             {/* Edges */}
@@ -268,6 +302,11 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
 
               const key = `${e.from}->${e.to}`;
               const yOff = edgeOffsets.get(key) ?? 0;
+              const isActive = hasRoute && activeEdgeKeys.has(key);
+              const edgeOpacity = hasRoute && !isActive ? 0.2 : 1;
+              const edgeStroke = isActive ? '#3B82F6' : 'var(--color-text-muted, #888)';
+              const edgeWidth = isActive ? 2.5 : 1.5;
+              const marker = isActive ? 'url(#arrowhead-active)' : 'url(#arrowhead)';
 
               // Self-reference (loopback)
               if (e.from === e.to) {
@@ -279,9 +318,10 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
                     key={key}
                     d={`M ${cx - 10} ${cy} C ${cx - 10} ${cy - r * 2}, ${cx + 10} ${cy - r * 2}, ${cx + 10} ${cy}`}
                     fill="none"
-                    stroke="var(--color-text-muted, #888)"
-                    strokeWidth={1.5}
-                    markerEnd="url(#arrowhead)"
+                    stroke={edgeStroke}
+                    strokeWidth={edgeWidth}
+                    opacity={edgeOpacity}
+                    markerEnd={marker}
                   />
                 );
               }
@@ -297,25 +337,33 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
                   key={key}
                   d={`M ${x1} ${y1} C ${x1 + cpOffset} ${y1}, ${x2 - cpOffset} ${y2}, ${x2} ${y2}`}
                   fill="none"
-                  stroke="var(--color-text-muted, #888)"
-                  strokeWidth={1.5}
-                  markerEnd="url(#arrowhead)"
+                  stroke={edgeStroke}
+                  strokeWidth={edgeWidth}
+                  opacity={edgeOpacity}
+                  markerEnd={marker}
                 />
               );
             })}
 
             {/* Nodes */}
             {layoutNodes.map(node => {
-              const borderColor = node.isStart
-                ? 'var(--color-success, #22c55e)'
-                : node.incomplete
-                  ? 'var(--color-warning, #f59e0b)'
-                  : 'var(--color-border, #ccc)';
-              const strokeWidth = node.isStart ? 2.5 : 1.5;
-              const dashArray = node.incomplete && !node.isStart ? '6 3' : undefined;
+              const isOnRoute = hasRoute && activeNodeIds.has(node.id);
+              const steps = nodeSteps.get(node.id);
+              const nodeOpacity = hasRoute && !isOnRoute ? 0.35 : 1;
+
+              const borderColor = isOnRoute
+                ? '#3B82F6'
+                : node.isStart
+                  ? 'var(--color-success, #22c55e)'
+                  : node.incomplete
+                    ? 'var(--color-warning, #f59e0b)'
+                    : 'var(--color-border, #ccc)';
+              const strokeWidth = isOnRoute ? 2.5 : node.isStart ? 2.5 : 1.5;
+              const fillColor = isOnRoute ? '#DBEAFE' : 'var(--color-bg, #fff)';
+              const dashArray = !isOnRoute && node.incomplete && !node.isStart ? '6 3' : undefined;
 
               return (
-                <g key={node.id}>
+                <g key={node.id} opacity={nodeOpacity}>
                   <rect
                     x={node.x}
                     y={node.y}
@@ -323,7 +371,7 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
                     height={NODE_H}
                     rx={8}
                     ry={8}
-                    fill="var(--color-bg, #fff)"
+                    fill={fillColor}
                     stroke={borderColor}
                     strokeWidth={strokeWidth}
                     strokeDasharray={dashArray}
@@ -334,7 +382,7 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
                     textAnchor="middle"
                     dominantBaseline="central"
                     fontSize={13}
-                    fontWeight={600}
+                    fontWeight={isOnRoute ? 700 : 600}
                     fill="var(--color-text, #1a1a1a)"
                   >
                     {truncate(node.name, 18)}
@@ -347,10 +395,32 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
                       dominantBaseline="central"
                       fontSize={10}
                       fontWeight={600}
-                      fill="var(--color-success, #22c55e)"
+                      fill={isOnRoute ? '#3B82F6' : 'var(--color-success, #22c55e)'}
                     >
                       START
                     </text>
+                  )}
+                  {/* Step badge */}
+                  {steps && (
+                    <>
+                      <circle
+                        cx={node.x + NODE_W - 4}
+                        cy={node.y + 4}
+                        r={steps.length > 1 ? 12 : 10}
+                        fill="#3B82F6"
+                      />
+                      <text
+                        x={node.x + NODE_W - 4}
+                        y={node.y + 4}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                        fontSize={steps.length > 1 ? 9 : 10}
+                        fontWeight={700}
+                        fill="#fff"
+                      >
+                        {steps.join(', ')}
+                      </text>
+                    </>
                   )}
                 </g>
               );
@@ -392,6 +462,19 @@ export default function ConnectionDiagram({ templates, onClose }: Props) {
             </svg>
             Connection (follows)
           </span>
+          {hasRoute && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="24" height="14">
+                <line x1="0" y1="7" x2="20" y2="7" stroke="#3B82F6" strokeWidth="2.5" markerEnd="url(#legend-arrow-active)" />
+                <defs>
+                  <marker id="legend-arrow-active" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+                    <polygon points="0 0, 6 2.5, 0 5" fill="#3B82F6" />
+                  </marker>
+                </defs>
+              </svg>
+              Current route
+            </span>
+          )}
         </div>
       </div>
     </div>

@@ -16,6 +16,7 @@ import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentE
 import { validateNodeConnections } from '../../engine/validator';
 import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
 import NodePalette from './NodePalette';
+import ConnectionDiagram from '../NodeLibrary/ConnectionDiagram';
 import ExportDialog from '../Dialogs/ExportDialog';
 import '../../styles/grid-theme.css';
 
@@ -44,6 +45,7 @@ export default function RouteBuilder() {
   const [showExport, setShowExport] = useState(false);
   const [showNodes, setShowNodes] = useState(true);
   const [showPushDialog, setShowPushDialog] = useState(false);
+  const [showRouteMap, setShowRouteMap] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   // Collect all unique clue values from the day for autocomplete.
@@ -306,6 +308,12 @@ export default function RouteBuilder() {
   const nodeOffsets = useMemo(() => computeNodeOffsets(day), [day]);
   const rowData = tab === 'table' ? flattenDayRowsChained(day) : [];
 
+  // Derive the active route (template IDs) from placed nodes, skipping ad-hoc nodes
+  const activeRouteIds = useMemo(() => {
+    if (!day) return [];
+    return day.nodes.map(n => n.sourceNodeId).filter((id): id is string => Boolean(id));
+  }, [day]);
+
   const segmentStyle = (active: boolean): React.CSSProperties => ({
     padding: '4px 14px',
     fontSize: '13px',
@@ -408,6 +416,14 @@ export default function RouteBuilder() {
                     </button>
                   )}
                 </>
+              )}
+              {tab === 'nodes' && rally.nodeLibrary.length > 0 && (
+                <button
+                  onClick={() => setShowRouteMap(true)}
+                  style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
+                >
+                  Route Map
+                </button>
               )}
               <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
                 {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}{tab === 'table' && ` • ${rowData.length} rows`}
@@ -573,6 +589,15 @@ export default function RouteBuilder() {
       )}
 
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} />
+
+      {showRouteMap && (
+        <ConnectionDiagram
+          templates={rally.nodeLibrary}
+          onClose={() => setShowRouteMap(false)}
+          activeRoute={activeRouteIds}
+          title="Route Map"
+        />
+      )}
 
       {/* Push to Library dialog */}
       {showPushDialog && (

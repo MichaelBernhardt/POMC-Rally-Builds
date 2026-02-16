@@ -12,7 +12,7 @@ import {
 } from 'ag-grid-community';
 import { getColumnDefs } from '../Grid/GridColumns';
 import { RouteRow, ReconEntry } from '../../types/domain';
-import { useProjectStore, selectCurrentRally, selectCurrentRows, selectIsCurrentEditionLocked } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentRows } from '../../state/projectStore';
 import { validateTemplate } from '../../engine/validator';
 import '../../styles/grid-theme.css';
 
@@ -32,7 +32,6 @@ export default function NodeTemplateEditor() {
 
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
   const rows = useProjectStore(selectCurrentRows);
-  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
   const addRow = useProjectStore(s => s.addRow);
@@ -68,7 +67,6 @@ export default function NodeTemplateEditor() {
   }, [rows, getSelectedIndices, showToast]);
 
   const handleCut = useCallback(() => {
-    if (isLocked) return;
     const indices = getSelectedIndices();
     if (indices.length === 0) return;
     pushUndo('Cut rows');
@@ -77,10 +75,10 @@ export default function NodeTemplateEditor() {
     const newRows = rows.filter((_, i) => !indices.includes(i));
     setRows(newRows);
     showToast(`Cut ${indices.length} row${indices.length > 1 ? 's' : ''}`);
-  }, [rows, isLocked, getSelectedIndices, pushUndo, setRows, showToast]);
+  }, [rows, getSelectedIndices, pushUndo, setRows, showToast]);
 
   const handlePaste = useCallback(() => {
-    if (isLocked || rowClipboard.length === 0) return;
+    if (rowClipboard.length === 0) return;
     pushUndo('Paste rows');
     const indices = getSelectedIndices();
     const insertAfter = indices.length > 0 ? Math.max(...indices) : rows.length - 1;
@@ -89,7 +87,7 @@ export default function NodeTemplateEditor() {
     newRows.splice(insertAfter + 1, 0, ...newClipRows);
     setRows(newRows);
     showToast(`Pasted ${newClipRows.length} row${newClipRows.length > 1 ? 's' : ''}`);
-  }, [rows, isLocked, getSelectedIndices, pushUndo, setRows, showToast]);
+  }, [rows, getSelectedIndices, pushUndo, setRows, showToast]);
 
   // Keyboard shortcuts for copy/cut/paste
   useEffect(() => {
@@ -159,31 +157,21 @@ export default function NodeTemplateEditor() {
       cols.push(...distReconCols);
     }
 
-    // Insert lat recon columns after existing Lat column
-    const latIdx = cols.findIndex(c => c.field === 'lat');
-    const latReconCols = [
-      reconCol('Lat R1', 'latHistory', -3, 6, 100),
-      reconCol('Lat R2', 'latHistory', -2, 6, 100),
-      reconCol('Lat R3', 'latHistory', -1, 6, 100),
-    ];
-    if (latIdx >= 0) {
-      cols.splice(latIdx + 1, 0, ...latReconCols);
-    } else {
-      cols.push(...latReconCols);
-    }
-
-    // Insert long recon columns after existing Long column
-    // Need to re-find index since we may have shifted it
+    // Insert lat/long recon columns as interleaved pairs after the Long column
+    // Result: Lat, Long, Lat R1, Long R1, Lat R2, Long R2, Lat R3, Long R3
     const longIdx = cols.findIndex(c => c.field === 'long');
-    const longReconCols = [
+    const latLongReconCols = [
+      reconCol('Lat R1', 'latHistory', -3, 6, 100),
       reconCol('Long R1', 'longHistory', -3, 6, 100),
+      reconCol('Lat R2', 'latHistory', -2, 6, 100),
       reconCol('Long R2', 'longHistory', -2, 6, 100),
+      reconCol('Lat R3', 'latHistory', -1, 6, 100),
       reconCol('Long R3', 'longHistory', -1, 6, 100),
     ];
     if (longIdx >= 0) {
-      cols.splice(longIdx + 1, 0, ...longReconCols);
+      cols.splice(longIdx + 1, 0, ...latLongReconCols);
     } else {
-      cols.push(...longReconCols);
+      cols.push(...latLongReconCols);
     }
     return cols;
   }, []);
@@ -193,8 +181,8 @@ export default function NodeTemplateEditor() {
     filter: false,
     resizable: true,
     suppressMovable: false,
-    editable: !isLocked,
-  }), [isLocked]);
+    editable: true,
+  }), []);
 
   const getRowId = useCallback((params: GetRowIdParams<RouteRow>) => params.data.id, []);
 
@@ -288,45 +276,59 @@ export default function NodeTemplateEditor() {
       }}>
         <button onClick={() => setEditingTemplate(null)}>Back</button>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0, flex: '1 1 auto', maxWidth: '500px' }}>
           <input
             type="text"
             value={template.name}
             onChange={e => updateNodeTemplate(editingTemplateId, { name: e.target.value })}
-            disabled={isLocked}
             placeholder="Node name (required)"
             style={{
               fontWeight: 600,
-              fontSize: '16px',
-              padding: '4px 8px',
-              minWidth: '200px',
+              fontSize: '15px',
+              padding: '2px 6px',
+              width: '100%',
+              border: '1px solid transparent',
+              borderRadius: '4px',
+              background: 'transparent',
               borderColor: hasNameWarning ? 'var(--color-warning)' : undefined,
             }}
+            onFocus={e => { e.currentTarget.style.borderColor = hasNameWarning ? 'var(--color-warning)' : 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = hasNameWarning ? 'var(--color-warning)' : 'transparent'; e.currentTarget.style.background = 'transparent'; }}
+          />
+          <input
+            type="text"
+            value={template.description}
+            onChange={e => updateNodeTemplate(editingTemplateId, { description: e.target.value })}
+            placeholder="Description..."
+            style={{
+              fontSize: '12px',
+              color: 'var(--color-text-muted)',
+              padding: '1px 6px',
+              width: '100%',
+              border: '1px solid transparent',
+              borderRadius: '4px',
+              background: 'transparent',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent'; }}
           />
           {hasNameWarning && (
-            <span style={{ fontSize: '11px', color: 'var(--color-warning)', paddingLeft: '8px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--color-warning)', paddingLeft: '6px' }}>
               Name is required
             </span>
           )}
         </div>
 
-        <input
-          type="text"
-          value={template.description}
-          onChange={e => updateNodeTemplate(editingTemplateId, { description: e.target.value })}
-          disabled={isLocked}
-          placeholder="Description..."
-          style={{ flex: 1, padding: '4px 8px', fontSize: '14px' }}
-        />
+        <div style={{ flex: 1 }} />
 
-        <button onClick={() => addRow()} disabled={isLocked}>+ Row</button>
-        <button onClick={() => { const indices = getSelectedIndices(); if (indices.length > 0) { pushUndo('Delete rows'); deleteRows(indices); } }} disabled={isLocked}>- Row</button>
+        <button onClick={() => addRow()}>+ Row</button>
+        <button onClick={() => { const indices = getSelectedIndices(); if (indices.length > 0) { pushUndo('Delete rows'); deleteRows(indices); } }}>- Row</button>
 
         <div style={{ width: '1px', height: '20px', background: 'var(--color-border)' }} />
 
         <button onClick={handleCopy} title="Copy selected rows (Ctrl+C)">Copy</button>
-        <button onClick={handleCut} disabled={isLocked} title="Cut selected rows (Ctrl+X)">Cut</button>
-        <button onClick={handlePaste} disabled={isLocked || rowClipboard.length === 0} title="Paste rows (Ctrl+V)">Paste</button>
+        <button onClick={handleCut} title="Cut selected rows (Ctrl+X)">Cut</button>
+        <button onClick={handlePaste} disabled={rowClipboard.length === 0} title="Paste rows (Ctrl+V)">Paste</button>
       </div>
 
       {/* Connection rule — editable */}
@@ -343,47 +345,35 @@ export default function NodeTemplateEditor() {
         <span style={{ fontWeight: 600, color: hasConnectionWarning ? 'var(--color-warning)' : 'var(--color-text-secondary)' }}>
           Connection rule:
         </span>
-        {isLocked ? (
-          <span>
-            {template.isStartNode
-              ? 'Start node'
-              : template.allowedPreviousNodes.length > 0
-                ? `Follows: ${template.allowedPreviousNodes.map(id => otherTemplates.find(t => t.id === id)?.name ?? '?').join(', ')}`
-                : 'Not configured'}
-          </span>
-        ) : (
+        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={template.isStartNode}
+            onChange={e => {
+              updateNodeTemplate(editingTemplateId, { isStartNode: e.target.checked });
+              if (e.target.checked) setAllowedPreviousNodes(editingTemplateId, []);
+            }}
+          />
+          Start node
+        </label>
+        {!template.isStartNode && otherTemplates.length > 0 && (
           <>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={template.isStartNode}
-                onChange={e => {
-                  updateNodeTemplate(editingTemplateId, { isStartNode: e.target.checked });
-                  if (e.target.checked) setAllowedPreviousNodes(editingTemplateId, []);
-                }}
-              />
-              Start node
-            </label>
-            {!template.isStartNode && otherTemplates.length > 0 && (
-              <>
-                <span style={{ color: 'var(--color-text-muted)' }}>Follows:</span>
-                {otherTemplates.map(t => (
-                  <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={template.allowedPreviousNodes.includes(t.id)}
-                      onChange={e => {
-                        const newIds = e.target.checked
-                          ? [...template.allowedPreviousNodes, t.id]
-                          : template.allowedPreviousNodes.filter(id => id !== t.id);
-                        setAllowedPreviousNodes(editingTemplateId, newIds);
-                      }}
-                    />
-                    {t.name}
-                  </label>
-                ))}
-              </>
-            )}
+            <span style={{ color: 'var(--color-text-muted)' }}>Follows:</span>
+            {otherTemplates.map(t => (
+              <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={template.allowedPreviousNodes.includes(t.id)}
+                  onChange={e => {
+                    const newIds = e.target.checked
+                      ? [...template.allowedPreviousNodes, t.id]
+                      : template.allowedPreviousNodes.filter(id => id !== t.id);
+                    setAllowedPreviousNodes(editingTemplateId, newIds);
+                  }}
+                />
+                {t.name}
+              </label>
+            ))}
           </>
         )}
       </div>

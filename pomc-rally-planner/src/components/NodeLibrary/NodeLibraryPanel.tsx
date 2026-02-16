@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useProjectStore, selectCurrentRally, selectIsCurrentEditionLocked } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally } from '../../state/projectStore';
 import { isTemplateComplete, validateTemplate } from '../../engine/validator';
 import ConnectionDiagram from './ConnectionDiagram';
 
@@ -9,7 +9,6 @@ export default function NodeLibraryPanel() {
   const removeNodeTemplate = useProjectStore(s => s.removeNodeTemplate);
   const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
-  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
 
   const [showDialog, setShowDialog] = useState(false);
   const [showConnections, setShowConnections] = useState(false);
@@ -82,11 +81,9 @@ export default function NodeLibraryPanel() {
           >
             Route Connections
           </button>
-          {!isLocked && (
-            <button className="primary" onClick={openDialog}>
-              + New Node
-            </button>
-          )}
+          <button className="primary" onClick={openDialog}>
+            + New Node
+          </button>
         </div>
       </div>
 
@@ -130,27 +127,23 @@ export default function NodeLibraryPanel() {
                 {/* Top row: name + badges + actions */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, minWidth: 0 }}>
-                    {isLocked ? (
-                      <span style={{ fontWeight: 600, fontSize: '15px' }}>{template.name}</span>
-                    ) : (
-                      <input
-                        type="text"
-                        value={template.name}
-                        onChange={e => updateNodeTemplate(template.id, { name: e.target.value })}
-                        style={{
-                          fontWeight: 600,
-                          fontSize: '15px',
-                          border: '1px solid transparent',
-                          borderRadius: '4px',
-                          padding: '2px 6px',
-                          background: 'transparent',
-                          flex: 1,
-                          minWidth: 0,
-                        }}
-                        onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
-                        onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent'; }}
-                      />
-                    )}
+                    <input
+                      type="text"
+                      value={template.name}
+                      onChange={e => updateNodeTemplate(template.id, { name: e.target.value })}
+                      style={{
+                        fontWeight: 600,
+                        fontSize: '15px',
+                        border: '1px solid transparent',
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        background: 'transparent',
+                        flex: 1,
+                        minWidth: 0,
+                      }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent'; }}
+                    />
                     {!complete && (
                       <span style={{ fontSize: '11px', color: 'var(--color-warning)', fontWeight: 600, whiteSpace: 'nowrap' }}>
                         INCOMPLETE
@@ -158,51 +151,43 @@ export default function NodeLibraryPanel() {
                     )}
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '8px' }}>
-                    <button onClick={() => setEditingTemplate(template.id)} disabled={isLocked}>
+                    <button onClick={() => setEditingTemplate(template.id)}>
                       Edit Rows
                     </button>
-                    {!isLocked && (
-                      <button
-                        onClick={() => { if (!isReferenced) removeNodeTemplate(template.id); }}
-                        disabled={isReferenced}
-                        title={isReferenced ? `Referenced by: ${referencedBy.map(t => t.name).join(', ')}` : 'Delete this node'}
-                        style={{
-                          color: isReferenced ? 'var(--color-text-muted)' : 'var(--color-danger)',
-                          cursor: isReferenced ? 'not-allowed' : 'pointer',
-                        }}
-                      >
-                        Delete
-                      </button>
-                    )}
+                    <button
+                      onClick={() => { if (!isReferenced) removeNodeTemplate(template.id); }}
+                      disabled={isReferenced}
+                      title={isReferenced ? `Referenced by: ${referencedBy.map(t => t.name).join(', ')}` : 'Delete this node'}
+                      style={{
+                        color: isReferenced ? 'var(--color-text-muted)' : 'var(--color-danger)',
+                        cursor: isReferenced ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
 
                 {/* Description */}
                 <div style={{ marginBottom: '6px' }}>
-                  {isLocked ? (
-                    <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                      {template.description || 'No description'}
-                    </span>
-                  ) : (
-                    <input
-                      type="text"
-                      value={template.description}
-                      onChange={e => updateNodeTemplate(template.id, { description: e.target.value })}
-                      placeholder="Add a description..."
-                      style={{
-                        fontSize: '13px',
-                        color: 'var(--color-text-muted)',
-                        border: '1px solid transparent',
-                        borderRadius: '4px',
-                        padding: '2px 6px',
-                        background: 'transparent',
-                        width: '100%',
-                        boxSizing: 'border-box',
-                      }}
-                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent'; }}
-                    />
-                  )}
+                  <input
+                    type="text"
+                    value={template.description}
+                    onChange={e => updateNodeTemplate(template.id, { description: e.target.value })}
+                    placeholder="Add a description..."
+                    style={{
+                      fontSize: '13px',
+                      color: 'var(--color-text-muted)',
+                      border: '1px solid transparent',
+                      borderRadius: '4px',
+                      padding: '2px 6px',
+                      background: 'transparent',
+                      width: '100%',
+                      boxSizing: 'border-box',
+                    }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.background = 'var(--color-bg)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.background = 'transparent'; }}
+                  />
                 </div>
 
                 {/* Info row: rows count + connection info */}
