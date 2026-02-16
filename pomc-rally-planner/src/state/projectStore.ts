@@ -28,6 +28,8 @@ import {
   updateRouteNode,
   setNodeRows,
   flattenDayRows,
+  flattenDayRowsChained,
+  computeNodeOffsets,
   findNodeForFlatIndex,
 } from './storeHelpers';
 
@@ -812,10 +814,20 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const template = rally.nodeLibrary.find(t => t.id === node.sourceNodeId);
     if (!template) return false;
 
+    // Compute this node's chaining offset so we can convert checkDist
+    // from chained-absolute back to the template's coordinate frame.
+    const nodeIndex = day.nodes.findIndex(n => n.id === nodeId);
+    const offsets = computeNodeOffsets(day);
+    const offset = nodeIndex >= 0 ? offsets[nodeIndex] : 0;
+
     // Process each node row: merge checkDist + lat/long into history, compute averages
-    const newTemplateRows = node.rows.map((r, i) =>
-      processReconHistory(r, template.rows[i] ?? null),
-    );
+    // Convert checkDist from chained-absolute to template-absolute before processing
+    const newTemplateRows = node.rows.map((r, i) => {
+      const adjusted = (offset !== 0 && r.checkDist != null)
+        ? { ...r, checkDist: Math.round((r.checkDist - offset) * 100) / 100 }
+        : r;
+      return processReconHistory(adjusted, template.rows[i] ?? null);
+    });
 
     // Refresh the node's rows: pick up new averaged values, clear checkDist
     const refreshedNodeRows = node.rows.map((r, i) => {
@@ -1138,8 +1150,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const day = get().getCurrentDay();
     if (!day) return;
 
-    // Flatten all nodes' rows
-    const allRows = flattenDayRows(day);
+    // Flatten all nodes' rows with chained distances
+    const allRows = flattenDayRowsChained(day);
 
     // Step 1: Recalculate B/C/D speeds from type + A-speed + speed lookup table
     const withSpeeds = recalculateSpeeds(allRows, rally.speedLookupTable);
@@ -1271,7 +1283,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   getDayRows: () => {
     const day = get().getCurrentDay();
     if (!day) return [];
-    return flattenDayRows(day);
+    return flattenDayRowsChained(day);
   },
 }));
 

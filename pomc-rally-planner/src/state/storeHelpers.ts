@@ -70,6 +70,37 @@ export function flattenDayRows(day: RouteDay): RouteRow[] {
   return day.nodes.flatMap(n => n.rows);
 }
 
+/** Compute the chaining offset for each node in a day.
+ *  Each node's segment-relative distance is rebased so nodes chain
+ *  end-to-end. For single-node days starting at km 0, offsets are 0. */
+export function computeNodeOffsets(day: RouteDay): number[] {
+  const offsets: number[] = [];
+  let cumulativeEnd = 0;
+  for (const node of day.nodes) {
+    if (node.rows.length === 0) {
+      offsets.push(cumulativeEnd);
+      continue;
+    }
+    const nodeStart = node.rows[0].rallyDistance;
+    offsets.push(cumulativeEnd - nodeStart);
+    const nodeEnd = node.rows[node.rows.length - 1].rallyDistance;
+    cumulativeEnd = cumulativeEnd + (nodeEnd - nodeStart);
+  }
+  return offsets;
+}
+
+/** Flatten day rows with chained absolute distances.
+ *  Each node is rebased so distances chain continuously across nodes. */
+export function flattenDayRowsChained(day: RouteDay): RouteRow[] {
+  const offsets = computeNodeOffsets(day);
+  return day.nodes.flatMap((node, i) =>
+    node.rows.map(r => ({
+      ...r,
+      rallyDistance: Math.round((r.rallyDistance + offsets[i]) * 100) / 100,
+    }))
+  );
+}
+
 /**
  * Find which node contains a given flattened row index.
  * Returns the node index and the local row index within that node.

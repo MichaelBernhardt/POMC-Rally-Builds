@@ -141,28 +141,28 @@ export default function SpeedTablePage() {
                     ))}
                   </select>
                 </td>
-                <td style={{ padding: '4px 8px' }}>
+                <td style={{ padding: '4px 8px', textAlign: 'right' }}>
                   <input type="number" value={entry.aSpeed}
                     onChange={e => handleUpdate(i, 'aSpeed', parseInt(e.target.value) || 0)}
-                    
+
                     style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
                 </td>
-                <td style={{ padding: '4px 8px' }}>
+                <td style={{ padding: '4px 8px', textAlign: 'right' }}>
                   <input type="number" value={entry.bSpeed}
                     onChange={e => handleUpdate(i, 'bSpeed', parseInt(e.target.value) || 0)}
-                    
+
                     style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
                 </td>
-                <td style={{ padding: '4px 8px' }}>
+                <td style={{ padding: '4px 8px', textAlign: 'right' }}>
                   <input type="number" value={entry.cSpeed}
                     onChange={e => handleUpdate(i, 'cSpeed', parseInt(e.target.value) || 0)}
-                    
+
                     style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
                 </td>
-                <td style={{ padding: '4px 8px' }}>
+                <td style={{ padding: '4px 8px', textAlign: 'right' }}>
                   <input type="number" value={entry.dSpeed}
                     onChange={e => handleUpdate(i, 'dSpeed', parseInt(e.target.value) || 0)}
-                    
+
                     style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
                 </td>
                 <td style={{ padding: '4px' }}>
