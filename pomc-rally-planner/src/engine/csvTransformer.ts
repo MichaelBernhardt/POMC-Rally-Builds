@@ -78,11 +78,6 @@ export function parseCsvToRows(csvText: string): RouteRow[] {
   return rows;
 }
 
-/** Sanitise a string for CSV: strip commas so they can't break unquoted fields */
-function csvSafe(s: string): string {
-  return s.replace(/,/g, '');
-}
-
 /** Ensure a number uses '.' as decimal separator (guards against locale issues) */
 function csvNum(n: number): number {
   return Number(String(n).replace(/,/g, '.'));
@@ -99,7 +94,7 @@ export function exportCleanCsv(rows: RouteRow[]): string {
   const csvRows: CsvExportRow[] = exportRows.map(row => {
     const exportType = row.type === 'm' ? 'v' : 'a';
     const isControl = row.type === 'm';
-    const instruction = csvSafe(row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim());
+    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
 
     return {
       No: seqNum++,
@@ -143,7 +138,7 @@ export function exportBlackbookCsv(rows: RouteRow[]): string {
 
     return {
       No: row.type ?? '',
-      Instruction: csvSafe(row.clue),
+      Instruction: row.clue,
       Type: exportType,
       Distance: csvNum(parseFloat(row.rallyDistance.toFixed(2))),
       A_Speed: csvNum(row.aSpeed),
@@ -184,7 +179,7 @@ export function exportSpeedAbcdCsv(
 
   const data = exportRows.map((row, i) => {
     const idx = rows.indexOf(row);
-    const instruction = csvSafe(row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim());
+    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
     return {
       Distance: csvNum(row.rallyDistance),
       Speed_A: csvNum(row.aSpeed),
