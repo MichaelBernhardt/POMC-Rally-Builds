@@ -446,7 +446,7 @@ export default function AppShell() {
             onClick={e => e.stopPropagation()}
             style={{ maxWidth: '560px', maxHeight: '80vh', overflow: 'auto' }}
           >
-            <h2 style={{ marginTop: 0 }}>POMC Rally Planner <span style={{ fontWeight: 400, fontSize: '14px', color: 'var(--color-text-muted)' }}>v1.3.0</span></h2>
+            <h2 style={{ marginTop: 0 }}>POMC Rally Planner <span style={{ fontWeight: 400, fontSize: '14px', color: 'var(--color-text-muted)' }}>v1.4.0</span></h2>
 
             <div style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--color-text-secondary)' }}>
               <p style={{ marginTop: 0 }}>
