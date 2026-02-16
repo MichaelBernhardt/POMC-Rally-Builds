@@ -1,80 +1,95 @@
-import {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-} from 'react';
-import { ICellEditorParams } from 'ag-grid-community';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { CustomCellEditorProps } from 'ag-grid-react';
 
-interface AutocompleteCellEditorProps extends ICellEditorParams {
-  /** All existing values to suggest from */
+interface AutocompleteEditorProps extends CustomCellEditorProps<unknown, string> {
   suggestions: string[];
 }
 
-export default forwardRef(function AutocompleteCellEditor(
-  props: AutocompleteCellEditorProps,
-  ref: React.Ref<unknown>,
-) {
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+/**
+ * AG-Grid v35 declarative cell editor with autocomplete dropdown.
+ *
+ * Uses the v35 `onValueChange` callback pattern (not the legacy
+ * forwardRef/useImperativeHandle/getValue pattern).
+ */
+export default function AutocompleteCellEditor({
+  value,
+  onValueChange,
+  eventKey,
+  suggestions: suggestionsProp,
+}: AutocompleteEditorProps) {
+  const suggestions = suggestionsProp ?? [];
+
+  // If editing started by typing a character, begin with that character
+  const initialValue = eventKey && eventKey.length === 1 ? eventKey : (value ?? '');
+
+  const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const [value, setValue] = useState<string>(props.value ?? '');
   const [filtered, setFiltered] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number; width: number } | null>(null);
 
-  useImperativeHandle(ref, () => ({
-    getValue: () => value,
-    isCancelAfterEnd: () => false,
-    afterGuiAttached: () => {
-      inputRef.current?.focus();
-      // If started by a printable character key, begin with that character
-      const key = props.eventKey;
-      if (key && key.length === 1) {
-        setValue(key);
-        filterSuggestions(key);
-      } else {
-        // Select all text on edit start (like Excel)
-        inputRef.current?.select();
-      }
-    },
-  }));
+  // Notify AG-Grid of initial value if started by typing
+  useEffect(() => {
+    if (eventKey && eventKey.length === 1) {
+      onValueChange(eventKey);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Focus & select on mount
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.focus();
+    if (!(eventKey && eventKey.length === 1)) {
+      el.select();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---- autocomplete helpers ----
   const filterSuggestions = useCallback(
     (text: string) => {
-      if (!text.trim()) {
+      if (!text.trim() || suggestions.length === 0) {
         setFiltered([]);
         setShowDropdown(false);
         return;
       }
       const lower = text.toLowerCase();
-      const matches = props.suggestions.filter(
+      const matches = suggestions.filter(
         (s) => s.toLowerCase().startsWith(lower) && s.toLowerCase() !== lower,
       );
-      // Deduplicate and limit
       const unique = [...new Set(matches)].slice(0, 8);
       setFiltered(unique);
       setSelectedIndex(-1);
       setShowDropdown(unique.length > 0);
     },
-    [props.suggestions],
+    [suggestions],
   );
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newVal = e.target.value;
-    setValue(newVal);
-    filterSuggestions(newVal);
-  };
-
-  const acceptSuggestion = (suggestion: string) => {
-    setValue(suggestion);
+  const acceptSuggestion = useCallback((suggestion: string) => {
+    onValueChange(suggestion);
     setShowDropdown(false);
     setFiltered([]);
     inputRef.current?.focus();
-  };
+  }, [onValueChange]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  // ---- event handlers ----
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    onValueChange(v);
+    filterSuggestions(v);
+  }, [onValueChange, filterSuggestions]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      if (showDropdown && selectedIndex >= 0) {
+        onValueChange(filtered[selectedIndex]);
+      }
+      setShowDropdown(false);
+      return; // Let AG-Grid handle Enter
+    }
+
     if (!showDropdown || filtered.length === 0) return;
 
     if (e.key === 'ArrowDown') {
@@ -86,21 +101,16 @@ export default forwardRef(function AutocompleteCellEditor(
       e.stopPropagation();
       setSelectedIndex((prev) => Math.max(prev - 1, -1));
     } else if (e.key === 'Tab' && selectedIndex >= 0) {
-      // Tab accepts the currently highlighted suggestion
-      e.preventDefault();
-      e.stopPropagation();
-      acceptSuggestion(filtered[selectedIndex]);
-    } else if (e.key === 'Enter' && selectedIndex >= 0) {
-      // Enter accepts the highlighted suggestion without committing the edit
       e.preventDefault();
       e.stopPropagation();
       acceptSuggestion(filtered[selectedIndex]);
     } else if (e.key === 'Escape') {
+      e.stopPropagation();
       setShowDropdown(false);
     }
-  };
+  }, [showDropdown, selectedIndex, filtered, onValueChange, acceptSuggestion]);
 
-  // Scroll selected item into view
+  // ---- dropdown positioning ----
   useEffect(() => {
     if (selectedIndex >= 0 && listRef.current) {
       const item = listRef.current.children[selectedIndex] as HTMLElement;
@@ -108,69 +118,77 @@ export default forwardRef(function AutocompleteCellEditor(
     }
   }, [selectedIndex]);
 
+  useEffect(() => {
+    if (showDropdown && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom, left: rect.left, width: rect.width });
+    }
+  }, [showDropdown, value]);
+
+  // ---- render ----
+  const dropdown = showDropdown && dropdownPos && createPortal(
+    <div
+      ref={listRef}
+      style={{
+        position: 'fixed',
+        top: dropdownPos.top,
+        left: dropdownPos.left,
+        width: dropdownPos.width,
+        maxHeight: '200px',
+        overflowY: 'auto',
+        background: '#fff',
+        border: '1px solid #ccc',
+        borderRadius: '0 0 4px 4px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        zIndex: 9999,
+      }}
+    >
+      {filtered.map((suggestion, i) => (
+        <div
+          key={i}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            acceptSuggestion(suggestion);
+          }}
+          style={{
+            padding: '6px 10px',
+            fontSize: '14px',
+            cursor: 'pointer',
+            backgroundColor: i === selectedIndex ? '#DBEAFE' : '#fff',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {suggestion}
+        </div>
+      ))}
+    </div>,
+    document.body,
+  );
+
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <textarea
+    <>
+      <input
         ref={inputRef}
-        value={value}
+        type="text"
+        value={value ?? ''}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         style={{
           width: '100%',
           height: '100%',
-          minHeight: '34px',
           padding: '6px 10px',
           fontSize: '15px',
           fontFamily: 'inherit',
           border: '2px solid #2563EB',
           borderRadius: '2px',
           outline: 'none',
-          resize: 'vertical',
           boxSizing: 'border-box',
           lineHeight: '1.4',
         }}
       />
-      {showDropdown && (
-        <div
-          ref={listRef}
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            maxHeight: '200px',
-            overflowY: 'auto',
-            background: '#fff',
-            border: '1px solid #ccc',
-            borderTop: 'none',
-            borderRadius: '0 0 4px 4px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            zIndex: 9999,
-          }}
-        >
-          {filtered.map((suggestion, i) => (
-            <div
-              key={i}
-              onMouseDown={(e) => {
-                e.preventDefault(); // Prevent blur
-                acceptSuggestion(suggestion);
-              }}
-              style={{
-                padding: '6px 10px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                backgroundColor: i === selectedIndex ? '#DBEAFE' : '#fff',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-              onMouseEnter={() => setSelectedIndex(i)}
-            >
-              {suggestion}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      {dropdown}
+    </>
   );
-});
+}

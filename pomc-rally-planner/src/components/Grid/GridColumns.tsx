@@ -1,3 +1,4 @@
+import { MutableRefObject } from 'react';
 import { ColDef, ValueFormatterParams, ValueParserParams, ValueGetterParams, CellStyle, GridApi } from 'ag-grid-community';
 import { RouteRow, TYPE_CODES, TypeCode } from '../../types/domain';
 import AutocompleteCellEditor from './AutocompleteCellEditor';
@@ -41,6 +42,8 @@ interface ReconOptions {
   reconMode: boolean;
   tolerance: number;
   clueSuggestions?: string[];
+  /** Ref-based suggestions that stay fresh without changing columnDefs */
+  clueSuggestionsRef?: MutableRefObject<string[]>;
 }
 
 export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
@@ -317,10 +320,9 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       headerTooltip: 'Route instruction text. {Curly braces} contain annotations stripped on clean export.',
       cellStyle: { lineHeight: '1.4', paddingTop: '8px', paddingBottom: '8px' },
       cellEditor: AutocompleteCellEditor,
-      cellEditorParams: {
-        suggestions: recon?.clueSuggestions ?? [],
-      },
-      cellEditorPopup: true,
+      cellEditorParams: recon?.clueSuggestionsRef
+        ? () => ({ suggestions: recon.clueSuggestionsRef!.current })
+        : { suggestions: recon?.clueSuggestions ?? [] },
     },
     {
       headerName: 'Lat',

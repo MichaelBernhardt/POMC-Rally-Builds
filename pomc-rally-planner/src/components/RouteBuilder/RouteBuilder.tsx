@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, MutableRefObject } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import {
   AllCommunityModule,
@@ -46,8 +46,10 @@ export default function RouteBuilder() {
   const [showPushDialog, setShowPushDialog] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Collect all unique clue values from the day for autocomplete
-  const clueSuggestions = useMemo(() => {
+  // Collect all unique clue values from the day for autocomplete.
+  // Stored in a ref so that columnDefs don't change on every edit.
+  const clueSuggestionsRef = useRef<string[]>([]);
+  clueSuggestionsRef.current = useMemo(() => {
     if (!day) return [];
     const clues = flattenDayRows(day).map(r => r.clue).filter(c => c && c.trim().length > 0);
     return [...new Set(clues)];
@@ -127,7 +129,7 @@ export default function RouteBuilder() {
     return { nodeNameMap: nameMap, nodeFirstRowIds: firstIds };
   }, [day]);
 
-  const baseColumnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance, clueSuggestions }), [reconMode, reconTolerance, clueSuggestions]);
+  const baseColumnDefs = useMemo(() => getColumnDefs({ reconMode, tolerance: reconTolerance, clueSuggestionsRef }), [reconMode, reconTolerance]);
 
   // Prepend a "Node" column for the table view
   const columnDefs = useMemo(() => {
