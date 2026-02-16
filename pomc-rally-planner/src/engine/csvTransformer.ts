@@ -3,7 +3,7 @@ import { RouteRow, CsvExportRow, TypeCode, TYPE_CODES, createEmptyRow } from '..
 
 /**
  * Parse a CSV string into RouteRow[].
- * Supports both "clean" format (sequential numbers) and "blackbook" format (type codes as No).
+ * Supports both "clean" format (sequential numbers) and "organiser" format (type codes as No).
  */
 export function parseCsvToRows(csvText: string): RouteRow[] {
   const result = Papa.parse<Record<string, string>>(csvText, {
@@ -38,7 +38,7 @@ export function parseCsvToRows(csvText: string): RouteRow[] {
     // Determine the type code
     let typeCode: TypeCode | null = null;
 
-    // Check if No field is a type code (blackbook format)
+    // Check if No field is a type code (organiser format)
     if (TYPE_CODES.includes(no.toLowerCase() as TypeCode)) {
       typeCode = no.toLowerCase() as TypeCode;
     } else if (csvType === 'v') {
@@ -126,10 +126,10 @@ export function exportCleanCsv(rows: RouteRow[]): string {
 }
 
 /**
- * Export rows to "blackbook" CSV format.
- * Type code as No field, curly braces preserved.
+ * Export rows to "organiser" CSV format.
+ * Type code as No field, {curly brace} annotations preserved for on-the-day reference.
  */
-export function exportBlackbookCsv(rows: RouteRow[]): string {
+export function exportOrganiserCsv(rows: RouteRow[]): string {
   const exportRows = rows.filter(r => r.type !== null);
 
   const csvRows: CsvExportRow[] = exportRows.map(row => {

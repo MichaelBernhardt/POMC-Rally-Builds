@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { useProjectStore } from '../../state/projectStore';
-import { exportCleanCsv, exportBlackbookCsv, exportSpeedAbcdCsv } from '../../engine/csvTransformer';
+import { exportCleanCsv, exportOrganiserCsv, exportSpeedAbcdCsv } from '../../engine/csvTransformer';
 import { computeCumulativeForGroup } from '../../engine/timeCalculator';
 
-type ExportFormat = 'clean' | 'blackbook' | 'speedabcd';
+type ExportFormat = 'clean' | 'organiser' | 'speedabcd';
 
 interface ExportDialogProps {
   open: boolean;
@@ -30,8 +30,8 @@ export default function ExportDialog({ open: isOpen, onClose }: ExportDialogProp
     switch (format) {
       case 'clean':
         return exportCleanCsv(rows);
-      case 'blackbook':
-        return exportBlackbookCsv(rows);
+      case 'organiser':
+        return exportOrganiserCsv(rows);
       case 'speedabcd': {
         const timesA = computeCumulativeForGroup(rows, 'a');
         const timesB = computeCumulativeForGroup(rows, 'b');
@@ -57,7 +57,7 @@ export default function ExportDialog({ open: isOpen, onClose }: ExportDialogProp
     try {
       const csv = generateCsv();
       const defaultName = format === 'clean' ? 'RS_Data.csv'
-        : format === 'blackbook' ? 'RS_Data_BB.csv'
+        : format === 'organiser' ? 'RS_Data_Organiser.csv'
         : 'SpeedABCD.csv';
 
       const savePath = await save({
@@ -82,16 +82,16 @@ export default function ExportDialog({ open: isOpen, onClose }: ExportDialogProp
         <div className="form-group">
           <label>Export Format</label>
           <select value={format} onChange={e => { setFormat(e.target.value as ExportFormat); setPreview(''); }}>
-            <option value="clean">Clean (Sequential Numbers, No Annotations)</option>
-            <option value="blackbook">Blackbook (Type Codes, With Annotations)</option>
-            <option value="speedabcd">SpeedABCD (Distance + Speeds + Times)</option>
+            <option value="clean">Clean (Scoring Program Input)</option>
+            <option value="organiser">Organiser (With Annotations)</option>
+            <option value="speedabcd">SpeedABCD (Time Verification)</option>
           </select>
         </div>
 
         <div style={{ marginBottom: '12px', fontSize: '14px', color: 'var(--color-text-secondary)' }}>
-          {format === 'clean' && 'Sequential numbering (1,2,3...), {curly brace} annotations stripped. Used as scoring program input.'}
-          {format === 'blackbook' && 'Type code as No field, {curly brace} annotations preserved. Used for blackbook reference.'}
-          {format === 'speedabcd' && '13-column format with cumulative times for each speed group. Used for time verification.'}
+          {format === 'clean' && 'Sequential numbering (1,2,3...), annotations stripped. Ready for import into the scoring program.'}
+          {format === 'organiser' && 'Type code as No field, {curly brace} annotations preserved. For organisers to use on the day.'}
+          {format === 'speedabcd' && 'Distance, speeds, and cumulative times for each speed group. For time calculation verification.'}
         </div>
 
         <button onClick={handlePreview} style={{ marginBottom: '12px' }}>
