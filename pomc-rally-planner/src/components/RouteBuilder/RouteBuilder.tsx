@@ -103,7 +103,7 @@ export default function RouteBuilder() {
 
   const hasCheckDistValues = useMemo(() => {
     if (!day) return false;
-    return day.nodes.some(n => n.rows.some(r => r.checkDist != null));
+    return day.nodes.some(n => n.rows.some(r => r.checkDist != null || r.checkLat != null || r.checkLong != null));
   }, [day]);
 
   const handleClearRecon = useCallback(() => {
@@ -220,7 +220,7 @@ export default function RouteBuilder() {
     }
 
     // Normalize optional number fields: treat '', undefined as null
-    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist'];
+    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist', 'checkLat', 'checkLong'];
     if (optionalNumFields.includes(field)) {
       if (newVal === '' || newVal === undefined) newVal = null;
       if (oldVal === '' || oldVal === undefined) oldVal = null;

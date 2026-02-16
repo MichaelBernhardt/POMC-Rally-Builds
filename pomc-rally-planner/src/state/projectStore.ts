@@ -149,37 +149,60 @@ interface ProjectState {
 }
 
 /**
- * Process a node row's checkDist into the template's distance history.
- * If checkDist is non-null, appends it to history and sets rallyDistance to avg of last 3.
- * If checkDist is null, preserves the template's existing history and rallyDistance.
+ * Process a node row's recon data into the template's history fields.
+ * - Distance: if checkDist is non-null, appends to distanceHistory with today's date.
+ *   rallyDistance = average of last 3 entries.
+ * - Lat/Long: if lat or long is non-zero, appends to latHistory/longHistory with today's date.
+ *   Template lat/long = average of last 3 entries (rounded to 6dp).
+ *   If both zero, preserves the template's existing history and values.
  */
-function processDistanceHistory(
+function processReconHistory(
   nodeRow: RouteRow,
   templateRow: RouteRow | null,
 ): RouteRow {
-  const existingHistory = templateRow?.distanceHistory ?? [];
+  const today = new Date().toISOString().slice(0, 10);
+  const existingDistHistory = templateRow?.distanceHistory ?? [];
+  const existingLatHistory = templateRow?.latHistory ?? [];
+  const existingLongHistory = templateRow?.longHistory ?? [];
+
+  let distanceHistory = existingDistHistory;
+  let rallyDistance = templateRow?.rallyDistance ?? nodeRow.rallyDistance;
 
   if (nodeRow.checkDist != null) {
-    const newHistory = [...existingHistory, nodeRow.checkDist];
-    const last3 = newHistory.slice(-3);
-    const avg = last3.reduce((sum, v) => sum + v, 0) / last3.length;
-    // Round to 2 decimal places to avoid floating point noise
-    const rallyDistance = Math.round(avg * 100) / 100;
-    return {
-      ...nodeRow,
-      id: crypto.randomUUID(),
-      checkDist: null,
-      distanceHistory: newHistory,
-      rallyDistance,
-    };
+    distanceHistory = [...existingDistHistory, { value: nodeRow.checkDist, date: today }];
+    const last3 = distanceHistory.slice(-3);
+    const avg = last3.reduce((sum, e) => sum + e.value, 0) / last3.length;
+    rallyDistance = Math.round(avg * 100) / 100;
   }
 
-  // No new recon measurement — keep template's history and rallyDistance
+  let latHistory = existingLatHistory;
+  let longHistory = existingLongHistory;
+  let lat = templateRow?.lat ?? nodeRow.lat;
+  let long = templateRow?.long ?? nodeRow.long;
+
+  if (nodeRow.checkLat != null || nodeRow.checkLong != null) {
+    const pushLat = nodeRow.checkLat ?? 0;
+    const pushLong = nodeRow.checkLong ?? 0;
+    latHistory = [...existingLatHistory, { value: pushLat, date: today }];
+    longHistory = [...existingLongHistory, { value: pushLong, date: today }];
+    const lastLat3 = latHistory.slice(-3);
+    const lastLong3 = longHistory.slice(-3);
+    lat = Math.round((lastLat3.reduce((s, e) => s + e.value, 0) / lastLat3.length) * 1e6) / 1e6;
+    long = Math.round((lastLong3.reduce((s, e) => s + e.value, 0) / lastLong3.length) * 1e6) / 1e6;
+  }
+
   return {
     ...nodeRow,
     id: crypto.randomUUID(),
-    distanceHistory: existingHistory,
-    rallyDistance: templateRow?.rallyDistance ?? nodeRow.rallyDistance,
+    checkDist: null,
+    checkLat: null,
+    checkLong: null,
+    distanceHistory,
+    latHistory,
+    longHistory,
+    rallyDistance,
+    lat,
+    long,
   };
 }
 
@@ -789,16 +812,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const template = rally.nodeLibrary.find(t => t.id === node.sourceNodeId);
     if (!template) return false;
 
-    // Process each node row: merge checkDist into history, compute avg rallyDistance
+    // Process each node row: merge checkDist + lat/long into history, compute averages
     const newTemplateRows = node.rows.map((r, i) =>
-      processDistanceHistory(r, template.rows[i] ?? null),
+      processReconHistory(r, template.rows[i] ?? null),
     );
 
-    // Refresh the node's rows: pick up new averaged rallyDistance, clear checkDist
+    // Refresh the node's rows: pick up new averaged values, clear checkDist
     const refreshedNodeRows = node.rows.map((r, i) => {
       const updated = newTemplateRows[i];
       return updated
-        ? { ...r, rallyDistance: updated.rallyDistance, checkDist: null }
+        ? { ...r, rallyDistance: updated.rallyDistance, lat: updated.lat, long: updated.long, checkDist: null, checkLat: null, checkLong: null }
         : r;
     });
 
@@ -1188,7 +1211,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
     const updatedNodes = day.nodes.map(node => ({
       ...node,
-      rows: node.rows.map(r => ({ ...r, checkDist: null })),
+      rows: node.rows.map(r => ({ ...r, checkDist: null, checkLat: null, checkLong: null })),
     }));
 
     set({

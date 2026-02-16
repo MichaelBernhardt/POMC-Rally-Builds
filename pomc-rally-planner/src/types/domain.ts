@@ -1,3 +1,9 @@
+/** A single recon measurement with a date stamp */
+export interface ReconEntry {
+  value: number;
+  date: string; // ISO date string or "Unknown" for migrated data
+}
+
 /** Type codes used in the blackbook planning grid */
 export type TypeCode = 'o' | 'f' | 'd' | 'u' | 'l' | 'm' | 't';
 
@@ -25,7 +31,11 @@ export interface RouteRow {
   suggestedASpeed: number | null;
   rallyDistance: number;
   checkDist: number | null;
-  distanceHistory: number[];
+  checkLat: number | null;
+  checkLong: number | null;
+  distanceHistory: ReconEntry[];
+  latHistory: ReconEntry[];
+  longHistory: ReconEntry[];
   verified: boolean;
   type: TypeCode | null;
   instructionNumber: number | null;
@@ -56,7 +66,11 @@ export function createEmptyRow(id?: string): RouteRow {
     suggestedASpeed: null,
     rallyDistance: 0,
     checkDist: null,
+    checkLat: null,
+    checkLong: null,
     distanceHistory: [],
+    latHistory: [],
+    longHistory: [],
     verified: false,
     type: null,
     instructionNumber: null,
@@ -293,9 +307,9 @@ export interface RallyV3 {
   speedLookupTable: SpeedLookupEntry[];
 }
 
-/** Workspace file (v3 format — node-based directed model) */
+/** Workspace file (v3+ format — node-based directed model) */
 export interface RallyWorkspaceV3 {
-  version: 3;
+  version: number;
   createdAt: string;
   modifiedAt: string;
   rallies: RallyV3[];
@@ -352,7 +366,7 @@ export function createEmptyRallyV3(name: string): RallyV3 {
 /** Create a new empty V3 workspace */
 export function createEmptyWorkspaceV3(): RallyWorkspaceV3 {
   return {
-    version: 3,
+    version: 4,
     createdAt: new Date().toISOString(),
     modifiedAt: new Date().toISOString(),
     rallies: [],

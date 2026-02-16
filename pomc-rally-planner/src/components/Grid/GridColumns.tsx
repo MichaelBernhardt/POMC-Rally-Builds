@@ -334,6 +334,26 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       cellStyle: { textAlign: 'right', fontSize: '13px' },
     },
     {
+      headerName: 'Check Lat',
+      field: 'checkLat',
+      width: 110,
+      hide: !reconOn,
+      valueParser: optionalNumberParser,
+      valueFormatter: numberFormatter(6),
+      headerTooltip: 'Recon GPS Latitude. Green: within ~111m, Yellow: ~111–555m, Red: >555m from template average.',
+      cellStyle: (params): CellStyle => {
+        const base: CellStyle = { textAlign: 'right', fontSize: '13px' };
+        if (!reconOn || params.data?.checkLat == null) return base;
+        const templateLat = params.data?.latHistory;
+        if (!templateLat || templateLat.length === 0) return base;
+        const avg = templateLat.slice(-3).reduce((s: number, e: { value: number }) => s + e.value, 0) / Math.min(templateLat.length, 3);
+        const deviation = Math.abs(params.data.checkLat - avg);
+        if (deviation > 0.005) return { ...base, backgroundColor: '#FFC7CE' };
+        if (deviation > 0.001) return { ...base, backgroundColor: '#FFEB9C' };
+        return { ...base, backgroundColor: '#C6EFCE' };
+      },
+    },
+    {
       headerName: 'Long',
       field: 'long',
       width: 110,
@@ -341,6 +361,26 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       valueFormatter: numberFormatter(6),
       headerTooltip: 'GPS Longitude (for marked controls)',
       cellStyle: { textAlign: 'right', fontSize: '13px' },
+    },
+    {
+      headerName: 'Check Long',
+      field: 'checkLong',
+      width: 110,
+      hide: !reconOn,
+      valueParser: optionalNumberParser,
+      valueFormatter: numberFormatter(6),
+      headerTooltip: 'Recon GPS Longitude. Green: within ~111m, Yellow: ~111–555m, Red: >555m from template average.',
+      cellStyle: (params): CellStyle => {
+        const base: CellStyle = { textAlign: 'right', fontSize: '13px' };
+        if (!reconOn || params.data?.checkLong == null) return base;
+        const templateLong = params.data?.longHistory;
+        if (!templateLong || templateLong.length === 0) return base;
+        const avg = templateLong.slice(-3).reduce((s: number, e: { value: number }) => s + e.value, 0) / Math.min(templateLong.length, 3);
+        const deviation = Math.abs(params.data.checkLong - avg);
+        if (deviation > 0.005) return { ...base, backgroundColor: '#FFC7CE' };
+        if (deviation > 0.001) return { ...base, backgroundColor: '#FFEB9C' };
+        return { ...base, backgroundColor: '#C6EFCE' };
+      },
     },
     {
       headerName: 'Add A',

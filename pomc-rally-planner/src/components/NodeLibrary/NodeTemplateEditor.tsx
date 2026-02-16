@@ -11,7 +11,7 @@ import {
   themeAlpine,
 } from 'ag-grid-community';
 import { getColumnDefs } from '../Grid/GridColumns';
-import { RouteRow } from '../../types/domain';
+import { RouteRow, ReconEntry } from '../../types/domain';
 import { useProjectStore, selectCurrentRally, selectCurrentRows, selectIsCurrentEditionLocked } from '../../state/projectStore';
 import { validateTemplate } from '../../engine/validator';
 import '../../styles/grid-theme.css';
@@ -28,6 +28,7 @@ export default function NodeTemplateEditor() {
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
   const rally = useProjectStore(selectCurrentRally);
   const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
+  const setAllowedPreviousNodes = useProjectStore(s => s.setAllowedPreviousNodes);
 
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
   const rows = useProjectStore(selectCurrentRows);
@@ -116,33 +117,73 @@ export default function NodeTemplateEditor() {
   }, [editingTemplateId, handleCopy, handleCut, handlePaste]);
 
   const columnDefs = useMemo(() => {
-    const cols = getColumnDefs();
-    // Insert history columns after Rally Dist
+    const cols = getColumnDefs()
+      .filter(c => c.field !== 'firstCarTime' && c.field !== 'lastCarTime');
+
+    // Helper to build a recon history column
+    const reconCol = (
+      header: string,
+      field: 'distanceHistory' | 'latHistory' | 'longHistory',
+      offset: number, // -3 = oldest of last 3, -1 = most recent
+      dp: number,
+      width: number,
+    ) => ({
+      headerName: header,
+      valueGetter: (params: { data?: RouteRow }) => {
+        const h: ReconEntry[] = (params.data?.[field] as ReconEntry[]) ?? [];
+        const idx = h.length + offset;
+        if (idx < 0 || idx >= h.length) return '';
+        return h[idx].value.toFixed(dp);
+      },
+      tooltipValueGetter: (params: { data?: RouteRow }) => {
+        const h: ReconEntry[] = (params.data?.[field] as ReconEntry[]) ?? [];
+        const idx = h.length + offset;
+        if (idx < 0 || idx >= h.length) return '';
+        return h[idx].date;
+      },
+      width,
+      editable: false,
+      sortable: false,
+    });
+
+    // Insert distance recon columns after Rally Dist
     const rallyDistIdx = cols.findIndex(c => c.field === 'rallyDistance');
-    const historyColumns = [
-      {
-        headerName: 'Recon History',
-        valueGetter: (params: { data?: RouteRow }) => {
-          const h = params.data?.distanceHistory ?? [];
-          return h.length > 0 ? h.map(v => v.toFixed(2)).join(', ') : '';
-        },
-        width: 160,
-        editable: false,
-        sortable: false,
-      },
-      {
-        headerName: 'Recons',
-        valueGetter: (params: { data?: RouteRow }) =>
-          (params.data?.distanceHistory ?? []).length || '',
-        width: 80,
-        editable: false,
-        sortable: false,
-      },
+    const distReconCols = [
+      reconCol('Dist R1', 'distanceHistory', -3, 2, 85),
+      reconCol('Dist R2', 'distanceHistory', -2, 2, 85),
+      reconCol('Dist R3', 'distanceHistory', -1, 2, 85),
     ];
     if (rallyDistIdx >= 0) {
-      cols.splice(rallyDistIdx + 1, 0, ...historyColumns);
+      cols.splice(rallyDistIdx + 1, 0, ...distReconCols);
     } else {
-      cols.push(...historyColumns);
+      cols.push(...distReconCols);
+    }
+
+    // Insert lat recon columns after existing Lat column
+    const latIdx = cols.findIndex(c => c.field === 'lat');
+    const latReconCols = [
+      reconCol('Lat R1', 'latHistory', -3, 6, 100),
+      reconCol('Lat R2', 'latHistory', -2, 6, 100),
+      reconCol('Lat R3', 'latHistory', -1, 6, 100),
+    ];
+    if (latIdx >= 0) {
+      cols.splice(latIdx + 1, 0, ...latReconCols);
+    } else {
+      cols.push(...latReconCols);
+    }
+
+    // Insert long recon columns after existing Long column
+    // Need to re-find index since we may have shifted it
+    const longIdx = cols.findIndex(c => c.field === 'long');
+    const longReconCols = [
+      reconCol('Long R1', 'longHistory', -3, 6, 100),
+      reconCol('Long R2', 'longHistory', -2, 6, 100),
+      reconCol('Long R3', 'longHistory', -1, 6, 100),
+    ];
+    if (longIdx >= 0) {
+      cols.splice(longIdx + 1, 0, ...longReconCols);
+    } else {
+      cols.push(...longReconCols);
     }
     return cols;
   }, []);
@@ -179,7 +220,7 @@ export default function NodeTemplateEditor() {
       if (oldVal === '' || oldVal === undefined) oldVal = null;
     }
 
-    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist'];
+    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist', 'checkLat', 'checkLong'];
     if (optionalNumFields.includes(field)) {
       if (newVal === '' || newVal === undefined) newVal = null;
       if (oldVal === '' || oldVal === undefined) oldVal = null;
@@ -288,7 +329,7 @@ export default function NodeTemplateEditor() {
         <button onClick={handlePaste} disabled={isLocked || rowClipboard.length === 0} title="Paste rows (Ctrl+V)">Paste</button>
       </div>
 
-      {/* Connection rule — read-only display */}
+      {/* Connection rule — editable */}
       <div style={{
         padding: '10px 16px',
         borderBottom: '1px solid var(--color-border)',
@@ -297,17 +338,54 @@ export default function NodeTemplateEditor() {
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
+        flexWrap: 'wrap',
       }}>
         <span style={{ fontWeight: 600, color: hasConnectionWarning ? 'var(--color-warning)' : 'var(--color-text-secondary)' }}>
           Connection rule:
         </span>
-        <span>
-          {template.isStartNode
-            ? 'Start node'
-            : template.allowedPreviousNodes.length > 0
-              ? `Follows: ${otherTemplates.find(t => t.id === template.allowedPreviousNodes[0])?.name ?? 'Unknown'}`
-              : 'Not configured'}
-        </span>
+        {isLocked ? (
+          <span>
+            {template.isStartNode
+              ? 'Start node'
+              : template.allowedPreviousNodes.length > 0
+                ? `Follows: ${template.allowedPreviousNodes.map(id => otherTemplates.find(t => t.id === id)?.name ?? '?').join(', ')}`
+                : 'Not configured'}
+          </span>
+        ) : (
+          <>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={template.isStartNode}
+                onChange={e => {
+                  updateNodeTemplate(editingTemplateId, { isStartNode: e.target.checked });
+                  if (e.target.checked) setAllowedPreviousNodes(editingTemplateId, []);
+                }}
+              />
+              Start node
+            </label>
+            {!template.isStartNode && otherTemplates.length > 0 && (
+              <>
+                <span style={{ color: 'var(--color-text-muted)' }}>Follows:</span>
+                {otherTemplates.map(t => (
+                  <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={template.allowedPreviousNodes.includes(t.id)}
+                      onChange={e => {
+                        const newIds = e.target.checked
+                          ? [...template.allowedPreviousNodes, t.id]
+                          : template.allowedPreviousNodes.filter(id => id !== t.id);
+                        setAllowedPreviousNodes(editingTemplateId, newIds);
+                      }}
+                    />
+                    {t.name}
+                  </label>
+                ))}
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* Grid */}
@@ -322,7 +400,7 @@ export default function NodeTemplateEditor() {
           rowClassRules={rowClassRules}
           onCellEditingStopped={onCellEditingStopped}
           onGridReady={e => { gridApiRef.current = e.api; }}
-          rowSelection="multiple"
+          rowSelection={{ mode: 'multiRow', enableClickSelection: true }}
           animateRows={false}
           undoRedoCellEditing={false}
           stopEditingWhenCellsLoseFocus={true}

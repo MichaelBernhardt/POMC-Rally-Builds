@@ -9,7 +9,7 @@ export interface RowChangeSummary {
 }
 
 /** Fields to exclude when comparing rows (computed/identity fields) */
-const EXCLUDED_FIELDS: (keyof RouteRow)[] = ['id', 'firstCarTime', 'lastCarTime', 'distanceHistory'];
+const EXCLUDED_FIELDS: (keyof RouteRow)[] = ['id', 'firstCarTime', 'lastCarTime', 'distanceHistory', 'latHistory', 'longHistory', 'checkLat', 'checkLong'];
 
 /** Compare two row values for equality */
 function valuesEqual(a: unknown, b: unknown): boolean {

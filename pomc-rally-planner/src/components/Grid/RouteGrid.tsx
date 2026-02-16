@@ -76,7 +76,7 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
     }
 
     // Normalize optional number fields: treat '', undefined as null
-    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist'];
+    const optionalNumFields = ['bbPage', 'bbPage2', 'suggestedASpeed', 'instructionNumber', 'checkDist', 'checkLat', 'checkLong'];
     if (optionalNumFields.includes(field)) {
       if (newVal === '' || newVal === undefined) newVal = null;
       if (oldVal === '' || oldVal === undefined) oldVal = null;
