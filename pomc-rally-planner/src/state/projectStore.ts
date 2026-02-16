@@ -864,6 +864,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (newRows[afterIndex]) {
         newRow.rallyDistance = newRows[afterIndex].rallyDistance;
         newRow.speedLimit = newRows[afterIndex].speedLimit;
+        newRow.aSpeed = newRows[afterIndex].aSpeed;
+        newRow.bSpeed = newRows[afterIndex].bSpeed;
+        newRow.cSpeed = newRows[afterIndex].cSpeed;
+        newRow.dSpeed = newRows[afterIndex].dSpeed;
       }
       newRows.splice(afterIndex + 1, 0, newRow);
     } else {
@@ -942,6 +946,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         if (targetNode.rows[localIndex]) {
           newRow.rallyDistance = targetNode.rows[localIndex].rallyDistance;
           newRow.speedLimit = targetNode.rows[localIndex].speedLimit;
+          newRow.aSpeed = targetNode.rows[localIndex].aSpeed;
+          newRow.bSpeed = targetNode.rows[localIndex].bSpeed;
+          newRow.cSpeed = targetNode.rows[localIndex].cSpeed;
+          newRow.dSpeed = targetNode.rows[localIndex].dSpeed;
         }
 
         const updatedNodes = day.nodes.map((node, idx) => {
@@ -971,6 +979,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       const lastRow = lastNode.rows[lastNode.rows.length - 1];
       newRow.rallyDistance = lastRow.rallyDistance;
       newRow.speedLimit = lastRow.speedLimit;
+      newRow.aSpeed = lastRow.aSpeed;
+      newRow.bSpeed = lastRow.bSpeed;
+      newRow.cSpeed = lastRow.cSpeed;
+      newRow.dSpeed = lastRow.dSpeed;
     }
 
     const updatedNodes = day.nodes.map((node, idx) => {
