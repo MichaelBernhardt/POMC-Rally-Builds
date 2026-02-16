@@ -109,6 +109,7 @@ function migrateRallyV2ToV3(rally: Rally): RallyV3 {
     nodeLibrary: [],
     editions: [edition],
     speedLookupTable: rally.speedLookupTable,
+    timeAddLookupTable: [],
   };
 }
 
@@ -236,5 +237,5 @@ function migrateRallyToV4(rally: RallyV3): RallyV3 {
     rows: templateMap.get(t.id) ?? t.rows,
   }));
 
-  return { ...rally, nodeLibrary: updatedTemplates, editions };
+  return { ...rally, nodeLibrary: updatedTemplates, editions, timeAddLookupTable: rally.timeAddLookupTable ?? [] };
 }

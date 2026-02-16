@@ -130,6 +130,14 @@ export function createEmptyDay(name: string): RallyDay {
   };
 }
 
+/** Time-add lookup table entry: maps A-group break time to B/C/D break times */
+export interface TimeAddLookupEntry {
+  addTimeA: number;  // key — A group break time in minutes
+  addTimeB: number;  // B group break time
+  addTimeC: number;  // C group break time
+  addTimeD: number;  // D group break time
+}
+
 /** Speed lookup table entry: maps (terrain, type, A-speed) -> (A, B, C, D speeds) */
 export interface SpeedLookupEntry {
   terrain: string;
@@ -305,6 +313,7 @@ export interface RallyV3 {
   nodeLibrary: NodeTemplate[];
   editions: RallyEdition[];
   speedLookupTable: SpeedLookupEntry[];
+  timeAddLookupTable: TimeAddLookupEntry[];
 }
 
 /** Workspace file (v3+ format — node-based directed model) */
@@ -360,6 +369,7 @@ export function createEmptyRallyV3(name: string): RallyV3 {
     nodeLibrary: [],
     editions: [],
     speedLookupTable: [],
+    timeAddLookupTable: [],
   };
 }
 

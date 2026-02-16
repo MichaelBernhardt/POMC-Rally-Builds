@@ -1,4 +1,4 @@
-import { TypeCode, SpeedLookupEntry } from '../types/domain';
+import { TypeCode, SpeedLookupEntry, TimeAddLookupEntry } from '../types/domain';
 
 /**
  * Default speed lookup table derived from DJ Rally data.
@@ -227,6 +227,52 @@ export function getDefaultSpeedLookupTable(): SpeedLookupEntry[] {
   }
 
   return entries;
+}
+
+/**
+ * Look up time-add B/C/D values from the time-add lookup table.
+ * Exact match on addTimeA; if no match, returns [a, a, a, a].
+ */
+export function lookupTimeAdds(
+  addTimeA: number,
+  table?: TimeAddLookupEntry[],
+): [number, number, number, number] {
+  if (table && table.length > 0) {
+    const entry = table.find(e => e.addTimeA === addTimeA);
+    if (entry) {
+      return [entry.addTimeA, entry.addTimeB, entry.addTimeC, entry.addTimeD];
+    }
+  }
+  return [addTimeA, addTimeA, addTimeA, addTimeA];
+}
+
+/** Default time-add lookup table derived from DJ Rally data */
+const DEFAULT_TIME_ADD_TABLE: [number, number, number, number][] = [
+  [0, 0, 0, 0],
+  [5, 5, 5, 5],
+  [8, 10, 12, 14],
+  [10, 15, 15, 20],
+  [15, 20, 20, 25],
+  [20, 25, 25, 30],
+  [25, 30, 30, 35],
+  [30, 35, 40, 45],
+  [35, 40, 45, 50],
+  [40, 45, 50, 55],
+  [45, 50, 55, 60],
+  [50, 55, 60, 65],
+  [55, 60, 65, 70],
+  [60, 65, 70, 75],
+  [65, 70, 75, 80],
+];
+
+/** Build TimeAddLookupEntry array from the default table */
+export function getDefaultTimeAddLookupTable(): TimeAddLookupEntry[] {
+  return DEFAULT_TIME_ADD_TABLE.map(([a, b, c, d]) => ({
+    addTimeA: a,
+    addTimeB: b,
+    addTimeC: c,
+    addTimeD: d,
+  }));
 }
 
 /** Find the nearest matching lookup table key */

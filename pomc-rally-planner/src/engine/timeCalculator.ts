@@ -1,5 +1,5 @@
-import { RouteRow, SpeedLookupEntry, SpeedGroupSettings, TypeCode } from '../types/domain';
-import { lookupSpeeds } from './speedCalculator';
+import { RouteRow, SpeedLookupEntry, SpeedGroupSettings, TypeCode, TimeAddLookupEntry } from '../types/domain';
+import { lookupSpeeds, lookupTimeAdds } from './speedCalculator';
 
 /**
  * Parse a time string "HH:MM:SS" into fractional hours.
@@ -33,12 +33,17 @@ export function formatHoursToTime(hours: number): string {
 export function recalculateSpeeds(
   rows: RouteRow[],
   customTable?: SpeedLookupEntry[],
+  timeAddTable?: TimeAddLookupEntry[],
 ): RouteRow[] {
   let lastRegularitySpeeds: [number, number, number, number] | null = null;
 
   return rows.map(row => {
     if (row.type === 't') {
-      // Time-add rows: speeds are 0
+      // Time-add rows: speeds are 0, look up B/C/D add-times from table
+      if (row.addTimeA > 0 && timeAddTable && timeAddTable.length > 0) {
+        const [a, b, c, d] = lookupTimeAdds(row.addTimeA, timeAddTable);
+        return { ...row, aSpeed: 0, bSpeed: 0, cSpeed: 0, dSpeed: 0, addTimeA: a, addTimeB: b, addTimeC: c, addTimeD: d };
+      }
       return { ...row, aSpeed: 0, bSpeed: 0, cSpeed: 0, dSpeed: 0 };
     }
 

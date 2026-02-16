@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useProjectStore, selectCurrentRally } from '../../state/projectStore';
-import { SpeedLookupEntry, TypeCode, TYPE_CODE_LABELS } from '../../types/domain';
-import { getDefaultSpeedLookupTable } from '../../engine/speedCalculator';
+import { SpeedLookupEntry, TimeAddLookupEntry, TypeCode, TYPE_CODE_LABELS } from '../../types/domain';
+import { getDefaultSpeedLookupTable, getDefaultTimeAddLookupTable } from '../../engine/speedCalculator';
 
 export default function SpeedTablePage() {
   const rally = useProjectStore(selectCurrentRally);
   const updateSpeedLookupTable = useProjectStore(s => s.updateSpeedLookupTable);
+  const updateTimeAddLookupTable = useProjectStore(s => s.updateTimeAddLookupTable);
 
   const [entries, setEntries] = useState<SpeedLookupEntry[]>([]);
   const [filterType, setFilterType] = useState<TypeCode | ''>('');
   const [hasChanges, setHasChanges] = useState(false);
 
+  const [timeAddEntries, setTimeAddEntries] = useState<TimeAddLookupEntry[]>([]);
+  const [hasTimeAddChanges, setHasTimeAddChanges] = useState(false);
+
   useEffect(() => {
     if (rally) {
       setEntries([...rally.speedLookupTable]);
       setHasChanges(false);
+      setTimeAddEntries([...(rally.timeAddLookupTable ?? [])]);
+      setHasTimeAddChanges(false);
     }
   }, [rally?.id]);
 
@@ -64,8 +70,40 @@ export default function SpeedTablePage() {
     }
   };
 
+  // --- Time Add table handlers ---
+
+  const handleTimeAddUpdate = (index: number, field: keyof TimeAddLookupEntry, value: number) => {
+    const newEntries = [...timeAddEntries];
+    newEntries[index] = { ...newEntries[index], [field]: value };
+    setTimeAddEntries(newEntries);
+    setHasTimeAddChanges(true);
+  };
+
+  const handleTimeAddAdd = () => {
+    setTimeAddEntries([...timeAddEntries, { addTimeA: 0, addTimeB: 0, addTimeC: 0, addTimeD: 0 }]);
+    setHasTimeAddChanges(true);
+  };
+
+  const handleTimeAddDelete = (index: number) => {
+    setTimeAddEntries(timeAddEntries.filter((_, i) => i !== index));
+    setHasTimeAddChanges(true);
+  };
+
+  const handleTimeAddSave = () => {
+    updateTimeAddLookupTable(timeAddEntries);
+    setHasTimeAddChanges(false);
+  };
+
+  const handleTimeAddResetDefaults = () => {
+    if (window.confirm('Reset time-add table to DJ Rally defaults?')) {
+      setTimeAddEntries(getDefaultTimeAddLookupTable());
+      setHasTimeAddChanges(true);
+    }
+  };
+
   return (
     <div style={{ padding: '20px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Speed Table Section */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
@@ -114,6 +152,7 @@ export default function SpeedTablePage() {
         overflow: 'auto',
         border: '1px solid var(--color-border)',
         borderRadius: '6px',
+        minHeight: 0,
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
           <thead>
@@ -133,7 +172,7 @@ export default function SpeedTablePage() {
                   <select
                     value={entry.type}
                     onChange={e => handleUpdate(i, 'type', e.target.value)}
-                    
+
                     style={{ minHeight: '30px', width: '100%' }}
                   >
                     {(['f', 'd', 'u', 'l'] as TypeCode[]).map(t => (
@@ -167,7 +206,92 @@ export default function SpeedTablePage() {
                 </td>
                 <td style={{ padding: '4px' }}>
                   <button onClick={() => handleDelete(i)}
-                    
+
+                    style={{ minHeight: '28px', padding: '2px 8px', fontSize: '12px', color: 'var(--color-danger)' }}>
+                    X
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Time Add Table Section */}
+      <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>
+            Time Add Table
+          </h2>
+          <div style={{ marginTop: '6px', fontSize: '14px', color: 'var(--color-text-secondary)' }}>
+            Maps A-group break time to B/C/D break times for time-add rows (type t). Used during Recalc Times.
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {hasTimeAddChanges && (
+            <span style={{ fontSize: '13px', color: 'var(--color-warning)', fontWeight: 600 }}>Unsaved changes</span>
+          )}
+          <button className="primary" onClick={handleTimeAddSave} disabled={!hasTimeAddChanges}>
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'center' }}>
+        <div style={{ flex: 1 }} />
+        <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+          {timeAddEntries.length} entries
+        </span>
+        <button onClick={handleTimeAddResetDefaults} style={{ fontSize: '13px' }}>
+          Reset Defaults
+        </button>
+        <button onClick={handleTimeAddAdd} style={{ fontSize: '13px' }}>
+          + Add Entry
+        </button>
+      </div>
+
+      <div style={{
+        flex: 1,
+        overflow: 'auto',
+        border: '1px solid var(--color-border)',
+        borderRadius: '6px',
+        minHeight: 0,
+      }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+          <thead>
+            <tr style={{ background: 'var(--color-bg-secondary)', position: 'sticky', top: 0 }}>
+              <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>A Time</th>
+              <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>B Time</th>
+              <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>C Time</th>
+              <th style={{ padding: '8px', textAlign: 'right', borderBottom: '1px solid var(--color-border)' }}>D Time</th>
+              <th style={{ padding: '8px', width: '40px', borderBottom: '1px solid var(--color-border)' }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {timeAddEntries.map((entry, i) => (
+              <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <td style={{ padding: '4px 8px', textAlign: 'right' }}>
+                  <input type="number" value={entry.addTimeA}
+                    onChange={e => handleTimeAddUpdate(i, 'addTimeA', parseInt(e.target.value) || 0)}
+                    style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: '4px 8px', textAlign: 'right' }}>
+                  <input type="number" value={entry.addTimeB}
+                    onChange={e => handleTimeAddUpdate(i, 'addTimeB', parseInt(e.target.value) || 0)}
+                    style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: '4px 8px', textAlign: 'right' }}>
+                  <input type="number" value={entry.addTimeC}
+                    onChange={e => handleTimeAddUpdate(i, 'addTimeC', parseInt(e.target.value) || 0)}
+                    style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: '4px 8px', textAlign: 'right' }}>
+                  <input type="number" value={entry.addTimeD}
+                    onChange={e => handleTimeAddUpdate(i, 'addTimeD', parseInt(e.target.value) || 0)}
+                    style={{ width: '70px', minHeight: '30px', textAlign: 'right' }} />
+                </td>
+                <td style={{ padding: '4px' }}>
+                  <button onClick={() => handleTimeAddDelete(i)}
                     style={{ minHeight: '28px', padding: '2px 8px', fontSize: '12px', color: 'var(--color-danger)' }}>
                     X
                   </button>

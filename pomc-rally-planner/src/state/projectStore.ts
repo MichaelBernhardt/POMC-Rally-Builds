@@ -18,6 +18,7 @@ import {
   createEmptyNodeTemplate,
   resolveSpeedGroupSettings,
   SpeedLookupEntry,
+  TimeAddLookupEntry,
 } from '../types/domain';
 import { computeTimes, recalculateSpeeds } from '../engine/timeCalculator';
 import { getDefaultSpeedLookupTable } from '../engine/speedCalculator';
@@ -135,6 +136,7 @@ interface ProjectState {
 
   // Speed tables
   updateSpeedLookupTable: (table: SpeedLookupEntry[]) => void;
+  updateTimeAddLookupTable: (table: TimeAddLookupEntry[]) => void;
 
   // View mode
   setViewMode: (mode: ViewMode) => void;
@@ -1154,7 +1156,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const allRows = flattenDayRowsChained(day);
 
     // Step 1: Recalculate B/C/D speeds from type + A-speed + speed lookup table
-    const withSpeeds = recalculateSpeeds(allRows, rally.speedLookupTable);
+    const withSpeeds = recalculateSpeeds(allRows, rally.speedLookupTable, rally.timeAddLookupTable);
 
     // Step 2: Compute first/last car arrival times
     const sgs = resolveSpeedGroupSettings(day);
@@ -1191,6 +1193,19 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       workspace: updateRallyV3(workspace, currentRallyId, r => ({
         ...r,
         speedLookupTable: table,
+        modifiedAt: new Date().toISOString(),
+      })),
+      isDirty: true,
+    });
+  },
+
+  updateTimeAddLookupTable: (table: TimeAddLookupEntry[]) => {
+    const { workspace, currentRallyId } = get();
+    if (!workspace || !currentRallyId) return;
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r => ({
+        ...r,
+        timeAddLookupTable: table,
         modifiedAt: new Date().toISOString(),
       })),
       isDirty: true,
