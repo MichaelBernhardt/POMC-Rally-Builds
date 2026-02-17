@@ -71,20 +71,27 @@ export function flattenDayRows(day: RouteDay): RouteRow[] {
 }
 
 /** Compute the chaining offset for each node in a day.
- *  Each node's segment-relative distance is rebased so nodes chain
- *  end-to-end. For single-node days starting at km 0, offsets are 0. */
+ *  The first node keeps its original distances (offset = 0).
+ *  Subsequent nodes chain end-to-end from the previous node's last distance. */
 export function computeNodeOffsets(day: RouteDay): number[] {
   const offsets: number[] = [];
   let cumulativeEnd = 0;
-  for (const node of day.nodes) {
+  for (let i = 0; i < day.nodes.length; i++) {
+    const node = day.nodes[i];
     if (node.rows.length === 0) {
-      offsets.push(cumulativeEnd);
+      offsets.push(i === 0 ? 0 : cumulativeEnd);
       continue;
     }
     const nodeStart = node.rows[0].rallyDistance;
-    offsets.push(cumulativeEnd - nodeStart);
     const nodeEnd = node.rows[node.rows.length - 1].rallyDistance;
-    cumulativeEnd = cumulativeEnd + (nodeEnd - nodeStart);
+    if (i === 0) {
+      // First node: no offset, distances displayed as-is
+      offsets.push(0);
+      cumulativeEnd = nodeEnd;
+    } else {
+      offsets.push(cumulativeEnd - nodeStart);
+      cumulativeEnd = cumulativeEnd + (nodeEnd - nodeStart);
+    }
   }
   return offsets;
 }

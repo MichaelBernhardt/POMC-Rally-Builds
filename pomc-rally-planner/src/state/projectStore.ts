@@ -833,28 +833,32 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     set({
       workspace: updateRallyV3(workspace, currentRallyId, r => {
         // Update the template in the library
-        const updatedRally = {
+        const updatedLibrary = r.nodeLibrary.map(t =>
+          t.id === node.sourceNodeId ? { ...t, rows: newTemplateRows } : t,
+        );
+        // Update the node's rows in the current day (immutable at every level)
+        const updatedEditions = r.editions.map(e => {
+          if (e.id !== currentEditionId) return e;
+          return {
+            ...e,
+            days: e.days.map(d => {
+              if (d.id !== currentDayId) return d;
+              return {
+                ...d,
+                nodes: d.nodes.map(n => {
+                  if (n.id !== nodeId) return n;
+                  return { ...n, rows: refreshedNodeRows };
+                }),
+              };
+            }),
+          };
+        });
+        return {
           ...r,
-          nodeLibrary: r.nodeLibrary.map(t =>
-            t.id === node.sourceNodeId ? { ...t, rows: newTemplateRows } : t,
-          ),
+          nodeLibrary: updatedLibrary,
+          editions: updatedEditions,
           modifiedAt: new Date().toISOString(),
         };
-        // Update the node's rows in the current day
-        const editionIdx = updatedRally.editions.findIndex(e => e.id === currentEditionId);
-        if (editionIdx >= 0) {
-          const dayIdx = updatedRally.editions[editionIdx].days.findIndex(d => d.id === currentDayId);
-          if (dayIdx >= 0) {
-            const nodeIdx = updatedRally.editions[editionIdx].days[dayIdx].nodes.findIndex(n => n.id === nodeId);
-            if (nodeIdx >= 0) {
-              updatedRally.editions[editionIdx].days[dayIdx].nodes[nodeIdx] = {
-                ...updatedRally.editions[editionIdx].days[dayIdx].nodes[nodeIdx],
-                rows: refreshedNodeRows,
-              };
-            }
-          }
-        }
-        return updatedRally;
       }),
       isDirty: true,
     });
