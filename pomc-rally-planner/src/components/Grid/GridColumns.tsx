@@ -168,7 +168,19 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       valueParser: numberParser,
       valueFormatter: numberFormatter(2),
       headerTooltip: 'Cumulative rally distance (km)',
-      cellStyle: { fontWeight: '600' },
+      cellStyle: (params): CellStyle => {
+        const base: CellStyle = { fontWeight: '600' };
+        if (!params.data || params.node?.rowIndex == null || params.node.rowIndex === 0) return base;
+        const prevNode = params.api.getDisplayedRowAtIndex(params.node.rowIndex - 1);
+        const prevDist = prevNode?.data?.rallyDistance;
+        if (prevDist == null) return base;
+        const dist = params.data.rallyDistance;
+        // Flag if distance goes backwards or jumps more than 50km from previous row
+        if (dist < prevDist || dist - prevDist > 50) {
+          return { ...base, backgroundColor: '#FFC7CE', color: '#9C0006' };
+        }
+        return base;
+      },
     },
     {
       headerName: 'Check Dist',
