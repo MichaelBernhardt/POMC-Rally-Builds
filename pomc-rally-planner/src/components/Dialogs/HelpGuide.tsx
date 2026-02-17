@@ -329,51 +329,62 @@ function TimeCalcPage() {
         Last A departs at 06:09, First B at 06:10, etc.
       </p>
 
-      <SectionTitle>Step 2: Travel Time Per Segment</SectionTitle>
+      <SectionTitle>Step 2: Anchor-Based Travel Time</SectionTitle>
       <p>
-        For each row, the travel time is accumulated separately for each speed group.
-        The key rule is: the <strong>previous row's speed</strong> is used for the segment arriving
-        at the current row:
+        Travel time is calculated using an <strong>anchor system</strong>, not a simple running total.
+        An "anchor" is the point where speeds last changed — the app remembers the distance and
+        travel time at that point.
+      </p>
+      <p>
+        For each row, the travel time is computed from the anchor:
       </p>
       <Code>
-        segment distance = current distance - previous distance<br />
-        travel time += segment distance / previous row's speed
+        incremental distance = current distance - anchor distance<br />
+        travel time = anchor travel time + incremental distance / speed
       </Code>
       <p>
-        This means when a speed change instruction appears (e.g. switching from flat 30 to flat 34),
-        the new speed takes effect for the <strong>next</strong> segment, not the segment arriving
-        at the instruction row itself.
+        The anchor <strong>resets</strong> whenever any group speed (A, B, C, or D) changes between
+        two consecutive rows. When it resets, the new anchor is set to the row where the speed changed
+        and its calculated travel time.
       </p>
 
       <Callout>
-        <strong>Time-add exception:</strong> After a time-add row (type "t", speed = 0), the app
-        skips the time-add's zero speed and uses the speed from before the time-add. This prevents
-        the row after a break from getting no travel time calculated.
+        <strong>Why anchors instead of row-by-row?</strong> If one row has a bad rally distance
+        (e.g. a typo of 800 instead of 108), only that row's time is wrong. The rows after it
+        still calculate from the anchor (the last speed change) and are unaffected. A row-by-row
+        running total would carry the error through the entire remaining route.
       </Callout>
 
       <SectionTitle>Step 3: Time-Add Rows</SectionTitle>
       <p>
         When a row has type "t" (time add), no distance-based travel time is calculated.
-        Instead, the add-time value in minutes is directly added to each group's cumulative time:
+        Instead, the add-time value in minutes is added to the anchor travel time. The anchor
+        also resets on time-add rows so subsequent distance calculations start fresh.
       </p>
       <Code>
-        Group A: travel time += addTimeA minutes<br />
-        Group B: travel time += addTimeB minutes<br />
-        Group C: travel time += addTimeC minutes<br />
-        Group D: travel time += addTimeD minutes
+        Group A: travel time = anchor time + addTimeA minutes<br />
+        Group B: travel time = anchor time + addTimeB minutes<br />
+        Group C: travel time = anchor time + addTimeC minutes<br />
+        Group D: travel time = anchor time + addTimeD minutes
       </Code>
       <p>
         The B/C/D add-times are looked up from the Time-Add table. Slower groups typically
         get shorter breaks, faster groups get longer breaks.
       </p>
 
+      <Callout>
+        <strong>Speed after a time-add:</strong> Time-add rows have speed = 0, but the app
+        remembers the speed from before the time-add. The next distance-based row uses that
+        preserved speed, preventing a gap in the calculation.
+      </Callout>
+
       <SectionTitle>Step 4: Arrival Times</SectionTitle>
       <p>
         Each group has two arrival times at every point:
       </p>
       <ul style={{ paddingLeft: '20px' }}>
-        <li><strong>First car arrival</strong> = group's first car departure time + group's cumulative travel time</li>
-        <li><strong>Last car arrival</strong> = group's last car departure time + group's cumulative travel time</li>
+        <li><strong>First car arrival</strong> = group's first car departure time + travel time</li>
+        <li><strong>Last car arrival</strong> = group's last car departure time + travel time</li>
       </ul>
       <p>This produces <strong>8 independent time streams</strong>: First A, Last A, First B, Last B, First C, Last C, First D, Last D.</p>
 
