@@ -21,6 +21,25 @@ interface SpeedTableValue {
   dSpeed: number;
 }
 
+/** Default open section speeds.
+ *  All groups travel at the same speed (B=C=D=A).
+ *  Derived from DJ Rally OpenSect spreadsheet.
+ */
+const DEFAULT_OPEN_SPEEDS: Record<number, [number, number, number]> = {
+  0: [0, 0, 0],
+  1: [1, 1, 1],
+  10: [10, 10, 10],
+  20: [20, 20, 20],
+  25: [25, 25, 25],
+  27: [27, 27, 27],
+  30: [30, 30, 30],
+  35: [35, 35, 35],
+  36: [36, 36, 36],
+  38: [38, 38, 38],
+  40: [40, 40, 40],
+  42: [42, 42, 42],
+};
+
 /** Default graduated speed lookup for regularity sections.
  *  Derived from analysis of DJ Rally CSV data.
  *  Key: A-speed. Value: [B, C, D] speeds.
@@ -128,6 +147,7 @@ const DEFAULT_SPEED_LIMIT_SPEEDS: Record<number, [number, number, number]> = {
 
 function getTerrainTable(type: TypeCode): Record<number, [number, number, number]> {
   switch (type) {
+    case 'o': return DEFAULT_OPEN_SPEEDS;
     case 'f': return DEFAULT_FLAT_SPEEDS;
     case 'd': return DEFAULT_DOWNHILL_SPEEDS;
     case 'u': return DEFAULT_UPHILL_SPEEDS;
@@ -144,13 +164,11 @@ export function lookupSpeeds(
   type: TypeCode,
   aSpeed: number,
   speedLimit: number,
-  customTable?: SpeedLookupEntry[]
+  customTable?: SpeedLookupEntry[],
+  speedLimitMarginPercent: number = 10,
 ): [number, number, number, number] {
-  // Open sections: all groups same speed
-  if (type === 'o') {
-    const capped = Math.min(aSpeed, speedLimit);
-    return [capped, capped, capped, capped];
-  }
+  // Effective limit: e.g. 10% margin on 60 km/h limit = 54 km/h max
+  const effectiveLimit = Math.floor(speedLimit * (1 - speedLimitMarginPercent / 100));
 
   // Time add: speed is 0
   if (type === 't') {
@@ -162,15 +180,15 @@ export function lookupSpeeds(
     return [aSpeed, aSpeed, aSpeed, aSpeed];
   }
 
-  // Check custom table first
+  // Check custom table first (applies to all types including 'o')
   if (customTable) {
     const entry = customTable.find(e => e.type === type && e.aSpeed === aSpeed);
     if (entry) {
       return [
-        Math.min(entry.aSpeed, speedLimit),
-        Math.min(entry.bSpeed, speedLimit),
-        Math.min(entry.cSpeed, speedLimit),
-        Math.min(entry.dSpeed, speedLimit),
+        Math.min(entry.aSpeed, effectiveLimit),
+        Math.min(entry.bSpeed, effectiveLimit),
+        Math.min(entry.cSpeed, effectiveLimit),
+        Math.min(entry.dSpeed, effectiveLimit),
       ];
     }
   }
@@ -180,10 +198,10 @@ export function lookupSpeeds(
   const entry = table[aSpeed];
   if (entry) {
     return [
-      Math.min(aSpeed, speedLimit),
-      Math.min(entry[0], speedLimit),
-      Math.min(entry[1], speedLimit),
-      Math.min(entry[2], speedLimit),
+      Math.min(aSpeed, effectiveLimit),
+      Math.min(entry[0], effectiveLimit),
+      Math.min(entry[1], effectiveLimit),
+      Math.min(entry[2], effectiveLimit),
     ];
   }
 
@@ -207,17 +225,17 @@ export function lookupSpeeds(
   // Scale proportionally
   const ratio = aSpeed / nearest;
   return [
-    Math.min(aSpeed, speedLimit),
-    Math.min(Math.round(nearestEntry[0] * ratio), speedLimit),
-    Math.min(Math.round(nearestEntry[1] * ratio), speedLimit),
-    Math.min(Math.round(nearestEntry[2] * ratio), speedLimit),
+    Math.min(aSpeed, effectiveLimit),
+    Math.min(Math.round(nearestEntry[0] * ratio), effectiveLimit),
+    Math.min(Math.round(nearestEntry[1] * ratio), effectiveLimit),
+    Math.min(Math.round(nearestEntry[2] * ratio), effectiveLimit),
   ];
 }
 
 /** Build SpeedLookupEntry array from the default tables */
 export function getDefaultSpeedLookupTable(): SpeedLookupEntry[] {
   const entries: SpeedLookupEntry[] = [];
-  const types: TypeCode[] = ['f', 'd', 'u', 'l'];
+  const types: TypeCode[] = ['o', 'f', 'd', 'u', 'l'];
 
   for (const type of types) {
     const table = getTerrainTable(type);

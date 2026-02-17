@@ -9,10 +9,12 @@ export default function SpeedTablePage() {
   const rally = useProjectStore(selectCurrentRally);
   const updateSpeedLookupTable = useProjectStore(s => s.updateSpeedLookupTable);
   const updateTimeAddLookupTable = useProjectStore(s => s.updateTimeAddLookupTable);
+  const updateSpeedLimitMargin = useProjectStore(s => s.updateSpeedLimitMargin);
 
   const [entries, setEntries] = useState<SpeedLookupEntry[]>([]);
   const [filterType, setFilterType] = useState<TypeCode | ''>('');
   const [hasChanges, setHasChanges] = useState(false);
+  const [marginPercent, setMarginPercent] = useState(10);
 
   const [timeAddEntries, setTimeAddEntries] = useState<TimeAddLookupEntry[]>([]);
   const [hasTimeAddChanges, setHasTimeAddChanges] = useState(false);
@@ -20,6 +22,7 @@ export default function SpeedTablePage() {
   useEffect(() => {
     if (rally) {
       setEntries([...rally.speedLookupTable]);
+      setMarginPercent(rally.speedLimitMarginPercent ?? 10);
       setHasChanges(false);
       setTimeAddEntries([...(rally.timeAddLookupTable ?? [])]);
       setHasTimeAddChanges(false);
@@ -62,6 +65,7 @@ export default function SpeedTablePage() {
 
   const handleSave = () => {
     updateSpeedLookupTable(entries);
+    updateSpeedLimitMargin(marginPercent);
     setHasChanges(false);
   };
 
@@ -171,7 +175,7 @@ export default function SpeedTablePage() {
             Speed Tables <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>for {rally.name}</span>
           </h2>
           <div style={{ marginTop: '6px', fontSize: '14px', color: 'var(--color-text-secondary)' }}>
-            Maps (type, A-speed) to graduated B/C/D speeds for regularity sections.
+            Maps (type, A-speed) to B/C/D speeds. Open sections use equal speeds; regularity sections use graduated speeds.
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -198,22 +202,33 @@ export default function SpeedTablePage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'center' }}>
-        <label style={{ fontSize: '14px', fontWeight: 600 }}>Filter by type:</label>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
+        <label style={{ fontSize: '13px', fontWeight: 600 }}>Filter:</label>
         <select
           value={filterType}
           onChange={e => setFilterType(e.target.value as TypeCode | '')}
-          style={{ minHeight: '36px' }}
+          style={{ minHeight: '30px', fontSize: '13px' }}
         >
           <option value="">All Types</option>
-          {(['f', 'd', 'u', 'l'] as TypeCode[]).map(t => (
+          {(['o', 'f', 'd', 'u', 'l'] as TypeCode[]).map(t => (
             <option key={t} value={t}>{t} - {TYPE_CODE_LABELS[t]}</option>
           ))}
         </select>
-        <div style={{ flex: 1 }} />
-        <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
-          {filteredEntries.length} entries shown. {entries.length} total.
+        <div style={{ width: '1px', height: '20px', background: 'var(--color-border)' }} />
+        <label style={{ fontSize: '13px', fontWeight: 600, whiteSpace: 'nowrap' }}>Limit margin:</label>
+        <input
+          type="number"
+          min={0}
+          max={50}
+          value={marginPercent}
+          onChange={e => { setMarginPercent(Math.max(0, Math.min(50, parseInt(e.target.value) || 0))); setHasChanges(true); }}
+          style={{ width: '65px', minHeight: '30px', textAlign: 'right', fontSize: '13px' }}
+        />
+        <span style={{ fontSize: '13px' }}>%</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+          (e.g. 60 km/h limit = {Math.floor(60 * (1 - marginPercent / 100))} km/h max)
         </span>
+        <div style={{ flex: 1 }} />
         <button onClick={handleImportTables} style={{ fontSize: '13px' }}>
           Import Tables
         </button>
@@ -223,6 +238,9 @@ export default function SpeedTablePage() {
         <button onClick={handleAddEntry} disabled={false} style={{ fontSize: '13px' }}>
           + Add Entry
         </button>
+      </div>
+      <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '4px', marginTop: '-8px' }}>
+        {filteredEntries.length} entries shown{filteredEntries.length !== entries.length ? ` of ${entries.length} total` : ''}.
       </div>
 
       <div style={{
@@ -253,7 +271,7 @@ export default function SpeedTablePage() {
 
                     style={{ minHeight: '30px', width: '100%' }}
                   >
-                    {(['f', 'd', 'u', 'l'] as TypeCode[]).map(t => (
+                    {(['o', 'f', 'd', 'u', 'l'] as TypeCode[]).map(t => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>

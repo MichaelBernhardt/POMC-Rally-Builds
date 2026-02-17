@@ -130,8 +130,8 @@ function TypeCodesPage() {
   const types = [
     {
       code: 'o', name: 'Open Section', color: '#2563EB',
-      desc: 'A non-competitive section where all car groups travel at the same speed. The speed is capped by the speed limit. Open sections are used for transport stages between regularity sections.',
-      example: 'Cars are driving between two competitive stages at 60 km/h. All groups (A, B, C, D) travel at the same speed.',
+      desc: 'A non-competitive transport section where all car groups travel at the same speed (B=C=D=A). The speed is capped by the effective speed limit (speed limit minus the configured margin). Open sections have their own lookup table in the Speed Tables page. Used for transport stages between regularity sections.',
+      example: 'Cars are driving between two competitive stages at 40 km/h. All groups (A, B, C, D) travel at 40 km/h.',
     },
     {
       code: 'f', name: 'Flat Terrain', color: '#16A34A',
@@ -260,7 +260,7 @@ function SpeedTablesPage() {
 
       <SectionTitle>Special Type Behaviour</SectionTitle>
       <ul style={{ paddingLeft: '20px' }}>
-        <li><strong>Open (o)</strong> — All groups travel at the same speed. No lookup needed.</li>
+        <li><strong>Open (o)</strong> — All groups travel at the same speed (B=C=D=A). Has its own lookup table, but by default all entries map to equal speeds.</li>
         <li><strong>Marked Control (m)</strong> — Inherits all speeds from the previous regularity row.</li>
         <li><strong>Time Add (t)</strong> — Speeds are 0. The A-group "speed" value is actually the <strong>break time in minutes</strong>, and the B/C/D break times are looked up from the Time-Add table.</li>
       </ul>
@@ -270,15 +270,30 @@ function SpeedTablesPage() {
         Navigate to the <strong>Speed Tables</strong> page from the sidebar. There you can:
       </p>
       <ul style={{ paddingLeft: '20px' }}>
-        <li>View and edit all speed lookup entries (Flat, Downhill, Uphill, Speed Limit)</li>
+        <li>View and edit all speed lookup entries (Open, Flat, Downhill, Uphill, Speed Limit)</li>
         <li>View and edit the Time-Add lookup table</li>
+        <li>Set the <strong>Speed Limit Margin</strong> — the percentage below the posted speed limit that cars must stay</li>
         <li><strong>Import</strong> tables from a JSON file if your rally organiser provides different speed tables</li>
         <li>Reset to built-in defaults (based on DJ Rally data)</li>
       </ul>
 
+      <SectionTitle>Speed Limit Margin</SectionTitle>
+      <p>
+        Rally rules typically require cars to travel below the posted speed limit. The <strong>Speed Limit
+        Margin</strong> setting (default 10%) defines how far below. When Recalc Times runs, all speeds
+        are capped at the effective limit:
+      </p>
+      <Code>
+        Effective limit = speed limit x (1 - margin%)<br />
+        Example: 60 km/h limit with 10% margin = 54 km/h max
+      </Code>
+      <p>
+        This is configurable per rally on the Speed Tables page. Set it to 0% to use the full speed limit.
+      </p>
+
       <Callout>
         Speed tables are <strong>per-rally</strong>. Different rallies in the same workspace can have completely
-        different speed tables.
+        different speed tables and margin settings.
       </Callout>
     </>
   );
@@ -658,7 +673,7 @@ export default function HelpGuide({ open, onClose }: HelpGuideProps) {
             marginBottom: '8px',
           }}>
             Help Guide
-            <div style={{ fontWeight: 400, fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>v1.9.0</div>
+            <div style={{ fontWeight: 400, fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>v1.10.0</div>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
             {PAGES.map(p => (

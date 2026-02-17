@@ -34,6 +34,7 @@ export function recalculateSpeeds(
   rows: RouteRow[],
   customTable?: SpeedLookupEntry[],
   timeAddTable?: TimeAddLookupEntry[],
+  speedLimitMarginPercent: number = 10,
 ): RouteRow[] {
   let lastRegularitySpeeds: [number, number, number, number] | null = null;
 
@@ -63,7 +64,7 @@ export function recalculateSpeeds(
 
     if (row.type && row.aSpeed > 0) {
       // Row with a type code: look up speeds from the table
-      const [a, b, c, d] = lookupSpeeds(row.type, row.aSpeed, row.speedLimit, customTable);
+      const [a, b, c, d] = lookupSpeeds(row.type, row.aSpeed, row.speedLimit, customTable, speedLimitMarginPercent);
       lastRegularitySpeeds = [a, b, c, d];
       return { ...row, aSpeed: a, bSpeed: b, cSpeed: c, dSpeed: d };
     }

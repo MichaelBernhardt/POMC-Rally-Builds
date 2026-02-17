@@ -314,6 +314,9 @@ export interface RallyV3 {
   editions: RallyEdition[];
   speedLookupTable: SpeedLookupEntry[];
   timeAddLookupTable: TimeAddLookupEntry[];
+  /** Percentage below the speed limit that cars must stay (default 10).
+   *  Effective limit = speedLimit * (1 - margin/100). */
+  speedLimitMarginPercent?: number;
 }
 
 /** Workspace file (v3+ format — node-based directed model) */
