@@ -128,19 +128,29 @@ export function computeLastCarOffsetSeconds(sgs: SpeedGroupSettings): number {
 }
 
 /**
+ * Check whether any of the four group speeds changed between two rows.
+ */
+function speedsChanged(a: RouteRow, b: RouteRow): boolean {
+  return a.aSpeed !== b.aSpeed || a.bSpeed !== b.bSpeed ||
+         a.cSpeed !== b.cSpeed || a.dSpeed !== b.dSpeed;
+}
+
+/**
  * Compute first/last car arrival times for all rows in a day.
  *
- * Matches the reference spreadsheet logic:
- * - The segment arriving AT row N uses the PREVIOUS row's speed
- *   (formula: BJ{N} = BI{N} / AM{N-1})
- * - After a time-add row, the speed from BEFORE the time-add is used
- *   (formula: IF(AJ{N-1}="t", BI{N}/AM{N-2}, BI{N}/AM{N-1}))
- * - 8 independent time streams: First/Last car for groups A, B, C, D
- * - Each group's cars travel at the same speed; only their departure time differs
- * - First Car = MIN across active groups' first-car arrivals
- * - Last Car = MAX across active groups' last-car arrivals
- * - Groups with 0 cars are excluded from MIN/MAX
- * - Time-add rows: no distance component, only addTime (minutes) is added
+ * Uses ANCHOR-BASED calculation matching the reference spreadsheet:
+ * - An "anchor" tracks the distance and travel-time at the last speed change.
+ * - Each row's time = anchorTime + (currentDist − anchorDist) / speed.
+ * - The anchor resets whenever any group speed changes, or on time-add rows.
+ * - This means a single bad distance value only corrupts THAT row's time;
+ *   subsequent rows still compute from the valid anchor and are unaffected.
+ *
+ * Spreadsheet columns this mirrors:
+ *   AZ (IntOdo)     = anchor distance (resets on speed change / time-add)
+ *   BA (InitFirstA) = anchor time     (resets to previous row's calculated time)
+ *   BI (IncDist)    = currentDist − anchorDist
+ *   BJ (D.HrA)      = IncDist / prevSpeed
+ *   BZ (First A)    = anchorTime + travel hours/min/sec
  */
 export function computeTimes(
   rows: RouteRow[],
@@ -158,11 +168,12 @@ export function computeTimes(
   const activeC = speedGroupSettings.c.numberOfCars > 0;
   const activeD = speedGroupSettings.d.numberOfCars > 0;
 
-  // Cumulative travel time per group (in fractional hours)
-  let travelA = 0;
-  let travelB = 0;
-  let travelC = 0;
-  let travelD = 0;
+  // Anchor: distance and travel-time at last speed change (shared anchor dist, per-group travel)
+  let anchorDist = rows[0].rallyDistance;
+  let anchorTravelA = 0;
+  let anchorTravelB = 0;
+  let anchorTravelC = 0;
+  let anchorTravelD = 0;
 
   // Effective speed per group — the speed used for the NEXT segment's calculation.
   // Only updated from non-time-add rows so that after a time-add, the speed
@@ -172,28 +183,48 @@ export function computeTimes(
   let effSpeedC = 0;
   let effSpeedD = 0;
 
+  // Previous row's calculated travel times (needed when resetting the anchor)
+  let prevTravelA = 0;
+  let prevTravelB = 0;
+  let prevTravelC = 0;
+  let prevTravelD = 0;
+
   return rows.map((row, i) => {
+    let curTravelA = 0;
+    let curTravelB = 0;
+    let curTravelC = 0;
+    let curTravelD = 0;
+
     if (i > 0) {
-      const segmentDist = row.rallyDistance - rows[i - 1].rallyDistance;
+      // Detect anchor reset: speeds changed between row i-2 and i-1, or current is time-add
+      const needsReset = row.type === 't' ||
+        (i >= 2 && speedsChanged(rows[i - 1], rows[i - 2]));
+
+      if (needsReset) {
+        anchorDist = row.type === 't' ? row.rallyDistance : rows[i - 1].rallyDistance;
+        anchorTravelA = prevTravelA;
+        anchorTravelB = prevTravelB;
+        anchorTravelC = prevTravelC;
+        anchorTravelD = prevTravelD;
+      }
 
       if (row.type === 't') {
         // Time-add: add specified minutes (converted to hours), no distance component
-        travelA += row.addTimeA / 60;
-        travelB += row.addTimeB / 60;
-        travelC += row.addTimeC / 60;
-        travelD += row.addTimeD / 60;
-      } else if (segmentDist > 0) {
-        // Distance segment: use effective speed (previous non-time-add row's speed)
-        if (effSpeedA > 0) travelA += segmentDist / effSpeedA;
-        if (effSpeedB > 0) travelB += segmentDist / effSpeedB;
-        if (effSpeedC > 0) travelC += segmentDist / effSpeedC;
-        if (effSpeedD > 0) travelD += segmentDist / effSpeedD;
+        curTravelA = anchorTravelA + row.addTimeA / 60;
+        curTravelB = anchorTravelB + row.addTimeB / 60;
+        curTravelC = anchorTravelC + row.addTimeC / 60;
+        curTravelD = anchorTravelD + row.addTimeD / 60;
+      } else {
+        // Distance segment: incDist from anchor, divided by effective speed
+        const incDist = row.rallyDistance - anchorDist;
+        curTravelA = anchorTravelA + (effSpeedA > 0 && incDist > 0 ? incDist / effSpeedA : 0);
+        curTravelB = anchorTravelB + (effSpeedB > 0 && incDist > 0 ? incDist / effSpeedB : 0);
+        curTravelC = anchorTravelC + (effSpeedC > 0 && incDist > 0 ? incDist / effSpeedC : 0);
+        curTravelD = anchorTravelD + (effSpeedD > 0 && incDist > 0 ? incDist / effSpeedD : 0);
       }
     }
 
     // Update effective speed from non-time-add rows only.
-    // This means time-add rows (speed=0) are skipped, preserving the
-    // speed from the row before the time-add for the row after it.
     if (row.type !== 't') {
       effSpeedA = row.aSpeed;
       effSpeedB = row.bSpeed;
@@ -201,26 +232,32 @@ export function computeTimes(
       effSpeedD = row.dSpeed;
     }
 
+    // Save for next iteration's anchor reset
+    prevTravelA = curTravelA;
+    prevTravelB = curTravelB;
+    prevTravelC = curTravelC;
+    prevTravelD = curTravelD;
+
     // First Car = MIN of active groups' first-car arrivals
     const firstCandidates: number[] = [];
-    if (activeA) firstCandidates.push(starts[0] + travelA);
-    if (activeB) firstCandidates.push(starts[2] + travelB);
-    if (activeC) firstCandidates.push(starts[4] + travelC);
-    if (activeD) firstCandidates.push(starts[6] + travelD);
+    if (activeA) firstCandidates.push(starts[0] + curTravelA);
+    if (activeB) firstCandidates.push(starts[2] + curTravelB);
+    if (activeC) firstCandidates.push(starts[4] + curTravelC);
+    if (activeD) firstCandidates.push(starts[6] + curTravelD);
 
     // Last Car = MAX of active groups' last-car arrivals
     const lastCandidates: number[] = [];
-    if (activeA) lastCandidates.push(starts[1] + travelA);
-    if (activeB) lastCandidates.push(starts[3] + travelB);
-    if (activeC) lastCandidates.push(starts[5] + travelC);
-    if (activeD) lastCandidates.push(starts[7] + travelD);
+    if (activeA) lastCandidates.push(starts[1] + curTravelA);
+    if (activeB) lastCandidates.push(starts[3] + curTravelB);
+    if (activeC) lastCandidates.push(starts[5] + curTravelC);
+    if (activeD) lastCandidates.push(starts[7] + curTravelD);
 
     const firstCar = firstCandidates.length > 0
       ? Math.min(...firstCandidates)
-      : starts[0] + travelA;
+      : starts[0] + curTravelA;
     const lastCar = lastCandidates.length > 0
       ? Math.max(...lastCandidates)
-      : starts[7] + travelD;
+      : starts[7] + curTravelD;
 
     return {
       ...row,
@@ -231,9 +268,9 @@ export function computeTimes(
 }
 
 /**
- * Compute cumulative travel time for a specific speed group.
- * Uses the previous non-time-add row's speed (matching the spreadsheet convention).
- * Returns array of cumulative hours for each row.
+ * Compute anchor-based travel time for a specific speed group.
+ * Uses the same anchor-based logic as computeTimes (matching the spreadsheet).
+ * Returns array of travel-time hours for each row.
  */
 export function computeCumulativeForGroup(
   rows: RouteRow[],
@@ -258,17 +295,28 @@ export function computeCumulativeForGroup(
   };
 
   const times: number[] = [];
-  let cumulative = 0;
+  let anchorDist = rows.length > 0 ? rows[0].rallyDistance : 0;
+  let anchorTravel = 0;
   let effSpeed = 0;
+  let prevTravel = 0;
 
   for (let i = 0; i < rows.length; i++) {
+    let curTravel = 0;
+
     if (i > 0) {
-      const segmentDist = rows[i].rallyDistance - rows[i - 1].rallyDistance;
+      const needsReset = rows[i].type === 't' ||
+        (i >= 2 && speedsChanged(rows[i - 1], rows[i - 2]));
+
+      if (needsReset) {
+        anchorDist = rows[i].type === 't' ? rows[i].rallyDistance : rows[i - 1].rallyDistance;
+        anchorTravel = prevTravel;
+      }
 
       if (rows[i].type === 't') {
-        cumulative += getAddTime(rows[i]) / 60;
-      } else if (segmentDist > 0 && effSpeed > 0) {
-        cumulative += segmentDist / effSpeed;
+        curTravel = anchorTravel + getAddTime(rows[i]) / 60;
+      } else {
+        const incDist = rows[i].rallyDistance - anchorDist;
+        curTravel = anchorTravel + (effSpeed > 0 && incDist > 0 ? incDist / effSpeed : 0);
       }
     }
 
@@ -277,7 +325,8 @@ export function computeCumulativeForGroup(
       effSpeed = getSpeed(rows[i]);
     }
 
-    times.push(cumulative);
+    prevTravel = curTravel;
+    times.push(curTravel);
   }
 
   return times;
