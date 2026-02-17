@@ -3,39 +3,47 @@
     {
       "terrain": "f",
       "type": "f",
-      "aSpeed": 20,
-      "bSpeed": 23,
-      "cSpeed": 26,
-      "dSpeed": 28
+      "aSpeed": 24,
+      "bSpeed": 25,
+      "cSpeed": 27,
+      "dSpeed": 29
     },
     {
       "terrain": "f",
       "type": "f",
-      "aSpeed": 22,
-      "bSpeed": 25,
-      "cSpeed": 28,
+      "aSpeed": 25,
+      "bSpeed": 27,
+      "cSpeed": 29,
       "dSpeed": 31
     },
     {
       "terrain": "f",
       "type": "f",
-      "aSpeed": 24,
-      "bSpeed": 27,
+      "aSpeed": 26,
+      "bSpeed": 28,
       "cSpeed": 31,
-      "dSpeed": 34
+      "dSpeed": 33
     },
     {
       "terrain": "f",
       "type": "f",
-      "aSpeed": 26,
+      "aSpeed": 27,
       "bSpeed": 30,
-      "cSpeed": 33,
-      "dSpeed": 37
+      "cSpeed": 32,
+      "dSpeed": 35
     },
     {
       "terrain": "f",
       "type": "f",
       "aSpeed": 28,
+      "bSpeed": 31,
+      "cSpeed": 34,
+      "dSpeed": 37
+    },
+    {
+      "terrain": "f",
+      "type": "f",
+      "aSpeed": 29,
       "bSpeed": 32,
       "cSpeed": 36,
       "dSpeed": 39
@@ -51,10 +59,26 @@
     {
       "terrain": "f",
       "type": "f",
+      "aSpeed": 31,
+      "bSpeed": 35,
+      "cSpeed": 39,
+      "dSpeed": 43
+    },
+    {
+      "terrain": "f",
+      "type": "f",
       "aSpeed": 32,
       "bSpeed": 36,
-      "cSpeed": 40,
-      "dSpeed": 44
+      "cSpeed": 41,
+      "dSpeed": 45
+    },
+    {
+      "terrain": "f",
+      "type": "f",
+      "aSpeed": 33,
+      "bSpeed": 37,
+      "cSpeed": 42,
+      "dSpeed": 47
     },
     {
       "terrain": "f",
@@ -69,40 +93,56 @@
       "type": "f",
       "aSpeed": 35,
       "bSpeed": 40,
-      "cSpeed": 45,
-      "dSpeed": 50
+      "cSpeed": 46,
+      "dSpeed": 51
     },
     {
       "terrain": "f",
       "type": "f",
       "aSpeed": 36,
-      "bSpeed": 40,
-      "cSpeed": 44,
-      "dSpeed": 47
+      "bSpeed": 41,
+      "cSpeed": 47,
+      "dSpeed": 52
     },
     {
       "terrain": "f",
       "type": "f",
       "aSpeed": 37,
-      "bSpeed": 41,
-      "cSpeed": 46,
-      "dSpeed": 49
+      "bSpeed": 43,
+      "cSpeed": 49,
+      "dSpeed": 54
     },
     {
       "terrain": "f",
       "type": "f",
       "aSpeed": 38,
-      "bSpeed": 43,
-      "cSpeed": 48,
-      "dSpeed": 53
+      "bSpeed": 44,
+      "cSpeed": 50,
+      "dSpeed": 56
+    },
+    {
+      "terrain": "f",
+      "type": "f",
+      "aSpeed": 39,
+      "bSpeed": 45,
+      "cSpeed": 52,
+      "dSpeed": 58
     },
     {
       "terrain": "f",
       "type": "f",
       "aSpeed": 40,
-      "bSpeed": 45,
-      "cSpeed": 50,
-      "dSpeed": 54
+      "bSpeed": 47,
+      "cSpeed": 54,
+      "dSpeed": 60
+    },
+    {
+      "terrain": "f",
+      "type": "f",
+      "aSpeed": 41,
+      "bSpeed": 48,
+      "cSpeed": 55,
+      "dSpeed": 62
     },
     {
       "terrain": "f",
@@ -115,10 +155,26 @@
     {
       "terrain": "f",
       "type": "f",
-      "aSpeed": 44,
+      "aSpeed": 43,
       "bSpeed": 51,
-      "cSpeed": 57,
-      "dSpeed": 64
+      "cSpeed": 59,
+      "dSpeed": 66
+    },
+    {
+      "terrain": "f",
+      "type": "f",
+      "aSpeed": 44,
+      "bSpeed": 52,
+      "cSpeed": 60,
+      "dSpeed": 68
+    },
+    {
+      "terrain": "f",
+      "type": "f",
+      "aSpeed": 45,
+      "bSpeed": 53,
+      "cSpeed": 62,
+      "dSpeed": 70
     },
     {
       "terrain": "f",
@@ -131,258 +187,266 @@
     {
       "terrain": "f",
       "type": "f",
+      "aSpeed": 47,
+      "bSpeed": 56,
+      "cSpeed": 65,
+      "dSpeed": 74
+    },
+    {
+      "terrain": "f",
+      "type": "f",
       "aSpeed": 48,
       "bSpeed": 57,
-      "cSpeed": 64,
-      "dSpeed": 72
+      "cSpeed": 67,
+      "dSpeed": 76
+    },
+    {
+      "terrain": "f",
+      "type": "f",
+      "aSpeed": 49,
+      "bSpeed": 58,
+      "cSpeed": 69,
+      "dSpeed": 78
     },
     {
       "terrain": "f",
       "type": "f",
       "aSpeed": 50,
-      "bSpeed": 57,
-      "cSpeed": 64,
-      "dSpeed": 70
-    },
-    {
-      "terrain": "f",
-      "type": "f",
-      "aSpeed": 52,
-      "bSpeed": 59,
-      "cSpeed": 66,
-      "dSpeed": 72
-    },
-    {
-      "terrain": "f",
-      "type": "f",
-      "aSpeed": 54,
-      "bSpeed": 61,
-      "cSpeed": 68,
-      "dSpeed": 75
-    },
-    {
-      "terrain": "f",
-      "type": "f",
-      "aSpeed": 56,
-      "bSpeed": 63,
+      "bSpeed": 60,
       "cSpeed": 70,
-      "dSpeed": 77
-    },
-    {
-      "terrain": "f",
-      "type": "f",
-      "aSpeed": 58,
-      "bSpeed": 65,
-      "cSpeed": 72,
-      "dSpeed": 80
-    },
-    {
-      "terrain": "f",
-      "type": "f",
-      "aSpeed": 60,
-      "bSpeed": 67,
-      "cSpeed": 74,
-      "dSpeed": 82
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 20,
-      "bSpeed": 23,
-      "cSpeed": 26,
-      "dSpeed": 28
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 22,
-      "bSpeed": 25,
-      "cSpeed": 28,
-      "dSpeed": 31
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 24,
-      "bSpeed": 27,
-      "cSpeed": 31,
-      "dSpeed": 34
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 26,
-      "bSpeed": 30,
-      "cSpeed": 33,
-      "dSpeed": 37
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 28,
-      "bSpeed": 32,
-      "cSpeed": 36,
-      "dSpeed": 39
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 30,
-      "bSpeed": 34,
-      "cSpeed": 37,
-      "dSpeed": 41
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 32,
-      "bSpeed": 36,
-      "cSpeed": 40,
-      "dSpeed": 44
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 34,
-      "bSpeed": 39,
-      "cSpeed": 44,
-      "dSpeed": 49
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 35,
-      "bSpeed": 40,
-      "cSpeed": 45,
-      "dSpeed": 50
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 36,
-      "bSpeed": 40,
-      "cSpeed": 44,
-      "dSpeed": 47
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 37,
-      "bSpeed": 41,
-      "cSpeed": 46,
-      "dSpeed": 49
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 38,
-      "bSpeed": 43,
-      "cSpeed": 48,
-      "dSpeed": 53
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 40,
-      "bSpeed": 45,
-      "cSpeed": 50,
-      "dSpeed": 54
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 42,
-      "bSpeed": 49,
-      "cSpeed": 57,
-      "dSpeed": 64
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 44,
-      "bSpeed": 51,
-      "cSpeed": 57,
-      "dSpeed": 64
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 46,
-      "bSpeed": 55,
-      "cSpeed": 64,
-      "dSpeed": 72
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 48,
-      "bSpeed": 57,
-      "cSpeed": 64,
-      "dSpeed": 72
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 50,
-      "bSpeed": 57,
-      "cSpeed": 64,
-      "dSpeed": 70
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 52,
-      "bSpeed": 59,
-      "cSpeed": 66,
-      "dSpeed": 72
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 54,
-      "bSpeed": 61,
-      "cSpeed": 68,
-      "dSpeed": 75
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 56,
-      "bSpeed": 63,
-      "cSpeed": 70,
-      "dSpeed": 77
-    },
-    {
-      "terrain": "d",
-      "type": "d",
-      "aSpeed": 58,
-      "bSpeed": 65,
-      "cSpeed": 72,
       "dSpeed": 80
     },
     {
       "terrain": "d",
       "type": "d",
-      "aSpeed": 60,
-      "bSpeed": 67,
-      "cSpeed": 74,
-      "dSpeed": 82
-    },
-    {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 20,
-      "bSpeed": 23,
+      "aSpeed": 24,
+      "bSpeed": 25,
       "cSpeed": 26,
       "dSpeed": 28
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 25,
+      "bSpeed": 26,
+      "cSpeed": 27,
+      "dSpeed": 29
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 26,
+      "bSpeed": 27,
+      "cSpeed": 29,
+      "dSpeed": 30
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 27,
+      "bSpeed": 29,
+      "cSpeed": 30,
+      "dSpeed": 31
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 28,
+      "bSpeed": 30,
+      "cSpeed": 31,
+      "dSpeed": 32
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 29,
+      "bSpeed": 31,
+      "cSpeed": 32,
+      "dSpeed": 33
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 30,
+      "bSpeed": 32,
+      "cSpeed": 34,
+      "dSpeed": 35
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 31,
+      "bSpeed": 34,
+      "cSpeed": 36,
+      "dSpeed": 37
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 32,
+      "bSpeed": 35,
+      "cSpeed": 37,
+      "dSpeed": 39
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 33,
+      "bSpeed": 36,
+      "cSpeed": 39,
+      "dSpeed": 41
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 34,
+      "bSpeed": 37,
+      "cSpeed": 41,
+      "dSpeed": 43
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 35,
+      "bSpeed": 39,
+      "cSpeed": 42,
+      "dSpeed": 45
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 36,
+      "bSpeed": 40,
+      "cSpeed": 44,
+      "dSpeed": 47
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 37,
+      "bSpeed": 41,
+      "cSpeed": 46,
+      "dSpeed": 49
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 38,
+      "bSpeed": 43,
+      "cSpeed": 47,
+      "dSpeed": 51
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 39,
+      "bSpeed": 44,
+      "cSpeed": 49,
+      "dSpeed": 52
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 40,
+      "bSpeed": 45,
+      "cSpeed": 50,
+      "dSpeed": 54
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 41,
+      "bSpeed": 47,
+      "cSpeed": 52,
+      "dSpeed": 56
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 42,
+      "bSpeed": 48,
+      "cSpeed": 54,
+      "dSpeed": 58
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 43,
+      "bSpeed": 49,
+      "cSpeed": 55,
+      "dSpeed": 60
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 44,
+      "bSpeed": 51,
+      "cSpeed": 57,
+      "dSpeed": 62
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 45,
+      "bSpeed": 52,
+      "cSpeed": 59,
+      "dSpeed": 64
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 46,
+      "bSpeed": 53,
+      "cSpeed": 60,
+      "dSpeed": 66
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 47,
+      "bSpeed": 55,
+      "cSpeed": 62,
+      "dSpeed": 68
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 48,
+      "bSpeed": 56,
+      "cSpeed": 64,
+      "dSpeed": 70
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 49,
+      "bSpeed": 57,
+      "cSpeed": 65,
+      "dSpeed": 72
+    },
+    {
+      "terrain": "d",
+      "type": "d",
+      "aSpeed": 50,
+      "bSpeed": 58,
+      "cSpeed": 67,
+      "dSpeed": 74
     },
     {
       "terrain": "u",
       "type": "u",
       "aSpeed": 22,
-      "bSpeed": 25,
-      "cSpeed": 28,
+      "bSpeed": 24,
+      "cSpeed": 27,
       "dSpeed": 31
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 23,
+      "bSpeed": 25,
+      "cSpeed": 29,
+      "dSpeed": 33
     },
     {
       "terrain": "u",
@@ -390,271 +454,263 @@
       "aSpeed": 24,
       "bSpeed": 27,
       "cSpeed": 31,
-      "dSpeed": 34
+      "dSpeed": 35
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 25,
+      "bSpeed": 28,
+      "cSpeed": 32,
+      "dSpeed": 37
     },
     {
       "terrain": "u",
       "type": "u",
       "aSpeed": 26,
       "bSpeed": 30,
-      "cSpeed": 33,
-      "dSpeed": 37
+      "cSpeed": 34,
+      "dSpeed": 39
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 27,
+      "bSpeed": 31,
+      "cSpeed": 36,
+      "dSpeed": 41
     },
     {
       "terrain": "u",
       "type": "u",
       "aSpeed": 28,
       "bSpeed": 32,
-      "cSpeed": 36,
-      "dSpeed": 39
+      "cSpeed": 37,
+      "dSpeed": 43
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 29,
+      "bSpeed": 34,
+      "cSpeed": 39,
+      "dSpeed": 45
     },
     {
       "terrain": "u",
       "type": "u",
       "aSpeed": 30,
-      "bSpeed": 34,
-      "cSpeed": 37,
-      "dSpeed": 41
+      "bSpeed": 35,
+      "cSpeed": 41,
+      "dSpeed": 47
     },
     {
       "terrain": "u",
       "type": "u",
-      "aSpeed": 32,
+      "aSpeed": 31,
       "bSpeed": 36,
-      "cSpeed": 40,
-      "dSpeed": 44
-    },
-    {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 34,
-      "bSpeed": 39,
-      "cSpeed": 44,
+      "cSpeed": 42,
       "dSpeed": 49
     },
     {
       "terrain": "u",
       "type": "u",
+      "aSpeed": 32,
+      "bSpeed": 37,
+      "cSpeed": 44,
+      "dSpeed": 51
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 33,
+      "bSpeed": 39,
+      "cSpeed": 46,
+      "dSpeed": 52
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 34,
+      "bSpeed": 40,
+      "cSpeed": 47,
+      "dSpeed": 54
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 35,
+      "bSpeed": 41,
+      "cSpeed": 49,
+      "dSpeed": 56
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 36,
+      "bSpeed": 43,
+      "cSpeed": 50,
+      "dSpeed": 58
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 37,
+      "bSpeed": 44,
+      "cSpeed": 52,
+      "dSpeed": 60
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 38,
+      "bSpeed": 45,
+      "cSpeed": 54,
+      "dSpeed": 62
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 39,
+      "bSpeed": 47,
+      "cSpeed": 55,
+      "dSpeed": 64
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 40,
+      "bSpeed": 48,
+      "cSpeed": 57,
+      "dSpeed": 66
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 41,
+      "bSpeed": 49,
+      "cSpeed": 59,
+      "dSpeed": 68
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 42,
+      "bSpeed": 51,
+      "cSpeed": 60,
+      "dSpeed": 70
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 43,
+      "bSpeed": 52,
+      "cSpeed": 62,
+      "dSpeed": 72
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 44,
+      "bSpeed": 53,
+      "cSpeed": 64,
+      "dSpeed": 74
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 45,
+      "bSpeed": 55,
+      "cSpeed": 65,
+      "dSpeed": 76
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 46,
+      "bSpeed": 56,
+      "cSpeed": 67,
+      "dSpeed": 78
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 47,
+      "bSpeed": 57,
+      "cSpeed": 69,
+      "dSpeed": 80
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 48,
+      "bSpeed": 58,
+      "cSpeed": 70,
+      "dSpeed": 80
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 49,
+      "bSpeed": 60,
+      "cSpeed": 70,
+      "dSpeed": 80
+    },
+    {
+      "terrain": "u",
+      "type": "u",
+      "aSpeed": 50,
+      "bSpeed": 60,
+      "cSpeed": 70,
+      "dSpeed": 80
+    },
+    {
+      "terrain": "l",
+      "type": "l",
+      "aSpeed": 30,
+      "bSpeed": 35,
+      "cSpeed": 40,
+      "dSpeed": 45
+    },
+    {
+      "terrain": "l",
+      "type": "l",
       "aSpeed": 35,
       "bSpeed": 40,
       "cSpeed": 45,
       "dSpeed": 50
     },
     {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 36,
-      "bSpeed": 40,
-      "cSpeed": 44,
-      "dSpeed": 47
-    },
-    {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 37,
-      "bSpeed": 41,
-      "cSpeed": 46,
-      "dSpeed": 49
-    },
-    {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 38,
-      "bSpeed": 43,
-      "cSpeed": 48,
-      "dSpeed": 53
-    },
-    {
-      "terrain": "u",
-      "type": "u",
+      "terrain": "l",
+      "type": "l",
       "aSpeed": 40,
-      "bSpeed": 45,
-      "cSpeed": 50,
-      "dSpeed": 54
+      "bSpeed": 50,
+      "cSpeed": 55,
+      "dSpeed": 60
     },
     {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 42,
-      "bSpeed": 49,
-      "cSpeed": 57,
-      "dSpeed": 64
-    },
-    {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 44,
-      "bSpeed": 51,
-      "cSpeed": 57,
-      "dSpeed": 64
-    },
-    {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 46,
+      "terrain": "l",
+      "type": "l",
+      "aSpeed": 45,
       "bSpeed": 55,
-      "cSpeed": 64,
-      "dSpeed": 72
-    },
-    {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 48,
-      "bSpeed": 57,
-      "cSpeed": 64,
-      "dSpeed": 72
-    },
-    {
-      "terrain": "u",
-      "type": "u",
-      "aSpeed": 50,
-      "bSpeed": 57,
-      "cSpeed": 64,
+      "cSpeed": 65,
       "dSpeed": 70
     },
     {
       "terrain": "l",
       "type": "l",
-      "aSpeed": 20,
-      "bSpeed": 23,
-      "cSpeed": 26,
-      "dSpeed": 28
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 22,
-      "bSpeed": 25,
-      "cSpeed": 28,
-      "dSpeed": 31
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 24,
-      "bSpeed": 27,
-      "cSpeed": 31,
-      "dSpeed": 34
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 26,
-      "bSpeed": 30,
-      "cSpeed": 33,
-      "dSpeed": 37
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 28,
-      "bSpeed": 32,
-      "cSpeed": 36,
-      "dSpeed": 39
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 30,
-      "bSpeed": 34,
-      "cSpeed": 37,
-      "dSpeed": 41
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 32,
-      "bSpeed": 36,
-      "cSpeed": 40,
-      "dSpeed": 44
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 34,
-      "bSpeed": 39,
-      "cSpeed": 44,
-      "dSpeed": 49
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 35,
-      "bSpeed": 40,
-      "cSpeed": 45,
-      "dSpeed": 50
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 36,
-      "bSpeed": 40,
-      "cSpeed": 44,
-      "dSpeed": 47
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 37,
-      "bSpeed": 41,
-      "cSpeed": 46,
-      "dSpeed": 49
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 38,
-      "bSpeed": 43,
-      "cSpeed": 48,
-      "dSpeed": 53
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 40,
-      "bSpeed": 45,
-      "cSpeed": 50,
-      "dSpeed": 54
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 42,
-      "bSpeed": 49,
-      "cSpeed": 57,
-      "dSpeed": 64
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 44,
-      "bSpeed": 51,
-      "cSpeed": 57,
-      "dSpeed": 64
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 46,
-      "bSpeed": 55,
-      "cSpeed": 64,
-      "dSpeed": 72
-    },
-    {
-      "terrain": "l",
-      "type": "l",
-      "aSpeed": 48,
-      "bSpeed": 57,
-      "cSpeed": 64,
-      "dSpeed": 72
-    },
-    {
-      "terrain": "l",
-      "type": "l",
       "aSpeed": 50,
-      "bSpeed": 57,
-      "cSpeed": 64,
-      "dSpeed": 70
+      "bSpeed": 60,
+      "cSpeed": 70,
+      "dSpeed": 80
+    },
+    {
+      "terrain": "l",
+      "type": "l",
+      "aSpeed": 55,
+      "bSpeed": 65,
+      "cSpeed": 75,
+      "dSpeed": 90
     }
   ],
   "timeAddLookupTable": [
@@ -681,6 +737,12 @@
       "addTimeB": 15,
       "addTimeC": 15,
       "addTimeD": 20
+    },
+    {
+      "addTimeA": 11,
+      "addTimeB": 11,
+      "addTimeC": 11,
+      "addTimeD": 11
     },
     {
       "addTimeA": 15,
