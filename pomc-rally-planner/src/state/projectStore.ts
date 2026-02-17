@@ -132,7 +132,7 @@ interface ProjectState {
   pushUndo: (description: string) => void;
 
   // Computation
-  recalculateTimes: () => void;
+  recalculateTimes: () => { rows: number; nodes: number; firstCar: string; lastCar: string } | null;
 
   // Speed tables
   updateSpeedLookupTable: (table: SpeedLookupEntry[]) => void;
@@ -1144,13 +1144,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   recalculateTimes: () => {
     const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
-    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return;
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return null;
 
     const rally = workspace.rallies.find(r => r.id === currentRallyId);
-    if (!rally) return;
+    if (!rally) return null;
 
     const day = get().getCurrentDay();
-    if (!day) return;
+    if (!day) return null;
 
     // Flatten all nodes' rows with chained distances
     const allRows = flattenDayRowsChained(day);
@@ -1182,6 +1182,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       ),
       isDirty: true,
     });
+
+    const lastRow = updatedRows[updatedRows.length - 1];
+    return {
+      rows: updatedRows.length,
+      nodes: day.nodes.length,
+      firstCar: lastRow?.firstCarTime ?? '--',
+      lastCar: lastRow?.lastCarTime ?? '--',
+    };
   },
 
   // --- Speed tables (scoped to current rally) ---

@@ -95,9 +95,13 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
   };
 
   const handleRecalculateTimes = () => {
-    recalculateTimes();
-    setToast('Speeds and times recalculated');
-    setTimeout(() => setToast(null), 2000);
+    const result = recalculateTimes();
+    if (result) {
+      setToast(`Recalculated ${result.rows} rows across ${result.nodes} nodes — Last car finishes at ${result.lastCar}`);
+    } else {
+      setToast('Nothing to recalculate');
+    }
+    setTimeout(() => setToast(null), 3000);
   };
 
   const disabled = !currentRally;

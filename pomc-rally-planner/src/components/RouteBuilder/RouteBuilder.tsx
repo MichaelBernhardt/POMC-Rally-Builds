@@ -368,7 +368,15 @@ export default function RouteBuilder() {
                   </button>
                   <div style={{ width: '1px', height: '20px', background: 'var(--color-border)' }} />
                   <button
-                    onClick={recalculateTimes}
+                    onClick={() => {
+                      const result = recalculateTimes();
+                      if (result) {
+                        setToast(`Recalculated ${result.rows} rows across ${result.nodes} nodes — Last car finishes at ${result.lastCar}`);
+                      } else {
+                        setToast('Nothing to recalculate');
+                      }
+                      setTimeout(() => setToast(null), 3000);
+                    }}
                     disabled={isLocked}
                     className="primary"
                     style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}

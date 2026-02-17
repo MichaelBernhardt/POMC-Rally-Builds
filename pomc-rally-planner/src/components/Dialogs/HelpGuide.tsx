@@ -658,7 +658,7 @@ export default function HelpGuide({ open, onClose }: HelpGuideProps) {
             marginBottom: '8px',
           }}>
             Help Guide
-            <div style={{ fontWeight: 400, fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>v1.8.0</div>
+            <div style={{ fontWeight: 400, fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '2px' }}>v1.9.0</div>
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
             {PAGES.map(p => (
