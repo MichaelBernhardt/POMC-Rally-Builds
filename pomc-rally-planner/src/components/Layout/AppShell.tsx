@@ -14,6 +14,7 @@ import NodeLibraryPanel from '../NodeLibrary/NodeLibraryPanel';
 import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
 import RouteBuilder from '../RouteBuilder/RouteBuilder';
 import SpeedTablePage from '../Dialogs/SpeedTableDialog';
+import HelpGuide from '../Dialogs/HelpGuide';
 import { detectFileVersion, migrateV1ToWorkspace, migrateV2ToV3, migrateV3ToV4 } from '../../engine/migration';
 import { RallyProjectV1, RallyWorkspace, RallyWorkspaceV3 } from '../../types/domain';
 
@@ -438,68 +439,8 @@ export default function AppShell() {
       <NewEditionDialog open={showNewRally} onClose={() => setShowNewRally(false)} />
       <ImportCsvDialog open={showImport} onClose={() => setShowImport(false)} />
 
-      {/* About dialog */}
-      {showAbout && (
-        <div className="dialog-overlay" onClick={() => setShowAbout(false)}>
-          <div
-            className="dialog"
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: '560px', maxHeight: '80vh', overflow: 'auto' }}
-          >
-            <h2 style={{ marginTop: 0 }}>POMC Rally Planner <span style={{ fontWeight: 400, fontSize: '14px', color: 'var(--color-text-muted)' }}>v1.7.0</span></h2>
-
-            <div style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--color-text-secondary)' }}>
-              <p style={{ marginTop: 0 }}>
-                A route planning tool for POMC regularity rallies. Build routes from reusable nodes,
-                manage speed tables, and refine distances through reconnaissance.
-              </p>
-
-              <h3 style={{ fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>Workflow</h3>
-              <ol style={{ paddingLeft: '20px', margin: '0 0 16px 0' }}>
-                <li><strong>Set up Speed Tables</strong> — define how A-speeds map to B, C, D speeds for each terrain type.</li>
-                <li><strong>Build Node Templates</strong> — create reusable route sections in the Node Library with instructions, distances, and speed settings.</li>
-                <li><strong>Assemble Routes</strong> — drag nodes into a day's route in the Route Builder. Switch to Table view to fine-tune.</li>
-                <li><strong>Reconnaissance</strong> — enable Recon Mode to record measured distances. Grey suggestions estimate check distances based on drift from previous rows.</li>
-                <li><strong>Push to Library</strong> — after recon, push changes back to update node templates. Rally distances are averaged from the last 3 recordings.</li>
-                <li><strong>Export</strong> — export the final route as CSV for timing systems.</li>
-              </ol>
-
-              <h3 style={{ fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>Key Features</h3>
-              <ul style={{ paddingLeft: '20px', margin: '0 0 16px 0' }}>
-                <li><strong>Node Library</strong> — reusable route sections shared across editions. Define connection rules so nodes chain correctly.</li>
-                <li><strong>Speed Tables</strong> — per-rally lookup tables mapping terrain type and A-speed to all speed groups.</li>
-                <li><strong>Recon Mode</strong> — record measured distances in the field. Inline suggestions help estimate upcoming checkpoints.</li>
-                <li><strong>Distance History</strong> — each push records recon distances. Rally distances converge to the average of the last 3 recordings.</li>
-                <li><strong>Edition Locking</strong> — right-click an edition to lock it, preventing accidental edits to finalised routes.</li>
-                <li><strong>Undo / Redo</strong> — Ctrl+Z / Ctrl+Y for all editing operations.</li>
-                <li><strong>Auto-save</strong> — changes are automatically saved every 5 seconds.</li>
-              </ul>
-
-              <h3 style={{ fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>Type Codes</h3>
-              <p style={{ margin: '0 0 8px 0' }}>
-                <strong>o</strong> = Open &nbsp; <strong>f</strong> = Flat &nbsp; <strong>d</strong> = Downhill &nbsp;
-                <strong>u</strong> = Uphill &nbsp; <strong>l</strong> = Speed Limit &nbsp; <strong>m</strong> = Marked Control &nbsp;
-                <strong>t</strong> = Time Add
-              </p>
-              <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'var(--color-text-muted)' }}>
-                Only rows with a type code are included in the CSV export.
-              </p>
-
-              <h3 style={{ fontSize: '15px', color: 'var(--color-text)', marginBottom: '6px' }}>Tips</h3>
-              <ul style={{ paddingLeft: '20px', margin: '0 0 8px 0' }}>
-                <li>Right-click rallies, editions, and days in the sidebar for rename, lock, and delete options.</li>
-                <li>Use <strong>Recalc Times</strong> to recompute first/last car arrival times after editing speeds or distances.</li>
-                <li>Use <strong>Clear Recon</strong> to reset check distances on the current route without pushing to library.</li>
-                <li>Curly braces in instructions <code>{'{annotation}'}</code> are stripped on clean CSV export.</li>
-              </ul>
-            </div>
-
-            <div className="dialog-actions" style={{ marginTop: '16px' }}>
-              <button className="primary" onClick={() => setShowAbout(false)}>Close</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Help / About dialog */}
+      <HelpGuide open={showAbout} onClose={() => setShowAbout(false)} />
 
       {/* Toast notification */}
       {toast && (
