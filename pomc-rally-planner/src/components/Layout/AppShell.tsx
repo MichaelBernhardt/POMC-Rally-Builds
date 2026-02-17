@@ -9,7 +9,6 @@ import DayPanel from '../Sidebar/DayPanel';
 import Toolbar from './Toolbar';
 import StatusBar from '../StatusBar';
 import NewEditionDialog from '../Dialogs/NewProjectDialog';
-import ImportCsvDialog from '../Dialogs/ImportCsvDialog';
 import NodeLibraryPanel from '../NodeLibrary/NodeLibraryPanel';
 import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
 import RouteBuilder from '../RouteBuilder/RouteBuilder';
@@ -39,7 +38,6 @@ function migrateToLatest(data: unknown): RallyWorkspaceV3 {
 
 export default function AppShell() {
   const [showNewRally, setShowNewRally] = useState(false);
-  const [showImport, setShowImport] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -413,10 +411,7 @@ export default function AppShell() {
         {/* Main area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {viewMode === 'grid' && currentRally && (
-            <Toolbar
-              gridApi={gridApi}
-              onImport={() => setShowImport(true)}
-            />
+            <Toolbar gridApi={gridApi} />
           )}
 
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -437,8 +432,6 @@ export default function AppShell() {
 
       {/* Dialogs */}
       <NewEditionDialog open={showNewRally} onClose={() => setShowNewRally(false)} />
-      <ImportCsvDialog open={showImport} onClose={() => setShowImport(false)} />
-
       {/* Help / About dialog */}
       <HelpGuide open={showAbout} onClose={() => setShowAbout(false)} />
 

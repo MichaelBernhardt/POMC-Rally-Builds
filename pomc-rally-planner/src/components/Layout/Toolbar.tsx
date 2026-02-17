@@ -6,10 +6,9 @@ import PushToTemplateDialog from '../Dialogs/PushToTemplateDialog';
 
 interface ToolbarProps {
   gridApi: GridApi | null;
-  onImport: () => void;
 }
 
-export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
+export default function Toolbar({ gridApi }: ToolbarProps) {
   const currentRally = useProjectStore(selectCurrentRally);
   const currentNode = useProjectStore(selectCurrentNode);
   const addRow = useProjectStore(s => s.addRow);
@@ -235,18 +234,6 @@ export default function Toolbar({ gridApi, onImport }: ToolbarProps) {
       )}
 
       <div style={{ flex: 1 }} />
-
-      {/* Import */}
-      <div style={groupStyle}>
-        <button
-          onClick={onImport}
-          disabled={disabled || locked}
-          title="Import CSV file"
-          style={groupButtonOnlyStyle}
-        >
-          Import CSV
-        </button>
-      </div>
 
       <PushToTemplateDialog
         open={showPushDialog}
