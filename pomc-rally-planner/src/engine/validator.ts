@@ -189,11 +189,13 @@ export function validateNodeConnections(
 
     // Check if the previous node's source is in the allowed list
     if (!template.allowedPreviousNodes.includes(prevNode.sourceNodeId)) {
-      const expectedTemplate = nodeLibrary.find(t => t.id === template.allowedPreviousNodes[0]);
-      const expectedName = expectedTemplate?.name ?? '?';
+      const expectedNames = template.allowedPreviousNodes
+        .map(id => nodeLibrary.find(t => t.id === id)?.name ?? '?')
+        .map(n => `"${n}"`)
+        .join(' or ');
       errors.push({
         nodeIndex: i,
-        message: `"${template.name}" must follow "${expectedName}"`,
+        message: `"${template.name}" must follow ${expectedNames}`,
       });
     }
   }

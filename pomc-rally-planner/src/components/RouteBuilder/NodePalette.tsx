@@ -37,8 +37,8 @@ export default function NodePalette() {
         } else if (lastNode && t.allowedPreviousNodes.includes(lastNode.sourceNodeId)) {
           avail.push(t);
         } else {
-          const prevName = allTemplates.find(x => x.id === t.allowedPreviousNodes[0])?.name ?? '?';
-          unavail.push({ template: t, reason: `Follows: ${prevName}` });
+          const prevNames = t.allowedPreviousNodes.map(id => allTemplates.find(x => x.id === id)?.name ?? '?').join(' or ');
+          unavail.push({ template: t, reason: `Follows: ${prevNames}` });
         }
       }
     }
