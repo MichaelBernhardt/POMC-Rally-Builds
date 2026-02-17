@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { open } from '@tauri-apps/plugin-dialog';
+import { readTextFile } from '@tauri-apps/plugin-fs';
 import { useProjectStore, selectCurrentRally } from '../../state/projectStore';
 import { SpeedLookupEntry, TimeAddLookupEntry, TypeCode, TYPE_CODE_LABELS } from '../../types/domain';
 import { getDefaultSpeedLookupTable, getDefaultTimeAddLookupTable } from '../../engine/speedCalculator';
@@ -101,6 +103,65 @@ export default function SpeedTablePage() {
     }
   };
 
+  const [importError, setImportError] = useState('');
+
+  const handleImportTables = async () => {
+    setImportError('');
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: 'JSON Files', extensions: ['json'] }],
+      });
+      if (!selected) return;
+
+      const path = typeof selected === 'string' ? selected : selected;
+      const content = await readTextFile(path);
+      const data = JSON.parse(content);
+
+      let imported = false;
+
+      if (Array.isArray(data.speedLookupTable) && data.speedLookupTable.length > 0) {
+        // Validate entries have required fields
+        const valid = data.speedLookupTable.every((e: SpeedLookupEntry) =>
+          typeof e.type === 'string' && typeof e.aSpeed === 'number' &&
+          typeof e.bSpeed === 'number' && typeof e.cSpeed === 'number' && typeof e.dSpeed === 'number'
+        );
+        if (!valid) {
+          setImportError('Invalid speed table entries: each entry needs type, aSpeed, bSpeed, cSpeed, dSpeed.');
+          return;
+        }
+        // Ensure terrain field is set
+        const normalized = data.speedLookupTable.map((e: SpeedLookupEntry) => ({
+          ...e,
+          terrain: e.terrain || e.type,
+        }));
+        setEntries(normalized);
+        setHasChanges(true);
+        imported = true;
+      }
+
+      if (Array.isArray(data.timeAddLookupTable) && data.timeAddLookupTable.length > 0) {
+        const valid = data.timeAddLookupTable.every((e: TimeAddLookupEntry) =>
+          typeof e.addTimeA === 'number' && typeof e.addTimeB === 'number' &&
+          typeof e.addTimeC === 'number' && typeof e.addTimeD === 'number'
+        );
+        if (!valid) {
+          setImportError('Invalid time-add entries: each entry needs addTimeA, addTimeB, addTimeC, addTimeD.');
+          return;
+        }
+        setTimeAddEntries(data.timeAddLookupTable);
+        setHasTimeAddChanges(true);
+        imported = true;
+      }
+
+      if (!imported) {
+        setImportError('File must contain "speedLookupTable" and/or "timeAddLookupTable" arrays.');
+      }
+    } catch (err) {
+      setImportError(`Import failed: ${err}`);
+    }
+  };
+
   return (
     <div style={{ padding: '20px', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Speed Table Section */}
@@ -123,6 +184,20 @@ export default function SpeedTablePage() {
         </div>
       </div>
 
+      {importError && (
+        <div style={{
+          padding: '8px 12px',
+          marginBottom: '12px',
+          background: 'var(--color-danger-bg, #fef2f2)',
+          color: 'var(--color-danger)',
+          borderRadius: '6px',
+          fontSize: '13px',
+          border: '1px solid var(--color-danger)',
+        }}>
+          {importError}
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', alignItems: 'center' }}>
         <label style={{ fontSize: '14px', fontWeight: 600 }}>Filter by type:</label>
         <select
@@ -139,6 +214,9 @@ export default function SpeedTablePage() {
         <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
           {filteredEntries.length} entries shown. {entries.length} total.
         </span>
+        <button onClick={handleImportTables} style={{ fontSize: '13px' }}>
+          Import Tables
+        </button>
         <button onClick={handleResetDefaults} disabled={false} style={{ fontSize: '13px' }}>
           Reset Defaults
         </button>
