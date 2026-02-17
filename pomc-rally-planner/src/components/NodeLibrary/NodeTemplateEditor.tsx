@@ -118,11 +118,12 @@ export default function NodeTemplateEditor() {
     const cols = getColumnDefs()
       .filter(c => c.field !== 'firstCarTime' && c.field !== 'lastCarTime');
 
-    // Helper to build a recon history column
+    // Helper to build a recon history column (editable)
+    // offset: -1 = most recent (R1), -2 = second most recent (R2), -3 = oldest of last 3 (R3)
     const reconCol = (
       header: string,
       field: 'distanceHistory' | 'latHistory' | 'longHistory',
-      offset: number, // -3 = oldest of last 3, -1 = most recent
+      offset: number,
       dp: number,
       width: number,
     ) => ({
@@ -133,6 +134,31 @@ export default function NodeTemplateEditor() {
         if (idx < 0 || idx >= h.length) return '';
         return h[idx].value.toFixed(dp);
       },
+      valueSetter: (params: { data: RouteRow; newValue: string }) => {
+        const parsed = parseFloat(params.newValue);
+        if (isNaN(parsed)) return false;
+        const h: ReconEntry[] = [...((params.data[field] as ReconEntry[]) ?? [])];
+        const idx = h.length + offset;
+        if (idx < 0 || idx >= h.length) return false;
+        h[idx] = { ...h[idx], value: parsed };
+        // Recalculate the averaged field from the last 3 entries
+        const last3 = h.slice(-3);
+        const avg = last3.reduce((sum, e) => sum + e.value, 0) / last3.length;
+        const updates: Partial<RouteRow> = { [field]: h };
+        if (field === 'distanceHistory') {
+          updates.rallyDistance = Math.round(avg * 100) / 100;
+        } else if (field === 'latHistory') {
+          updates.lat = Math.round(avg * 1e6) / 1e6;
+        } else if (field === 'longHistory') {
+          updates.long = Math.round(avg * 1e6) / 1e6;
+        }
+        const rowIndex = rows.findIndex(r => r.id === params.data.id);
+        if (rowIndex >= 0) {
+          pushUndo('Edit recon history');
+          updateRow(rowIndex, updates);
+        }
+        return true;
+      },
       tooltipValueGetter: (params: { data?: RouteRow }) => {
         const h: ReconEntry[] = (params.data?.[field] as ReconEntry[]) ?? [];
         const idx = h.length + offset;
@@ -140,16 +166,20 @@ export default function NodeTemplateEditor() {
         return h[idx].date;
       },
       width,
-      editable: false,
+      editable: (params: { data?: RouteRow }) => {
+        const h: ReconEntry[] = (params.data?.[field] as ReconEntry[]) ?? [];
+        const idx = h.length + offset;
+        return idx >= 0 && idx < h.length;
+      },
       sortable: false,
     });
 
-    // Insert distance recon columns after Rally Dist
+    // Insert distance recon columns after Rally Dist (R1 = most recent)
     const rallyDistIdx = cols.findIndex(c => c.field === 'rallyDistance');
     const distReconCols = [
-      reconCol('Dist R1', 'distanceHistory', -3, 2, 85),
+      reconCol('Dist R1', 'distanceHistory', -1, 2, 85),
       reconCol('Dist R2', 'distanceHistory', -2, 2, 85),
-      reconCol('Dist R3', 'distanceHistory', -1, 2, 85),
+      reconCol('Dist R3', 'distanceHistory', -3, 2, 85),
     ];
     if (rallyDistIdx >= 0) {
       cols.splice(rallyDistIdx + 1, 0, ...distReconCols);
@@ -161,12 +191,12 @@ export default function NodeTemplateEditor() {
     // Result: Lat, Long, Lat R1, Long R1, Lat R2, Long R2, Lat R3, Long R3
     const longIdx = cols.findIndex(c => c.field === 'long');
     const latLongReconCols = [
-      reconCol('Lat R1', 'latHistory', -3, 6, 100),
-      reconCol('Long R1', 'longHistory', -3, 6, 100),
+      reconCol('Lat R1', 'latHistory', -1, 6, 100),
+      reconCol('Long R1', 'longHistory', -1, 6, 100),
       reconCol('Lat R2', 'latHistory', -2, 6, 100),
       reconCol('Long R2', 'longHistory', -2, 6, 100),
-      reconCol('Lat R3', 'latHistory', -1, 6, 100),
-      reconCol('Long R3', 'longHistory', -1, 6, 100),
+      reconCol('Lat R3', 'latHistory', -3, 6, 100),
+      reconCol('Long R3', 'longHistory', -3, 6, 100),
     ];
     if (longIdx >= 0) {
       cols.splice(longIdx + 1, 0, ...latLongReconCols);
