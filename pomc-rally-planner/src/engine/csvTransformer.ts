@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import { RouteRow, CsvExportRow, TypeCode, TYPE_CODES, createEmptyRow } from '../types/domain';
+import { RouteRow, TypeCode, TYPE_CODES, createEmptyRow } from '../types/domain';
 
 /**
  * Parse a CSV string into RouteRow[].
@@ -137,43 +137,46 @@ export function exportCleanCsv(rows: RouteRow[]): string {
 }
 
 /**
- * Export rows to "organiser" CSV format.
+ * Export rows to "organiser" CSV format for rally.exe import.
  * Type code as No field, {curly brace} annotations preserved for on-the-day reference.
+ * Same quoting format as clean export (all headers quoted, Instruction and Type quoted).
  */
 export function exportOrganiserCsv(rows: RouteRow[]): string {
   const exportRows = rows.filter(r => r.type !== null);
 
-  const csvRows: CsvExportRow[] = exportRows.map(row => {
+  const columns = [
+    'No', 'Instruction', 'Type', 'Distance',
+    'A_Speed', 'B_Speed', 'C_Speed', 'D_Speed',
+    'Limit', 'AddTime_A', 'AddTime_B', 'AddTime_C', 'AddTime_D',
+    'Lat', 'Long',
+  ];
+
+  const header = columns.map(c => `"${c}"`).join(',');
+
+  const lines = exportRows.map(row => {
     const exportType = row.type === 'm' ? 'v' : 'a';
     const isControl = row.type === 'm';
 
-    return {
-      No: row.type ?? '',
-      Instruction: row.clue,
-      Type: exportType,
-      Distance: csvNum(parseFloat(row.rallyDistance.toFixed(2))),
-      A_Speed: csvNum(row.aSpeed),
-      B_Speed: csvNum(row.bSpeed),
-      C_Speed: csvNum(row.cSpeed),
-      D_Speed: csvNum(row.dSpeed),
-      Limit: csvNum(row.speedLimit),
-      AddTime_A: row.type === 't' ? csvNum(row.addTimeA) : 0,
-      AddTime_B: row.type === 't' ? csvNum(row.addTimeB) : 0,
-      AddTime_C: row.type === 't' ? csvNum(row.addTimeC) : 0,
-      AddTime_D: row.type === 't' ? csvNum(row.addTimeD) : 0,
-      Lat: isControl ? csvNum(row.lat) : 0,
-      Long: isControl ? csvNum(row.long) : 0,
-    };
+    return [
+      row.type ?? '',
+      csvStr(row.clue),
+      csvStr(exportType),
+      csvNum(parseFloat(row.rallyDistance.toFixed(2))),
+      csvNum(row.aSpeed),
+      csvNum(row.bSpeed),
+      csvNum(row.cSpeed),
+      csvNum(row.dSpeed),
+      csvNum(row.speedLimit),
+      row.type === 't' ? csvNum(row.addTimeA) : 0,
+      row.type === 't' ? csvNum(row.addTimeB) : 0,
+      row.type === 't' ? csvNum(row.addTimeC) : 0,
+      row.type === 't' ? csvNum(row.addTimeD) : 0,
+      isControl ? csvNum(row.lat) : 0,
+      isControl ? csvNum(row.long) : 0,
+    ].join(',');
   });
 
-  return Papa.unparse(csvRows, {
-    columns: [
-      'No', 'Instruction', 'Type', 'Distance',
-      'A_Speed', 'B_Speed', 'C_Speed', 'D_Speed',
-      'Limit', 'AddTime_A', 'AddTime_B', 'AddTime_C', 'AddTime_D',
-      'Lat', 'Long',
-    ],
-  });
+  return [header, ...lines].join('\n');
 }
 
 /**
