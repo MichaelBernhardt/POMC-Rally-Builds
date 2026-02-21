@@ -84,45 +84,56 @@ function csvNum(n: number): number {
 }
 
 /**
- * Export rows to "clean" CSV format.
+ * Escape a string for CSV: double any internal quotes, wrap in double-quotes.
+ */
+function csvStr(s: string): string {
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+/**
+ * Export rows to "clean" CSV format for rally.exe import.
  * Sequential numbering, curly braces stripped from instructions.
+ * Matches the reference RS_Data format: all headers quoted,
+ * Instruction and Type quoted in data rows, numbers unquoted.
  */
 export function exportCleanCsv(rows: RouteRow[]): string {
   const exportRows = rows.filter(r => r.type !== null);
   let seqNum = 1;
 
-  const csvRows: CsvExportRow[] = exportRows.map(row => {
+  const columns = [
+    'No', 'Instruction', 'Type', 'Distance',
+    'A_Speed', 'B_Speed', 'C_Speed', 'D_Speed',
+    'Limit', 'AddTime_A', 'AddTime_B', 'AddTime_C', 'AddTime_D',
+    'Lat', 'Long',
+  ];
+
+  const header = columns.map(c => `"${c}"`).join(',');
+
+  const lines = exportRows.map(row => {
     const exportType = row.type === 'm' ? 'v' : 'a';
     const isControl = row.type === 'm';
     const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
 
-    return {
-      No: seqNum++,
-      Instruction: instruction,
-      Type: exportType,
-      Distance: csvNum(row.rallyDistance),
-      A_Speed: csvNum(row.aSpeed),
-      B_Speed: csvNum(row.bSpeed),
-      C_Speed: csvNum(row.cSpeed),
-      D_Speed: csvNum(row.dSpeed),
-      Limit: csvNum(row.speedLimit),
-      AddTime_A: row.type === 't' ? csvNum(row.addTimeA) : 0,
-      AddTime_B: row.type === 't' ? csvNum(row.addTimeB) : 0,
-      AddTime_C: row.type === 't' ? csvNum(row.addTimeC) : 0,
-      AddTime_D: row.type === 't' ? csvNum(row.addTimeD) : 0,
-      Lat: isControl ? csvNum(row.lat) : 0,
-      Long: isControl ? csvNum(row.long) : 0,
-    };
+    return [
+      seqNum++,
+      csvStr(instruction),
+      csvStr(exportType),
+      csvNum(row.rallyDistance),
+      csvNum(row.aSpeed),
+      csvNum(row.bSpeed),
+      csvNum(row.cSpeed),
+      csvNum(row.dSpeed),
+      csvNum(row.speedLimit),
+      row.type === 't' ? csvNum(row.addTimeA) : 0,
+      row.type === 't' ? csvNum(row.addTimeB) : 0,
+      row.type === 't' ? csvNum(row.addTimeC) : 0,
+      row.type === 't' ? csvNum(row.addTimeD) : 0,
+      isControl ? csvNum(row.lat) : 0,
+      isControl ? csvNum(row.long) : 0,
+    ].join(',');
   });
 
-  return Papa.unparse(csvRows, {
-    columns: [
-      'No', 'Instruction', 'Type', 'Distance',
-      'A_Speed', 'B_Speed', 'C_Speed', 'D_Speed',
-      'Limit', 'AddTime_A', 'AddTime_B', 'AddTime_C', 'AddTime_D',
-      'Lat', 'Long',
-    ],
-  });
+  return [header, ...lines].join('\n');
 }
 
 /**
