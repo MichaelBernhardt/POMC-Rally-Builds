@@ -84,12 +84,17 @@ function csvNum(n: number): number {
 }
 
 /**
- * Wrap a string in double-quotes for CSV.
- * Strips internal double-quote characters rather than escaping with ""
- * because rally.exe does not support RFC 4180 escaped quotes.
+ * Strip characters that break rally.exe CSV parsing.
+ * - Double-quotes: rally.exe doesn't support RFC 4180 "" escaping
+ * - Semicolons: rally.exe may treat them as field delimiters
  */
+function sanitize(s: string): string {
+  return s.replace(/[";]/g, '');
+}
+
+/** Wrap a string in double-quotes for CSV. */
 function csvStr(s: string): string {
-  return `"${s.replace(/"/g, '')}"`;
+  return `"${sanitize(s)}"`;
 }
 
 /**
@@ -114,7 +119,7 @@ export function exportCleanCsv(rows: RouteRow[]): string {
   const lines = exportRows.map(row => {
     const exportType = row.type === 'm' ? 'v' : 'a';
     const isControl = row.type === 'm';
-    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/"/g, '').replace(/\s+/g, ' ').trim();
+    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
 
     return [
       seqNum++,
@@ -135,13 +140,13 @@ export function exportCleanCsv(rows: RouteRow[]): string {
     ].join(',');
   });
 
-  return [header, ...lines].join('\n');
+  return [header, ...lines].join('\r\n');
 }
 
 /**
  * Export rows to "organiser" CSV format for rally.exe import.
- * Sequential numbering, {curly brace} annotations preserved for on-the-day reference.
- * Same format as clean export but keeps annotations in instructions.
+ * Sequential numbering, {curly brace} annotations converted to [brackets]
+ * so organisers keep the extra info while remaining rally.exe compatible.
  */
 export function exportOrganiserCsv(rows: RouteRow[]): string {
   const exportRows = rows.filter(r => r.type !== null);
@@ -159,10 +164,11 @@ export function exportOrganiserCsv(rows: RouteRow[]): string {
   const lines = exportRows.map(row => {
     const exportType = row.type === 'm' ? 'v' : 'a';
     const isControl = row.type === 'm';
+    const instruction = row.clue.replace(/\{/g, '[').replace(/\}/g, ']');
 
     return [
       seqNum++,
-      csvStr(row.clue.replace(/"/g, '')),
+      csvStr(instruction),
       csvStr(exportType),
       csvNum(parseFloat(row.rallyDistance.toFixed(2))),
       csvNum(row.aSpeed),
@@ -179,7 +185,7 @@ export function exportOrganiserCsv(rows: RouteRow[]): string {
     ].join(',');
   });
 
-  return [header, ...lines].join('\n');
+  return [header, ...lines].join('\r\n');
 }
 
 /**
@@ -196,7 +202,7 @@ export function exportSpeedAbcdCsv(
 
   const data = exportRows.map((row, i) => {
     const idx = rows.indexOf(row);
-    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/"/g, '').replace(/\s+/g, ' ').trim();
+    const instruction = sanitize(row.clue.replace(/\{[^}]*\}/g, '')).replace(/\s+/g, ' ').trim();
     return {
       Distance: csvNum(row.rallyDistance),
       Speed_A: csvNum(row.aSpeed),
