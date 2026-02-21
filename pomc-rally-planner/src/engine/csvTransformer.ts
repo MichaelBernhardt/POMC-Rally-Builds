@@ -84,10 +84,12 @@ function csvNum(n: number): number {
 }
 
 /**
- * Escape a string for CSV: double any internal quotes, wrap in double-quotes.
+ * Wrap a string in double-quotes for CSV.
+ * Strips internal double-quote characters rather than escaping with ""
+ * because rally.exe does not support RFC 4180 escaped quotes.
  */
 function csvStr(s: string): string {
-  return `"${s.replace(/"/g, '""')}"`;
+  return `"${s.replace(/"/g, '')}"`;
 }
 
 /**
@@ -112,7 +114,7 @@ export function exportCleanCsv(rows: RouteRow[]): string {
   const lines = exportRows.map(row => {
     const exportType = row.type === 'm' ? 'v' : 'a';
     const isControl = row.type === 'm';
-    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
+    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/"/g, '').replace(/\s+/g, ' ').trim();
 
     return [
       seqNum++,
@@ -160,7 +162,7 @@ export function exportOrganiserCsv(rows: RouteRow[]): string {
 
     return [
       seqNum++,
-      csvStr(row.clue),
+      csvStr(row.clue.replace(/"/g, '')),
       csvStr(exportType),
       csvNum(parseFloat(row.rallyDistance.toFixed(2))),
       csvNum(row.aSpeed),
@@ -194,7 +196,7 @@ export function exportSpeedAbcdCsv(
 
   const data = exportRows.map((row, i) => {
     const idx = rows.indexOf(row);
-    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
+    const instruction = row.clue.replace(/\{[^}]*\}/g, '').replace(/"/g, '').replace(/\s+/g, ' ').trim();
     return {
       Distance: csvNum(row.rallyDistance),
       Speed_A: csvNum(row.aSpeed),
