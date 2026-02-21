@@ -90,7 +90,7 @@ export default function ExportDialog({ open: isOpen, onClose }: ExportDialogProp
 
         <div style={{ marginBottom: '12px', fontSize: '14px', color: 'var(--color-text-secondary)' }}>
           {format === 'clean' && 'Sequential numbering (1,2,3...), annotations stripped. Ready for import into the scoring program.'}
-          {format === 'organiser' && 'Sequential numbering (1,2,3...), annotations converted to [brackets]. For organisers to use on the day.'}
+          {format === 'organiser' && 'Sequential numbering (1,2,3...), {curly brace} annotations preserved. For organisers to use on the day.'}
           {format === 'speedabcd' && 'Distance, speeds, and cumulative times for each speed group. For time calculation verification.'}
         </div>
 

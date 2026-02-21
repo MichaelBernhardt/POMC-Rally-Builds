@@ -145,8 +145,8 @@ export function exportCleanCsv(rows: RouteRow[]): string {
 
 /**
  * Export rows to "organiser" CSV format for rally.exe import.
- * Sequential numbering, {curly brace} annotations converted to [brackets]
- * so organisers keep the extra info while remaining rally.exe compatible.
+ * Sequential numbering, {curly brace} annotations preserved for on-the-day reference.
+ * Same format as clean export but keeps annotations in instructions.
  */
 export function exportOrganiserCsv(rows: RouteRow[]): string {
   const exportRows = rows.filter(r => r.type !== null);
@@ -164,11 +164,10 @@ export function exportOrganiserCsv(rows: RouteRow[]): string {
   const lines = exportRows.map(row => {
     const exportType = row.type === 'm' ? 'v' : 'a';
     const isControl = row.type === 'm';
-    const instruction = row.clue.replace(/\{/g, '[').replace(/\}/g, ']');
 
     return [
       seqNum++,
-      csvStr(instruction),
+      csvStr(row.clue),
       csvStr(exportType),
       csvNum(parseFloat(row.rallyDistance.toFixed(2))),
       csvNum(row.aSpeed),
