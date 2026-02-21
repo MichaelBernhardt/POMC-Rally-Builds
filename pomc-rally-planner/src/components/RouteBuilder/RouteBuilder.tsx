@@ -12,9 +12,10 @@ import {
 import { getColumnDefs } from '../Grid/GridColumns';
 import { flattenDayRows, flattenDayRowsChained, computeNodeOffsets } from '../../state/storeHelpers';
 import { RouteRow } from '../../types/domain';
-import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentEditionLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentEdition, selectCurrentDay, selectIsCurrentEditionLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import { validateNodeConnections } from '../../engine/validator';
 import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
+import { buildReconBackup, saveReconBackup } from '../../engine/reconBackup';
 import NodePalette from './NodePalette';
 import ConnectionDiagram from '../NodeLibrary/ConnectionDiagram';
 import ExportDialog from '../Dialogs/ExportDialog';
@@ -25,6 +26,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 export default function RouteBuilder() {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const rally = useProjectStore(selectCurrentRally);
+  const edition = useProjectStore(selectCurrentEdition);
   const day = useProjectStore(selectCurrentDay);
   const removeRouteNode = useProjectStore(s => s.removeRouteNode);
   const renameRouteNode = useProjectStore(s => s.renameRouteNode);
@@ -81,7 +83,23 @@ export default function RouteBuilder() {
     }));
   }, [showPushDialog, pushableNodes]);
 
-  const handlePushAll = useCallback(() => {
+  const handlePushAll = useCallback(async () => {
+    // Save recon backup for all pushable nodes before pushing
+    if (rally && edition && day) {
+      const nodesToPush = pushableNodes
+        .filter(({ node, template }) => {
+          const s = compareRows(node.rows, template.rows);
+          return s.added + s.removed + s.modified > 0;
+        })
+        .map(({ node }) => node);
+      if (nodesToPush.length > 0) {
+        const backup = buildReconBackup(nodesToPush, rally.name, edition.name, day.name);
+        if (backup.nodes.length > 0) {
+          await saveReconBackup(backup);
+        }
+      }
+    }
+
     let totalChanges = 0;
     let nodesPushed = 0;
     for (const { node, template } of pushableNodes) {
@@ -101,7 +119,7 @@ export default function RouteBuilder() {
       setToast(msg);
       setTimeout(() => setToast(null), 4000);
     }
-  }, [pushableNodes, pushToTemplate, reconMode]);
+  }, [pushableNodes, pushToTemplate, reconMode, rally, edition, day]);
 
   const hasCheckDistValues = useMemo(() => {
     if (!day) return false;

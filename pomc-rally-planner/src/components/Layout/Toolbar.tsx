@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { useProjectStore, selectCurrentRally, selectCurrentNode, selectIsCurrentEditionLocked, selectReconMode, selectSourceTemplateForNode } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentEdition, selectCurrentDay, selectCurrentNode, selectIsCurrentEditionLocked, selectReconMode, selectSourceTemplateForNode } from '../../state/projectStore';
 import { GridApi } from 'ag-grid-community';
 import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
+import { buildReconBackup, saveReconBackup } from '../../engine/reconBackup';
 import PushToTemplateDialog from '../Dialogs/PushToTemplateDialog';
 
 interface ToolbarProps {
@@ -10,6 +11,8 @@ interface ToolbarProps {
 
 export default function Toolbar({ gridApi }: ToolbarProps) {
   const currentRally = useProjectStore(selectCurrentRally);
+  const currentEdition = useProjectStore(selectCurrentEdition);
+  const currentDay = useProjectStore(selectCurrentDay);
   const currentNode = useProjectStore(selectCurrentNode);
   const addRow = useProjectStore(s => s.addRow);
   const deleteRows = useProjectStore(s => s.deleteRows);
@@ -41,8 +44,22 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
 
   const canPushToTemplate = currentNode?.sourceNodeId && sourceTemplate && !editingTemplateId;
 
-  const handlePushConfirm = () => {
+  const handlePushConfirm = async () => {
     if (!currentNode) return;
+
+    // Save recon backup before pushing (clears checkDist/checkLat/checkLong)
+    if (currentRally && currentEdition && currentDay) {
+      const backup = buildReconBackup(
+        [currentNode],
+        currentRally.name,
+        currentEdition.name,
+        currentDay.name,
+      );
+      if (backup.nodes.length > 0) {
+        await saveReconBackup(backup);
+      }
+    }
+
     const success = pushToTemplate(currentNode.id);
     if (success && changeSummary) {
       const total = changeSummary.added + changeSummary.removed + changeSummary.modified;
