@@ -104,7 +104,7 @@ function csvStr(s: string): string {
  * Instruction and Type quoted in data rows, numbers unquoted.
  */
 export function exportCleanCsv(rows: RouteRow[]): string {
-  const exportRows = rows.filter(r => r.type !== null);
+  const exportRows = rows.filter(r => !!r.type);
   let seqNum = 1;
 
   const columns = [
@@ -149,7 +149,7 @@ export function exportCleanCsv(rows: RouteRow[]): string {
  * Same format as clean export but keeps annotations in instructions.
  */
 export function exportOrganiserCsv(rows: RouteRow[]): string {
-  const exportRows = rows.filter(r => r.type !== null);
+  const exportRows = rows.filter(r => !!r.type);
   let seqNum = 1;
 
   const columns = [
@@ -197,7 +197,7 @@ export function exportSpeedAbcdCsv(
   cumulativeTimesC: number[],
   cumulativeTimesD: number[],
 ): string {
-  const exportRows = rows.filter(r => r.type !== null);
+  const exportRows = rows.filter(r => !!r.type);
 
   const data = exportRows.map((row, i) => {
     const idx = rows.indexOf(row);
