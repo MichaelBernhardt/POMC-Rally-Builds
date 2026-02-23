@@ -10,7 +10,7 @@ import {
   themeAlpine,
 } from 'ag-grid-community';
 import { getColumnDefs } from '../Grid/GridColumns';
-import { flattenDayRows, flattenDayRowsChained, computeNodeOffsets } from '../../state/storeHelpers';
+import { flattenDayRows } from '../../state/storeHelpers';
 import { RouteRow } from '../../types/domain';
 import { useProjectStore, selectCurrentRally, selectCurrentEdition, selectCurrentDay, selectIsCurrentEditionLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import { validateNodeConnections } from '../../engine/validator';
@@ -323,8 +323,7 @@ export default function RouteBuilder() {
 
   const nodes = day.nodes;
   const connectionErrors = validateNodeConnections(nodes, rally.nodeLibrary);
-  const nodeOffsets = useMemo(() => computeNodeOffsets(day), [day]);
-  const rowData = tab === 'table' ? flattenDayRowsChained(day) : [];
+  const rowData = tab === 'table' ? flattenDayRows(day) : [];
 
   // Derive the active route (template IDs) from placed nodes, skipping ad-hoc nodes
   const activeRouteIds = useMemo(() => {
@@ -475,9 +474,8 @@ export default function RouteBuilder() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {nodes.map((node, index) => {
                   const connectionError = connectionErrors.find(e => e.nodeIndex === index);
-                  const offset = nodeOffsets[index] ?? 0;
-                  const firstDist = node.rows.length > 0 ? Math.round((node.rows[0].rallyDistance + offset) * 100) / 100 : 0;
-                  const lastDist = node.rows.length > 0 ? Math.round((node.rows[node.rows.length - 1].rallyDistance + offset) * 100) / 100 : 0;
+                  const firstDist = node.rows.length > 0 ? node.rows[0].rallyDistance : 0;
+                  const lastDist = node.rows.length > 0 ? node.rows[node.rows.length - 1].rallyDistance : 0;
 
                   return (
                     <div key={node.id}>

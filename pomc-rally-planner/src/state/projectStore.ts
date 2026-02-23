@@ -29,7 +29,6 @@ import {
   updateRouteNode,
   setNodeRows,
   flattenDayRows,
-  flattenDayRowsChained,
   findNodeForFlatIndex,
 } from './storeHelpers';
 
@@ -1148,7 +1147,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (!day) return null;
 
     // Flatten all nodes' rows with chained distances
-    const allRows = flattenDayRowsChained(day);
+    const allRows = flattenDayRows(day);
 
     // Step 1: Recalculate B/C/D speeds from type + A-speed + speed lookup table
     const margin = rally.speedLimitMarginPercent ?? 10;
@@ -1315,7 +1314,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   getDayRows: () => {
     const day = get().getCurrentDay();
     if (!day) return [];
-    return flattenDayRowsChained(day);
+    return flattenDayRows(day);
   },
 }));
 
