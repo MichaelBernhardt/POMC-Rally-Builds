@@ -12,7 +12,6 @@ export interface RowChangeSummary {
 const EXCLUDED_FIELDS: (keyof RouteRow)[] = [
   'id', 'firstCarTime', 'lastCarTime',
   'distanceHistory', 'latHistory', 'longHistory',
-  'checkDist', 'checkLat', 'checkLong',
 ];
 
 /** Compare two row values for equality */
