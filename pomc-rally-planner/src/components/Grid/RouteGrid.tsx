@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import {
   AllCommunityModule,
   ModuleRegistry,
   CellEditingStoppedEvent,
+  CellDoubleClickedEvent,
   GetRowIdParams,
   RowClassRules,
   GridReadyEvent,
@@ -11,6 +12,7 @@ import {
   themeAlpine,
 } from 'ag-grid-community';
 import { getColumnDefs } from './GridColumns';
+import DistanceEditDialog from '../Dialogs/DistanceEditDialog';
 import { RouteRow } from '../../types/domain';
 import { useProjectStore, selectCurrentRows, selectCurrentDay, selectIsCurrentEditionLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import { flattenDayRows } from '../../state/storeHelpers';
@@ -31,6 +33,15 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
   const reconTolerance = useProjectStore(selectReconTolerance);
   const updateRow = useProjectStore(s => s.updateRow);
   const pushUndo = useProjectStore(s => s.pushUndo);
+
+  const [reconEditCell, setReconEditCell] = useState<{ index: number; value: number; field: 'rallyDistance' | 'lat' | 'long' } | null>(null);
+
+  const onCellDoubleClicked = useCallback((event: CellDoubleClickedEvent<RouteRow>) => {
+    const f = event.colDef.field;
+    if ((f === 'rallyDistance' || f === 'lat' || f === 'long') && event.data && event.rowIndex != null) {
+      setReconEditCell({ index: event.rowIndex, value: (event.data[f] as number) ?? 0, field: f });
+    }
+  }, []);
 
   // Collect all unique clue values from the entire day for autocomplete
   const clueSuggestions = useMemo(() => {
@@ -141,6 +152,7 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
         getRowId={getRowId}
         rowClassRules={rowClassRules}
         onCellEditingStopped={onCellEditingStopped}
+        onCellDoubleClicked={onCellDoubleClicked}
         onGridReady={handleGridReady}
         rowSelection="multiple"
         animateRows={false}
@@ -149,6 +161,31 @@ export default function RouteGrid({ onGridReady }: RouteGridProps) {
         tooltipShowDelay={500}
         enterNavigatesVertically={true}
         enterNavigatesVerticallyAfterEdit={true}
+      />
+      <DistanceEditDialog
+        open={reconEditCell !== null}
+        currentValue={reconEditCell?.value ?? 0}
+        onClose={() => setReconEditCell(null)}
+        onConfirm={(val) => {
+          if (reconEditCell) {
+            pushUndo(`Edit ${reconEditCell.field}`);
+            updateRow(reconEditCell.index, { [reconEditCell.field]: val });
+          }
+          setReconEditCell(null);
+        }}
+        {...(reconEditCell?.field === 'lat' ? {
+          title: 'Edit Latitude',
+          message: 'Coordinates are normally set through recon runs and averaged over up to 3 measurements. Are you sure you want to set this value manually?',
+          label: 'Latitude',
+          step: 0.000001,
+          decimals: 6,
+        } : reconEditCell?.field === 'long' ? {
+          title: 'Edit Longitude',
+          message: 'Coordinates are normally set through recon runs and averaged over up to 3 measurements. Are you sure you want to set this value manually?',
+          label: 'Longitude',
+          step: 0.000001,
+          decimals: 6,
+        } : {})}
       />
     </div>
   );

@@ -165,8 +165,13 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       headerName: 'Rally Dist',
       field: 'rallyDistance',
       width: 100,
+      editable: false,
       valueParser: numberParser,
-      valueFormatter: numberFormatter(2),
+      valueFormatter: (params: ValueFormatterParams): string => {
+        const val = params.value;
+        if (val === null || val === undefined || val === '' || val === 0) return '';
+        return Number(val).toFixed(2);
+      },
       headerTooltip: 'Cumulative rally distance (km)',
       cellStyle: (params): CellStyle => {
         const base: CellStyle = { fontWeight: '600' };
@@ -340,7 +345,7 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       headerName: 'Lat',
       field: 'lat',
       width: 110,
-      editable: !reconOn,
+      editable: false,
       valueParser: numberParser,
       valueFormatter: numberFormatter(6),
       headerTooltip: 'GPS Latitude (for marked controls)',
@@ -369,7 +374,7 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       headerName: 'Long',
       field: 'long',
       width: 110,
-      editable: !reconOn,
+      editable: false,
       valueParser: numberParser,
       valueFormatter: numberFormatter(6),
       headerTooltip: 'GPS Longitude (for marked controls)',

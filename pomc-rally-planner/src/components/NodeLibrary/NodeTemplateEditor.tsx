@@ -4,6 +4,7 @@ import {
   AllCommunityModule,
   ModuleRegistry,
   CellEditingStoppedEvent,
+  CellDoubleClickedEvent,
   GetRowIdParams,
   GridApi,
   RowClassRules,
@@ -11,6 +12,7 @@ import {
   themeAlpine,
 } from 'ag-grid-community';
 import { getColumnDefs } from '../Grid/GridColumns';
+import DistanceEditDialog from '../Dialogs/DistanceEditDialog';
 import { RouteRow, ReconEntry } from '../../types/domain';
 import { useProjectStore, selectCurrentRally, selectCurrentRows } from '../../state/projectStore';
 import { validateTemplate } from '../../engine/validator';
@@ -39,6 +41,14 @@ export default function NodeTemplateEditor() {
   const setRows = useProjectStore(s => s.setRows);
   const template = rally?.nodeLibrary.find(t => t.id === editingTemplateId);
   const [toast, setToast] = useState<string | null>(null);
+  const [reconEditCell, setReconEditCell] = useState<{ index: number; value: number; field: 'rallyDistance' | 'lat' | 'long' } | null>(null);
+
+  const onCellDoubleClicked = useCallback((event: CellDoubleClickedEvent<RouteRow>) => {
+    const f = event.colDef.field;
+    if ((f === 'rallyDistance' || f === 'lat' || f === 'long') && event.data && event.rowIndex != null) {
+      setReconEditCell({ index: event.rowIndex, value: (event.data[f] as number) ?? 0, field: f });
+    }
+  }, []);
 
   const getSelectedIndices = useCallback((): number[] => {
     const api = gridApiRef.current;
@@ -419,6 +429,7 @@ export default function NodeTemplateEditor() {
           getRowId={getRowId}
           rowClassRules={rowClassRules}
           onCellEditingStopped={onCellEditingStopped}
+          onCellDoubleClicked={onCellDoubleClicked}
           onGridReady={e => { gridApiRef.current = e.api; }}
           rowSelection={{ mode: 'multiRow', enableClickSelection: true }}
           animateRows={false}
@@ -427,6 +438,32 @@ export default function NodeTemplateEditor() {
           tooltipShowDelay={500}
         />
       </div>
+
+      <DistanceEditDialog
+        open={reconEditCell !== null}
+        currentValue={reconEditCell?.value ?? 0}
+        onClose={() => setReconEditCell(null)}
+        onConfirm={(val) => {
+          if (reconEditCell) {
+            pushUndo(`Edit ${reconEditCell.field}`);
+            updateRow(reconEditCell.index, { [reconEditCell.field]: val });
+          }
+          setReconEditCell(null);
+        }}
+        {...(reconEditCell?.field === 'lat' ? {
+          title: 'Edit Latitude',
+          message: 'Coordinates are normally set through recon runs and averaged over up to 3 measurements. Are you sure you want to set this value manually?',
+          label: 'Latitude',
+          step: 0.000001,
+          decimals: 6,
+        } : reconEditCell?.field === 'long' ? {
+          title: 'Edit Longitude',
+          message: 'Coordinates are normally set through recon runs and averaged over up to 3 measurements. Are you sure you want to set this value manually?',
+          label: 'Longitude',
+          step: 0.000001,
+          decimals: 6,
+        } : {})}
+      />
 
       {/* Toast notification */}
       {toast && (

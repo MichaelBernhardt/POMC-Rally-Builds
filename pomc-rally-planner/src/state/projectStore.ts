@@ -31,6 +31,7 @@ import {
   flattenDayRows,
   findNodeForFlatIndex,
 } from './storeHelpers';
+import { rowFingerprint, buildMatchMap } from '../engine/rowDiff';
 
 type ViewMode = 'grid' | 'library' | 'routeBuilder' | 'speedTables';
 
@@ -815,10 +816,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const template = rally.nodeLibrary.find(t => t.id === node.sourceNodeId);
     if (!template) return false;
 
+    // Match node rows to template rows by content, not position.
+    // This prevents an insertion from shifting all subsequent matches,
+    // and pairs modified rows (e.g. with pending checkDist) to the correct template.
+    const nodeFps = node.rows.map(rowFingerprint);
+    const templateFps = template.rows.map(rowFingerprint);
+    const nodeToTemplate = buildMatchMap(nodeFps, templateFps);
+
     // Process each node row: merge checkDist + lat/long into history, compute averages
     // checkDist is the exact measured value from recon — store it as-is
     const newTemplateRows = node.rows.map((r, i) => {
-      return processReconHistory(r, template.rows[i] ?? null);
+      const ti = nodeToTemplate.get(i);
+      return processReconHistory(r, ti != null ? template.rows[ti] : null);
     });
 
     // Refresh the node's rows: pick up new averaged values, clear checkDist
@@ -893,7 +902,6 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const newRow = createEmptyRow();
     if (afterIndex !== undefined && afterIndex >= 0) {
       if (newRows[afterIndex]) {
-        newRow.rallyDistance = newRows[afterIndex].rallyDistance;
         newRow.speedLimit = newRows[afterIndex].speedLimit;
         newRow.aSpeed = newRows[afterIndex].aSpeed;
         newRow.bSpeed = newRows[afterIndex].bSpeed;
@@ -973,9 +981,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       if (location) {
         const { nodeIndex, localIndex } = location;
         const targetNode = day.nodes[nodeIndex];
-        // Copy distance/speed from current row
+        // Copy speed from current row (distance comes from recon)
         if (targetNode.rows[localIndex]) {
-          newRow.rallyDistance = targetNode.rows[localIndex].rallyDistance;
           newRow.speedLimit = targetNode.rows[localIndex].speedLimit;
           newRow.aSpeed = targetNode.rows[localIndex].aSpeed;
           newRow.bSpeed = targetNode.rows[localIndex].bSpeed;

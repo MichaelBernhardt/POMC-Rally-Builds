@@ -8,8 +8,12 @@ export interface RowChangeSummary {
   details: string[];  // Human-readable change descriptions
 }
 
-/** Fields to exclude when comparing rows (computed/identity fields) */
-const EXCLUDED_FIELDS: (keyof RouteRow)[] = ['id', 'firstCarTime', 'lastCarTime', 'distanceHistory', 'latHistory', 'longHistory'];
+/** Fields to exclude when comparing rows (computed/identity/transient fields) */
+const EXCLUDED_FIELDS: (keyof RouteRow)[] = [
+  'id', 'firstCarTime', 'lastCarTime',
+  'distanceHistory', 'latHistory', 'longHistory',
+  'checkDist', 'checkLat', 'checkLong',
+];
 
 /** Compare two row values for equality */
 function valuesEqual(a: unknown, b: unknown): boolean {
@@ -47,8 +51,93 @@ function getRowDifferences(index: number, nodeRow: RouteRow, templateRow: RouteR
 }
 
 /**
+ * Serialize all compared fields of a row into a string for fast equality checks.
+ * Excludes the same fields as rowsEqual (id, computed fields, history).
+ */
+export function rowFingerprint(row: RouteRow): string {
+  const parts: string[] = [];
+  for (const key of Object.keys(row) as (keyof RouteRow)[]) {
+    if (EXCLUDED_FIELDS.includes(key)) continue;
+    const v = row[key];
+    // Normalize 0 and '' to the same representation
+    parts.push(v === 0 || v === '' ? '~' : String(v ?? ''));
+  }
+  return parts.join('\x00');
+}
+
+/**
+ * Compute the Longest Common Subsequence between two fingerprint arrays.
+ * Returns matched pairs as [indexInA, indexInB][].
+ * Standard O(n*m) DP — for ~1300 rows this is ~1.7M ops, a few ms in-browser.
+ */
+export function lcsIndices(aFps: string[], bFps: string[]): [number, number][] {
+  const n = aFps.length;
+  const m = bFps.length;
+
+  // Build DP table
+  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+      if (aFps[i - 1] === bFps[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+
+  // Backtrack to find matched pairs
+  const pairs: [number, number][] = [];
+  let i = n, j = m;
+  while (i > 0 && j > 0) {
+    if (aFps[i - 1] === bFps[j - 1]) {
+      pairs.push([i - 1, j - 1]);
+      i--;
+      j--;
+    } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+      i--;
+    } else {
+      j--;
+    }
+  }
+  pairs.reverse();
+  return pairs;
+}
+
+/**
+ * Build a full index map from A→B, pairing LCS matches plus gap rows.
+ * Gap rows between LCS anchors are paired positionally (modified rows).
+ * Unmatched extras (added/removed) are not included in the map.
+ */
+export function buildMatchMap(aFps: string[], bFps: string[]): Map<number, number> {
+  const lcs = lcsIndices(aFps, bFps);
+  const map = new Map<number, number>();
+
+  let ai = 0, bi = 0;
+  for (const [matchAi, matchBi] of lcs) {
+    // Pair gap rows positionally
+    const paired = Math.min(matchAi - ai, matchBi - bi);
+    for (let k = 0; k < paired; k++) {
+      map.set(ai + k, bi + k);
+    }
+    // LCS match
+    map.set(matchAi, matchBi);
+    ai = matchAi + 1;
+    bi = matchBi + 1;
+  }
+
+  // Trailing gap
+  const paired = Math.min(aFps.length - ai, bFps.length - bi);
+  for (let k = 0; k < paired; k++) {
+    map.set(ai + k, bi + k);
+  }
+
+  return map;
+}
+
+/**
  * Compare rows from a node instance against the template rows.
- * Comparison is done by position index since rows are deep-copied with new IDs when placed.
+ * Uses LCS-based diff so insertions/deletions don't cascade false "modified" results.
  */
 export function compareRows(nodeRows: RouteRow[], templateRows: RouteRow[]): RowChangeSummary {
   const summary: RowChangeSummary = {
@@ -59,37 +148,66 @@ export function compareRows(nodeRows: RouteRow[], templateRows: RouteRow[]): Row
     details: [],
   };
 
-  const nodeCount = nodeRows.length;
-  const templateCount = templateRows.length;
-  const commonCount = Math.min(nodeCount, templateCount);
+  const nodeFps = nodeRows.map(rowFingerprint);
+  const templateFps = templateRows.map(rowFingerprint);
+  const matches = lcsIndices(nodeFps, templateFps);
 
-  // Compare rows that exist in both
-  for (let i = 0; i < commonCount; i++) {
-    if (rowsEqual(nodeRows[i], templateRows[i])) {
-      summary.unchanged++;
-    } else {
+  // Walk both sequences using LCS matches as anchors
+  let ni = 0; // current position in nodeRows
+  let ti = 0; // current position in templateRows
+
+  for (const [matchNi, matchTi] of matches) {
+    // Process the gap before this anchor
+    const nodeGap = matchNi - ni;
+    const templateGap = matchTi - ti;
+    const pairedCount = Math.min(nodeGap, templateGap);
+
+    // Pair up unmatched rows as modified
+    for (let k = 0; k < pairedCount; k++) {
       summary.modified++;
-      const diffs = getRowDifferences(i, nodeRows[i], templateRows[i]);
+      const diffs = getRowDifferences(ni + k, nodeRows[ni + k], templateRows[ti + k]);
       summary.details.push(...diffs);
     }
+
+    // Extras on node side → added
+    for (let k = pairedCount; k < nodeGap; k++) {
+      summary.added++;
+      summary.details.push(`Row ${ni + k + 1}: Added`);
+    }
+
+    // Extras on template side → removed
+    for (let k = pairedCount; k < templateGap; k++) {
+      summary.removed++;
+      const dist = templateRows[ti + k].rallyDistance;
+      summary.details.push(`Row ${ti + k + 1}: Will be removed (distance ${dist.toFixed(2)})`);
+    }
+
+    // The anchor itself is unchanged (fingerprints matched)
+    summary.unchanged++;
+    ni = matchNi + 1;
+    ti = matchTi + 1;
   }
 
-  // Count added rows (in node but not in template)
-  if (nodeCount > templateCount) {
-    summary.added = nodeCount - templateCount;
-    for (let i = templateCount; i < nodeCount; i++) {
-      const dist = nodeRows[i].rallyDistance;
-      summary.details.push(`Row ${i + 1}: Added (distance ${dist.toFixed(2)})`);
-    }
+  // Process trailing gap after last anchor
+  const nodeGap = nodeRows.length - ni;
+  const templateGap = templateRows.length - ti;
+  const pairedCount = Math.min(nodeGap, templateGap);
+
+  for (let k = 0; k < pairedCount; k++) {
+    summary.modified++;
+    const diffs = getRowDifferences(ni + k, nodeRows[ni + k], templateRows[ti + k]);
+    summary.details.push(...diffs);
   }
 
-  // Count removed rows (in template but not in node)
-  if (templateCount > nodeCount) {
-    summary.removed = templateCount - nodeCount;
-    for (let i = nodeCount; i < templateCount; i++) {
-      const dist = templateRows[i].rallyDistance;
-      summary.details.push(`Row ${i + 1}: Will be removed (distance ${dist.toFixed(2)})`);
-    }
+  for (let k = pairedCount; k < nodeGap; k++) {
+    summary.added++;
+    summary.details.push(`Row ${ni + k + 1}: Added`);
+  }
+
+  for (let k = pairedCount; k < templateGap; k++) {
+    summary.removed++;
+    const dist = templateRows[ti + k].rallyDistance;
+    summary.details.push(`Row ${ti + k + 1}: Will be removed (distance ${dist.toFixed(2)})`);
   }
 
   return summary;
