@@ -59,6 +59,20 @@ export default function RouteBuilder() {
     return [...new Set(clues)];
   }, [day]);
 
+  // Compute which route nodes are out-of-sync with their source template
+  const outOfSyncNodeIds = useMemo(() => {
+    if (!day || !rally) return new Set<string>();
+    const ids = new Set<string>();
+    for (const node of day.nodes) {
+      if (!node.sourceNodeId) continue;
+      const template = rally.nodeLibrary.find(t => t.id === node.sourceNodeId);
+      if (!template) continue;
+      const s = compareRows(node.rows, template.rows);
+      if (s.added > 0 || s.removed > 0 || s.modified > 0) ids.add(node.id);
+    }
+    return ids;
+  }, [day, rally]);
+
   // Compute which nodes can be pushed to library templates
   const pushableNodes = useMemo(() => {
     if (!day || !rally) return [];
@@ -363,7 +377,7 @@ export default function RouteBuilder() {
                 border: '1px solid var(--color-border)',
               }}>
                 <button style={segmentStyle(tab === 'nodes')} onClick={() => setTab('nodes')}>Nodes</button>
-                <button style={segmentStyle(tab === 'table')} onClick={() => setTab('table')}>Table</button>
+                <button style={segmentStyle(tab === 'table')} onClick={() => setTab('table')} disabled={nodes.length === 0}>Table</button>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -550,6 +564,11 @@ export default function RouteBuilder() {
                             )}
                             {node.sourceNodeId && (
                               <> {' \u2022 '} from template</>
+                            )}
+                            {outOfSyncNodeIds.has(node.id) && (
+                              <span style={{ color: 'var(--color-warning)', fontWeight: 600 }}>
+                                {' \u2022 '} out of sync
+                              </span>
                             )}
                           </div>
                         </div>

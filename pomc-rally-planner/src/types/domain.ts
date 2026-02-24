@@ -36,6 +36,8 @@ export interface RouteRow {
   distanceHistory: ReconEntry[];
   latHistory: ReconEntry[];
   longHistory: ReconEntry[];
+  distanceOverride?: boolean;
+  coordOverride?: boolean;
   verified: boolean;
   type: TypeCode | null;
   instructionNumber: number | null;
@@ -348,7 +350,7 @@ export function createRouteNode(template: NodeTemplate): RouteNode {
     id: crypto.randomUUID(),
     sourceNodeId: template.id,
     name: template.name,
-    rows: template.rows.map(r => ({ ...r, id: crypto.randomUUID() })),
+    rows: template.rows.map(r => ({ ...r, id: crypto.randomUUID(), distanceOverride: undefined, coordOverride: undefined })),
   };
 }
 

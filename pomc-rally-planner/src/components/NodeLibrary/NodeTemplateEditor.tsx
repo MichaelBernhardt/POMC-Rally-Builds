@@ -446,19 +446,26 @@ export default function NodeTemplateEditor() {
         onConfirm={(val) => {
           if (reconEditCell) {
             pushUndo(`Edit ${reconEditCell.field}`);
-            updateRow(reconEditCell.index, { [reconEditCell.field]: val });
+            const { field, index } = reconEditCell;
+            if (field === 'rallyDistance') {
+              updateRow(index, { rallyDistance: val, distanceHistory: [], distanceOverride: true });
+            } else if (field === 'lat') {
+              updateRow(index, { lat: val, latHistory: [], coordOverride: true });
+            } else if (field === 'long') {
+              updateRow(index, { long: val, longHistory: [], coordOverride: true });
+            }
           }
           setReconEditCell(null);
         }}
         {...(reconEditCell?.field === 'lat' ? {
           title: 'Edit Latitude',
-          message: 'Coordinates are normally set through recon runs and averaged over up to 3 measurements. Are you sure you want to set this value manually?',
+          message: 'Setting this value manually will erase the recon measurement history for this row. Future recon runs will start fresh from the new value.',
           label: 'Latitude',
           step: 0.000001,
           decimals: 6,
         } : reconEditCell?.field === 'long' ? {
           title: 'Edit Longitude',
-          message: 'Coordinates are normally set through recon runs and averaged over up to 3 measurements. Are you sure you want to set this value manually?',
+          message: 'Setting this value manually will erase the recon measurement history for this row. Future recon runs will start fresh from the new value.',
           label: 'Longitude',
           step: 0.000001,
           decimals: 6,

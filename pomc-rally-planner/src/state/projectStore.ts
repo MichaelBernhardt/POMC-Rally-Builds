@@ -110,6 +110,7 @@ interface ProjectState {
   setAllowedPreviousNodes: (templateId: string, allowedIds: string[]) => void;
   setEditingTemplate: (templateId: string | null) => void;
   pushToTemplate: (nodeId: string) => boolean;
+  pullFromTemplate: (nodeId: string, force?: boolean) => 'success' | 'has_pending_recon' | 'not_found';
 
   // Row management (scoped to current node or editing template)
   setRows: (rows: RouteRow[]) => void;
@@ -165,12 +166,24 @@ function processReconHistory(
   templateRow: RouteRow | null,
 ): RouteRow {
   const today = new Date().toISOString().slice(0, 10);
-  const existingDistHistory = templateRow?.distanceHistory ?? [];
-  const existingLatHistory = templateRow?.latHistory ?? [];
-  const existingLongHistory = templateRow?.longHistory ?? [];
+
+  // If distanceOverride is set, the user manually edited the value — start fresh
+  const existingDistHistory = nodeRow.distanceOverride
+    ? []
+    : (templateRow?.distanceHistory ?? []);
+
+  // If coordOverride is set, the user manually edited lat/long — start fresh
+  const existingLatHistory = nodeRow.coordOverride
+    ? []
+    : (templateRow?.latHistory ?? []);
+  const existingLongHistory = nodeRow.coordOverride
+    ? []
+    : (templateRow?.longHistory ?? []);
 
   let distanceHistory = existingDistHistory;
-  let rallyDistance = templateRow?.rallyDistance ?? nodeRow.rallyDistance;
+  let rallyDistance = nodeRow.distanceOverride
+    ? nodeRow.rallyDistance
+    : (templateRow?.rallyDistance ?? nodeRow.rallyDistance);
 
   if (nodeRow.checkDist != null) {
     distanceHistory = [...existingDistHistory, { value: nodeRow.checkDist, date: today }];
@@ -181,8 +194,12 @@ function processReconHistory(
 
   let latHistory = existingLatHistory;
   let longHistory = existingLongHistory;
-  let lat = templateRow?.lat ?? nodeRow.lat;
-  let long = templateRow?.long ?? nodeRow.long;
+  let lat = nodeRow.coordOverride
+    ? nodeRow.lat
+    : (templateRow?.lat ?? nodeRow.lat);
+  let long = nodeRow.coordOverride
+    ? nodeRow.long
+    : (templateRow?.long ?? nodeRow.long);
 
   if (nodeRow.checkLat != null || nodeRow.checkLong != null) {
     const pushLat = nodeRow.checkLat ?? 0;
@@ -201,6 +218,8 @@ function processReconHistory(
     checkDist: null,
     checkLat: null,
     checkLong: null,
+    distanceOverride: undefined,
+    coordOverride: undefined,
     distanceHistory,
     latHistory,
     longHistory,
@@ -834,7 +853,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const refreshedNodeRows = node.rows.map((r, i) => {
       const updated = newTemplateRows[i];
       return updated
-        ? { ...r, rallyDistance: updated.rallyDistance, lat: updated.lat, long: updated.long, checkDist: null, checkLat: null, checkLong: null }
+        ? { ...r, rallyDistance: updated.rallyDistance, lat: updated.lat, long: updated.long, checkDist: null, checkLat: null, checkLong: null, distanceOverride: undefined, coordOverride: undefined }
         : r;
     });
 
@@ -872,6 +891,71 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     });
 
     return true;
+  },
+
+  pullFromTemplate: (nodeId: string, force?: boolean) => {
+    const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return 'not_found';
+
+    const rally = workspace.rallies.find(r => r.id === currentRallyId);
+    if (!rally) return 'not_found';
+
+    const edition = rally.editions.find(e => e.id === currentEditionId);
+    if (!edition) return 'not_found';
+
+    const day = edition.days.find(d => d.id === currentDayId);
+    if (!day) return 'not_found';
+
+    const node = day.nodes.find(n => n.id === nodeId);
+    if (!node || !node.sourceNodeId) return 'not_found';
+
+    const template = rally.nodeLibrary.find(t => t.id === node.sourceNodeId);
+    if (!template) return 'not_found';
+
+    // Check for un-pushed recon data
+    if (!force) {
+      const hasPendingRecon = node.rows.some(
+        r => r.checkDist != null || r.checkLat != null || r.checkLong != null
+      );
+      if (hasPendingRecon) return 'has_pending_recon';
+    }
+
+    // Save undo state before replacing rows
+    get().pushUndo('Pull from template');
+
+    // Replace node rows with template rows (new IDs, clear overrides)
+    const newRows = template.rows.map(r => ({
+      ...r,
+      id: crypto.randomUUID(),
+      distanceOverride: undefined,
+      coordOverride: undefined,
+    }));
+
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r => ({
+        ...r,
+        editions: r.editions.map(e => {
+          if (e.id !== currentEditionId) return e;
+          return {
+            ...e,
+            days: e.days.map(d => {
+              if (d.id !== currentDayId) return d;
+              return {
+                ...d,
+                nodes: d.nodes.map(n => {
+                  if (n.id !== nodeId) return n;
+                  return { ...n, rows: newRows };
+                }),
+              };
+            }),
+          };
+        }),
+        modifiedAt: new Date().toISOString(),
+      })),
+      isDirty: true,
+    });
+
+    return 'success';
   },
 
   // --- Row management ---

@@ -18,7 +18,7 @@ export default function DistanceEditDialog({
   onConfirm,
   currentValue,
   title = 'Edit Distance',
-  message = 'Distances are normally set through recon runs and averaged over up to 3 measurements. Are you sure you want to set this value manually?',
+  message = 'Setting this value manually will erase the recon measurement history for this row. Future recon runs will start fresh from the new value.',
   label = 'Distance (km)',
   step = 0.01,
   decimals = 2,

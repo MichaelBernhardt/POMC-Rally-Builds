@@ -4,6 +4,7 @@ import { GridApi } from 'ag-grid-community';
 import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
 import { buildReconBackup, saveReconBackup } from '../../engine/reconBackup';
 import PushToTemplateDialog from '../Dialogs/PushToTemplateDialog';
+import PullFromTemplateDialog from '../Dialogs/PullFromTemplateDialog';
 
 interface ToolbarProps {
   gridApi: GridApi | null;
@@ -29,6 +30,8 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
   const editingTemplateId = useProjectStore(s => s.editingTemplateId);
 
   const [showPushDialog, setShowPushDialog] = useState(false);
+  const [showPullDialog, setShowPullDialog] = useState(false);
+  const pullFromTemplate = useProjectStore(s => s.pullFromTemplate);
   const [toast, setToast] = useState<string | null>(null);
 
   // Get template for current node (if it came from a template)
@@ -43,6 +46,22 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
   }, [showPushDialog, currentNode, sourceTemplate]);
 
   const canPushToTemplate = currentNode?.sourceNodeId && sourceTemplate && !editingTemplateId;
+
+  const hasPendingRecon = useMemo(() => {
+    if (!currentNode) return false;
+    return currentNode.rows.some(r => r.checkDist != null || r.checkLat != null || r.checkLong != null);
+  }, [currentNode]);
+
+  const pullChangeSummary = useMemo<RowChangeSummary | null>(() => {
+    if (!showPullDialog || !currentNode || !sourceTemplate) return null;
+    return compareRows(sourceTemplate.rows, currentNode.rows);
+  }, [showPullDialog, currentNode, sourceTemplate]);
+
+  const nodeOutOfSync = useMemo(() => {
+    if (!currentNode || !sourceTemplate) return false;
+    const s = compareRows(currentNode.rows, sourceTemplate.rows);
+    return s.added > 0 || s.removed > 0 || s.modified > 0;
+  }, [currentNode, sourceTemplate]);
 
   const handlePushConfirm = async () => {
     if (!currentNode) return;
@@ -67,6 +86,21 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
       setTimeout(() => setToast(null), 3000);
     }
     setShowPushDialog(false);
+  };
+
+  const handlePullConfirm = () => {
+    if (!currentNode) return;
+    const result = pullFromTemplate(currentNode.id, true);
+    if (result === 'success') {
+      setToast('Node updated from template');
+      setTimeout(() => setToast(null), 3000);
+    }
+    setShowPullDialog(false);
+  };
+
+  const handlePullPushFirst = () => {
+    setShowPullDialog(false);
+    setShowPushDialog(true);
   };
 
   const getSelectedRowIndex = (): number | null => {
@@ -246,10 +280,18 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
           <button
             onClick={() => setShowPushDialog(true)}
             disabled={disabled || locked}
-            title="Push changes back to the source template in the Node Library"
-            style={groupButtonOnlyStyle}
+            title="Push changes to the source template"
+            style={groupButtonFirstStyle}
           >
             Push to Library
+          </button>
+          <button
+            onClick={() => setShowPullDialog(true)}
+            disabled={disabled || locked || !nodeOutOfSync}
+            title="Pull latest template data into this node"
+            style={groupButtonLastStyle}
+          >
+            Pull from Template
           </button>
         </div>
       )}
@@ -263,6 +305,16 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
         templateName={sourceTemplate?.name ?? ''}
         changeSummary={changeSummary}
         error={showPushDialog && !sourceTemplate ? 'Source template no longer exists' : undefined}
+      />
+
+      <PullFromTemplateDialog
+        open={showPullDialog}
+        onClose={() => setShowPullDialog(false)}
+        onConfirm={handlePullConfirm}
+        onPushFirst={handlePullPushFirst}
+        templateName={sourceTemplate?.name ?? ''}
+        changeSummary={pullChangeSummary}
+        hasPendingRecon={hasPendingRecon}
       />
 
       {/* Toast notification */}
