@@ -117,6 +117,7 @@ function OverviewPage() {
         <li><strong>Recalculate times</strong> to compute arrival times</li>
         <li><strong>Reconnaissance</strong> — go out and measure real distances</li>
         <li><strong>Push to Library</strong> to update templates with recon data</li>
+        <li><strong>Pull from Template</strong> to sync library edits back into placed route nodes</li>
         <li><strong>Export CSV</strong> for the timing/scoring system</li>
       </ol>
       <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
@@ -463,6 +464,45 @@ function NodeLibraryPage() {
         Distances are <strong>chained</strong> in the table view. Each node's first row continues from
         the previous node's last distance, so the rally distance column shows cumulative distance for the whole day.
       </Callout>
+
+      <SectionTitle>Template Sync: Push & Pull</SectionTitle>
+      <p>
+        Data flows both directions between placed route nodes and their source templates:
+      </p>
+      <ul style={{ paddingLeft: '20px' }}>
+        <li><strong>Push to Library</strong> — Updates the source template with the route node's data (e.g. after recon). Available from both the node editor toolbar and the Route Builder table view.</li>
+        <li><strong>Pull from Template</strong> — Replaces the route node's rows with the latest template data. Use this when the template has been edited in the Node Library (e.g. fixing terrain types, adjusting speeds, adding rows) and you want placed nodes to pick up those changes.</li>
+      </ul>
+
+      <SectionTitle>Out-of-Sync Indicator</SectionTitle>
+      <p>
+        In the Route Builder <strong>Nodes</strong> tab, each node card shows an amber
+        "<strong>out of sync</strong>" badge when its rows differ from the source template. This
+        tells you the placed node has drifted — either you edited the node locally, or the template
+        was updated in the library.
+      </p>
+
+      <SectionTitle>Pull Safety</SectionTitle>
+      <p>
+        Pulling replaces <strong>all rows</strong> in the node. To prevent accidental data loss:
+      </p>
+      <ul style={{ paddingLeft: '20px' }}>
+        <li>If the node has <strong>un-pushed local edits</strong> (modified rows, added rows), the Pull button shows a red warning and <strong>blocks the pull</strong>. You must push your changes to the library first.</li>
+        <li>If the node has <strong>un-pushed recon measurements</strong> (check distances, GPS coordinates), pulling is also blocked until you push first.</li>
+        <li>If only the template has new changes and the node has no local edits, pulling is allowed directly.</li>
+      </ul>
+
+      <SectionTitle>Manual Distance & Coordinate Overrides</SectionTitle>
+      <p>
+        The <strong>Rally Distance</strong>, <strong>Latitude</strong>, and <strong>Longitude</strong> columns
+        are normally computed from recon history averages and cannot be edited directly in the grid. To override a value:
+      </p>
+      <ol style={{ paddingLeft: '20px' }}>
+        <li>Click the cell — an <strong>override dialog</strong> appears showing the current value and its source</li>
+        <li>Enter your override value and confirm</li>
+        <li>Overridden cells are marked so you can tell them apart from computed values</li>
+        <li>When you <strong>Push to Library</strong>, an overridden value replaces the recon history (starts fresh) rather than being averaged in</li>
+      </ol>
     </>
   );
 }
@@ -512,6 +552,14 @@ function ReconPage() {
         differences. Averaging the most recent 3 recordings helps the distances converge on the
         true value over multiple runs. Older recordings are dropped so the data stays current.
       </Callout>
+
+      <SectionTitle>Pull from Template (After Recon)</SectionTitle>
+      <p>
+        If a template is later edited in the Node Library (e.g. fixing terrain, adjusting speeds),
+        you can <strong>Pull from Template</strong> to update placed route nodes with the latest
+        template data. However, the pull is <strong>blocked</strong> if the node still has un-pushed
+        recon measurements — you must push first to avoid losing your recordings.
+      </p>
 
       <SectionTitle>Clear Recon</SectionTitle>
       <p>
