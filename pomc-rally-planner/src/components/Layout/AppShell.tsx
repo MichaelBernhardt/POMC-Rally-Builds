@@ -130,7 +130,7 @@ export default function AppShell() {
       } else if (e.key === 'Insert' && !ctrl) {
         e.preventDefault();
         const s = useProjectStore.getState();
-        if (!s.isCurrentEditionLocked() && s.viewMode === 'grid') s.addRow();
+        if (!s.isCurrentEditionLocked() && s.viewMode === 'grid' && s.reconMode) s.addRow();
       } else if (e.key === 'Escape') {
         const s = useProjectStore.getState();
         if (s.editingTemplateId) {

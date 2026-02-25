@@ -209,7 +209,7 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
       <div style={groupStyle}>
         <button
           onClick={handleAddRow}
-          disabled={disabled || locked}
+          disabled={disabled || locked || !reconMode}
           title="Add row after selection (Insert)"
           style={groupButtonFirstStyle}
         >
