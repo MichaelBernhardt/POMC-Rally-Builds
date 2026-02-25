@@ -19,6 +19,7 @@ import { buildReconBackup, saveReconBackup } from '../../engine/reconBackup';
 import NodePalette from './NodePalette';
 import ConnectionDiagram from '../NodeLibrary/ConnectionDiagram';
 import ExportDialog from '../Dialogs/ExportDialog';
+import PullFromTemplateDialog from '../Dialogs/PullFromTemplateDialog';
 import '../../styles/grid-theme.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -42,11 +43,13 @@ export default function RouteBuilder() {
   const toggleReconMode = useProjectStore(s => s.toggleReconMode);
   const clearCheckDistances = useProjectStore(s => s.clearCheckDistances);
   const pushToTemplate = useProjectStore(s => s.pushToTemplate);
+  const pullFromTemplate = useProjectStore(s => s.pullFromTemplate);
   const tab = useProjectStore(s => s.routeBuilderTab);
   const setTab = useProjectStore(s => s.setRouteBuilderTab);
   const [showExport, setShowExport] = useState(false);
   const [showNodes, setShowNodes] = useState(true);
   const [showPushDialog, setShowPushDialog] = useState(false);
+  const [pullNodeId, setPullNodeId] = useState<string | null>(null);
   const [showRouteMap, setShowRouteMap] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -134,6 +137,52 @@ export default function RouteBuilder() {
       setTimeout(() => setToast(null), 4000);
     }
   }, [pushableNodes, pushToTemplate, reconMode, rally, edition, day]);
+
+  // Pull-from-template dialog state
+  const pullNode = useMemo(() => {
+    if (!pullNodeId || !day) return null;
+    return day.nodes.find(n => n.id === pullNodeId) ?? null;
+  }, [pullNodeId, day]);
+
+  const pullTemplate = useMemo(() => {
+    if (!pullNode || !rally) return null;
+    return rally.nodeLibrary.find(t => t.id === pullNode.sourceNodeId) ?? null;
+  }, [pullNode, rally]);
+
+  const pullChangeSummary = useMemo<RowChangeSummary | null>(() => {
+    if (!pullNode || !pullTemplate) return null;
+    return compareRows(pullTemplate.rows, pullNode.rows);
+  }, [pullNode, pullTemplate]);
+
+  const pullHasPendingRecon = useMemo(() => {
+    if (!pullNode) return false;
+    return pullNode.rows.some(r => r.checkDist != null || r.checkLat != null || r.checkLong != null);
+  }, [pullNode]);
+
+  const handlePullConfirm = useCallback(() => {
+    if (!pullNodeId) return;
+    const result = pullFromTemplate(pullNodeId, true);
+    if (result === 'success') {
+      setToast('Node updated from template');
+      setTimeout(() => setToast(null), 3000);
+    }
+    setPullNodeId(null);
+  }, [pullNodeId, pullFromTemplate]);
+
+  const handlePullPushFirst = useCallback(async () => {
+    if (!pullNodeId || !rally || !edition || !day) return;
+    const node = day.nodes.find(n => n.id === pullNodeId);
+    if (node) {
+      const backup = buildReconBackup([node], rally.name, edition.name, day.name);
+      if (backup.nodes.length > 0) {
+        await saveReconBackup(backup);
+      }
+      pushToTemplate(pullNodeId);
+      setToast('Pushed changes to library');
+      setTimeout(() => setToast(null), 3000);
+    }
+    setPullNodeId(null);
+  }, [pullNodeId, rally, edition, day, pushToTemplate]);
 
   const hasCheckDistValues = useMemo(() => {
     if (!day) return false;
@@ -640,6 +689,15 @@ export default function RouteBuilder() {
                         </div>
 
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          {node.sourceNodeId && outOfSyncNodeIds.has(node.id) && (
+                            <button
+                              onClick={e => { e.stopPropagation(); setPullNodeId(node.id); }}
+                              style={{ padding: '2px 8px', fontSize: '12px' }}
+                              title="Pull latest template data into this node"
+                            >
+                              Pull
+                            </button>
+                          )}
                           {!isLocked && index === nodes.length - 1 && (
                             <button
                               onClick={e => { e.stopPropagation(); removeRouteNode(node.id); }}
@@ -719,6 +777,17 @@ export default function RouteBuilder() {
           </div>
         </div>
       )}
+
+      {/* Pull from Template dialog */}
+      <PullFromTemplateDialog
+        open={pullNodeId !== null}
+        onClose={() => setPullNodeId(null)}
+        onConfirm={handlePullConfirm}
+        onPushFirst={handlePullPushFirst}
+        templateName={pullTemplate?.name ?? ''}
+        changeSummary={pullChangeSummary}
+        hasPendingRecon={pullHasPendingRecon}
+      />
 
       {/* Push to Library dialog */}
       {showPushDialog && (
