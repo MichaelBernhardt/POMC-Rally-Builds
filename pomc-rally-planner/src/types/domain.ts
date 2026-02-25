@@ -38,6 +38,7 @@ export interface RouteRow {
   longHistory: ReconEntry[];
   distanceOverride?: boolean;
   coordOverride?: boolean;
+  addedInRecon?: boolean;
   verified: boolean;
   type: TypeCode | null;
   instructionNumber: number | null;

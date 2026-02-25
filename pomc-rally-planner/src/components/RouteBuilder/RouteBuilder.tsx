@@ -140,13 +140,15 @@ export default function RouteBuilder() {
     return day.nodes.some(n => n.rows.some(r => r.checkDist != null || r.checkLat != null || r.checkLong != null));
   }, [day]);
 
-  const handleClearRecon = useCallback(() => {
-    if (!hasCheckDistValues) return;
+  const [showClearReconDialog, setShowClearReconDialog] = useState(false);
+
+  const handleClearReconConfirm = useCallback(() => {
+    setShowClearReconDialog(false);
     pushUndo('Clear recon distances');
     clearCheckDistances();
     setToast('Cleared all recon check distances');
     setTimeout(() => setToast(null), 3000);
-  }, [hasCheckDistValues, pushUndo, clearCheckDistances]);
+  }, [pushUndo, clearCheckDistances]);
 
   // Build node metadata: map row ID → node name, and track first row of each node
   const { nodeNameMap, nodeFirstRowIds } = useMemo(() => {
@@ -423,7 +425,7 @@ export default function RouteBuilder() {
                   </button>
                   {reconMode && hasCheckDistValues && (
                     <button
-                      onClick={handleClearRecon}
+                      onClick={() => setShowClearReconDialog(true)}
                       disabled={isLocked}
                       style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
                       title="Clear all recon check distances from the current route"
@@ -640,6 +642,24 @@ export default function RouteBuilder() {
           activeRoute={activeRouteIds}
           title="Route Map"
         />
+      )}
+
+      {/* Clear Recon confirmation dialog */}
+      {showClearReconDialog && (
+        <div className="dialog-overlay" onClick={() => setShowClearReconDialog(false)}>
+          <div className="dialog" onClick={e => e.stopPropagation()} style={{ minWidth: '350px' }}>
+            <h2>Clear Recon</h2>
+            <p style={{ fontSize: '14px', marginBottom: '16px' }}>
+              Are you sure you want to clear all recon check distances from the current route?
+            </p>
+            <div className="dialog-actions">
+              <button onClick={() => setShowClearReconDialog(false)}>Cancel</button>
+              <button className="primary" onClick={handleClearReconConfirm}>
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Push to Library dialog */}

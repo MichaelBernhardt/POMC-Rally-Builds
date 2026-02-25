@@ -167,6 +167,48 @@ function processReconHistory(
 ): RouteRow {
   const today = new Date().toISOString().slice(0, 10);
 
+  // For rows added in recon, the adjusted distance was already written to
+  // distanceHistory during cell editing — preserve it as-is.
+  if (nodeRow.addedInRecon) {
+    const latHistory = nodeRow.latHistory;
+    const longHistory = nodeRow.longHistory;
+    const lat = nodeRow.lat;
+    const long = nodeRow.long;
+
+    // Still process lat/long recon if present
+    let finalLatHistory = latHistory;
+    let finalLongHistory = longHistory;
+    let finalLat = lat;
+    let finalLong = long;
+    if (nodeRow.checkLat != null || nodeRow.checkLong != null) {
+      const pushLat = nodeRow.checkLat ?? 0;
+      const pushLong = nodeRow.checkLong ?? 0;
+      finalLatHistory = [...latHistory, { value: pushLat, date: today }];
+      finalLongHistory = [...longHistory, { value: pushLong, date: today }];
+      const lastLat3 = finalLatHistory.slice(-3);
+      const lastLong3 = finalLongHistory.slice(-3);
+      finalLat = Math.round((lastLat3.reduce((s, e) => s + e.value, 0) / lastLat3.length) * 1e6) / 1e6;
+      finalLong = Math.round((lastLong3.reduce((s, e) => s + e.value, 0) / lastLong3.length) * 1e6) / 1e6;
+    }
+
+    return {
+      ...nodeRow,
+      id: crypto.randomUUID(),
+      checkDist: null,
+      checkLat: null,
+      checkLong: null,
+      distanceOverride: undefined,
+      coordOverride: undefined,
+      addedInRecon: undefined,
+      distanceHistory: nodeRow.distanceHistory,
+      latHistory: finalLatHistory,
+      longHistory: finalLongHistory,
+      rallyDistance: nodeRow.rallyDistance,
+      lat: finalLat,
+      long: finalLong,
+    };
+  }
+
   // If distanceOverride is set, the user manually edited the value — start fresh
   const existingDistHistory = nodeRow.distanceOverride
     ? []
@@ -220,6 +262,7 @@ function processReconHistory(
     checkLong: null,
     distanceOverride: undefined,
     coordOverride: undefined,
+    addedInRecon: undefined,
     distanceHistory,
     latHistory,
     longHistory,
@@ -227,6 +270,30 @@ function processReconHistory(
     lat,
     long,
   };
+}
+
+/**
+ * Compute an adjusted rally distance for a newly-added recon row.
+ * Walks backwards from `currentIndex - 1`, collects up to 3 preceding rows
+ * that have both a checkDist and a non-zero rallyDistance, computes the average
+ * delta (checkDist - rallyDistance), and returns newCheckDist - avgDelta.
+ * Returns null if no qualifying rows exist.
+ */
+function computeAutoRallyDistance(
+  rows: RouteRow[],
+  currentIndex: number,
+  newCheckDist: number,
+): number | null {
+  const deltas: number[] = [];
+  for (let i = currentIndex - 1; i >= 0 && deltas.length < 3; i--) {
+    const r = rows[i];
+    if (r.checkDist != null && r.rallyDistance !== 0) {
+      deltas.push(r.checkDist - r.rallyDistance);
+    }
+  }
+  if (deltas.length === 0) return null;
+  const avgDelta = deltas.reduce((s, d) => s + d, 0) / deltas.length;
+  return Math.round((newCheckDist - avgDelta) * 100) / 100;
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -853,7 +920,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const refreshedNodeRows = node.rows.map((r, i) => {
       const updated = newTemplateRows[i];
       return updated
-        ? { ...r, rallyDistance: updated.rallyDistance, lat: updated.lat, long: updated.long, checkDist: null, checkLat: null, checkLong: null, distanceOverride: undefined, coordOverride: undefined }
+        ? { ...r, rallyDistance: updated.rallyDistance, lat: updated.lat, long: updated.long, checkDist: null, checkLat: null, checkLong: null, distanceOverride: undefined, coordOverride: undefined, addedInRecon: undefined }
         : r;
     });
 
@@ -984,6 +1051,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const rows = state.getCurrentRows();
     const newRows = [...rows];
     const newRow = createEmptyRow();
+    if (state.reconMode) newRow.addedInRecon = true;
     if (afterIndex !== undefined && afterIndex >= 0) {
       if (newRows[afterIndex]) {
         newRow.speedLimit = newRows[afterIndex].speedLimit;
@@ -1022,7 +1090,26 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const rows = get().getCurrentRows();
     if (!rows[index]) return;
     const newRows = [...rows];
-    newRows[index] = { ...newRows[index], ...updates };
+    let merged = { ...newRows[index], ...updates };
+
+    // Auto-compute rallyDistance for rows added during recon
+    if (
+      merged.addedInRecon &&
+      !merged.distanceOverride &&
+      'checkDist' in updates &&
+      updates.checkDist != null
+    ) {
+      const auto = computeAutoRallyDistance(rows, index, updates.checkDist);
+      if (auto != null) {
+        const today = new Date().toISOString().slice(0, 10);
+        const newHistory = [...merged.distanceHistory, { value: auto, date: today }];
+        const last3 = newHistory.slice(-3);
+        const avg = Math.round((last3.reduce((s, e) => s + e.value, 0) / last3.length) * 100) / 100;
+        merged = { ...merged, distanceHistory: newHistory, rallyDistance: avg };
+      }
+    }
+
+    newRows[index] = merged;
     get().setRows(newRows);
   },
 
@@ -1058,6 +1145,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     if (!day || day.nodes.length === 0) return;
 
     const newRow = createEmptyRow();
+    if (get().reconMode) newRow.addedInRecon = true;
 
     // If afterFlatIndex provided, find which node and insert there
     if (afterFlatIndex !== undefined && afterFlatIndex >= 0) {
@@ -1138,7 +1226,26 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const updatedNodes = day.nodes.map((node, idx) => {
       if (idx === nodeIndex) {
         const newRows = [...node.rows];
-        newRows[localIndex] = { ...newRows[localIndex], ...updates };
+        let merged = { ...newRows[localIndex], ...updates };
+
+        // Auto-compute rallyDistance for rows added during recon
+        if (
+          merged.addedInRecon &&
+          !merged.distanceOverride &&
+          'checkDist' in updates &&
+          updates.checkDist != null
+        ) {
+          const auto = computeAutoRallyDistance(node.rows, localIndex, updates.checkDist);
+          if (auto != null) {
+            const today = new Date().toISOString().slice(0, 10);
+            const newHistory = [...merged.distanceHistory, { value: auto, date: today }];
+            const last3 = newHistory.slice(-3);
+            const avg = Math.round((last3.reduce((s, e) => s + e.value, 0) / last3.length) * 100) / 100;
+            merged = { ...merged, distanceHistory: newHistory, rallyDistance: avg };
+          }
+        }
+
+        newRows[localIndex] = merged;
         return { ...node, rows: newRows };
       }
       return node;
