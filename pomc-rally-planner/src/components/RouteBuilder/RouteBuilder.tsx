@@ -640,12 +640,6 @@ export default function RouteBuilder() {
                         </div>
 
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                          <button
-                            onClick={e => { e.stopPropagation(); selectNode(node.id); }}
-                            style={{ padding: '2px 8px', fontSize: '12px' }}
-                          >
-                            Edit Rows
-                          </button>
                           {!isLocked && index === nodes.length - 1 && (
                             <button
                               onClick={e => { e.stopPropagation(); removeRouteNode(node.id); }}
