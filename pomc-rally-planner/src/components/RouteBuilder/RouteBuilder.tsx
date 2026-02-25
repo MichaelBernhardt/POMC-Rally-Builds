@@ -347,6 +347,45 @@ export default function RouteBuilder() {
     return day.nodes.map(n => n.sourceNodeId).filter((id): id is string => Boolean(id));
   }, [day]);
 
+  // Toolbar button group styles — match the node-level Toolbar component
+  const tbButtonBase: React.CSSProperties = {
+    padding: '5px 10px',
+    fontSize: '13px',
+    minHeight: '28px',
+    lineHeight: '1',
+  };
+
+  const tbGroupStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1px',
+    background: 'var(--color-border)',
+    borderRadius: '6px',
+    padding: '1px',
+  };
+
+  const tbGroupBtnStyle: React.CSSProperties = {
+    ...tbButtonBase,
+    borderRadius: '0',
+    border: 'none',
+    background: 'var(--color-bg)',
+  };
+
+  const tbGroupFirstStyle: React.CSSProperties = {
+    ...tbGroupBtnStyle,
+    borderRadius: '5px 0 0 5px',
+  };
+
+  const tbGroupLastStyle: React.CSSProperties = {
+    ...tbGroupBtnStyle,
+    borderRadius: '0 5px 5px 0',
+  };
+
+  const tbGroupOnlyStyle: React.CSSProperties = {
+    ...tbGroupBtnStyle,
+    borderRadius: '5px',
+  };
+
   const segmentStyle = (active: boolean): React.CSSProperties => ({
     padding: '4px 14px',
     fontSize: '13px',
@@ -385,86 +424,111 @@ export default function RouteBuilder() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {tab === 'table' && (
                 <>
-                  <button
-                    onClick={handleAddRow}
-                    disabled={isLocked}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                  >
-                    + Row
-                  </button>
-                  <button
-                    onClick={handleDeleteRows}
-                    disabled={isLocked}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                  >
-                    - Row
-                  </button>
-                  <div style={{ width: '1px', height: '20px', background: 'var(--color-border)' }} />
-                  <button
-                    onClick={() => {
-                      const result = recalculateTimes();
-                      if (result) {
-                        setToast(`Recalculated ${result.rows} rows across ${result.nodes} nodes — Last car finishes at ${result.lastCar}`);
-                      } else {
-                        setToast('Nothing to recalculate');
-                      }
-                      setTimeout(() => setToast(null), 3000);
-                    }}
-                    disabled={isLocked}
-                    className="primary"
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                  >
-                    Recalc Times
-                  </button>
-                  <button
-                    onClick={toggleReconMode}
-                    className={reconMode ? 'primary' : undefined}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                  >
-                    Recon Mode
-                  </button>
+                  {/* Row operations group */}
+                  <div style={tbGroupStyle}>
+                    <button
+                      onClick={handleAddRow}
+                      disabled={isLocked || !reconMode}
+                      title="Add row after selection"
+                      style={tbGroupFirstStyle}
+                    >
+                      + Row
+                    </button>
+                    <button
+                      onClick={handleDeleteRows}
+                      disabled={isLocked}
+                      title="Delete selected rows"
+                      style={tbGroupLastStyle}
+                    >
+                      - Row
+                    </button>
+                  </div>
+
+                  {/* Calculation group */}
+                  <div style={tbGroupStyle}>
+                    <button
+                      onClick={() => {
+                        const result = recalculateTimes();
+                        if (result) {
+                          setToast(`Recalculated ${result.rows} rows across ${result.nodes} nodes — Last car finishes at ${result.lastCar}`);
+                        } else {
+                          setToast('Nothing to recalculate');
+                        }
+                        setTimeout(() => setToast(null), 3000);
+                      }}
+                      disabled={isLocked}
+                      title="Recalculate all times"
+                      style={tbGroupFirstStyle}
+                    >
+                      Recalc Times
+                    </button>
+                    <button
+                      onClick={toggleReconMode}
+                      className={reconMode ? 'primary' : undefined}
+                      title="Toggle reconnaissance mode"
+                      style={{ ...tbGroupLastStyle, background: reconMode ? undefined : 'var(--color-bg)' }}
+                    >
+                      Recon
+                    </button>
+                  </div>
+
+                  {/* Recon actions */}
                   {reconMode && hasCheckDistValues && (
-                    <button
-                      onClick={() => setShowClearReconDialog(true)}
-                      disabled={isLocked}
-                      style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                      title="Clear all recon check distances from the current route"
-                    >
-                      Clear Recon
-                    </button>
+                    <div style={tbGroupStyle}>
+                      <button
+                        onClick={() => setShowClearReconDialog(true)}
+                        disabled={isLocked}
+                        title="Clear all recon check distances from the current route"
+                        style={tbGroupOnlyStyle}
+                      >
+                        Clear Recon
+                      </button>
+                    </div>
                   )}
-                  <button
-                    onClick={() => setShowNodes(!showNodes)}
-                    className={showNodes ? 'primary' : undefined}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                  >
-                    Nodes
-                  </button>
-                  <button
-                    onClick={() => setShowExport(true)}
-                    style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                  >
-                    Export CSV
-                  </button>
-                  {pushableNodes.length > 0 && (
+
+                  {/* View & export group */}
+                  <div style={tbGroupStyle}>
                     <button
-                      onClick={() => setShowPushDialog(true)}
-                      disabled={isLocked}
-                      style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                      title="Push route changes back to source templates in Node Library"
+                      onClick={() => setShowNodes(!showNodes)}
+                      className={showNodes ? 'primary' : undefined}
+                      title="Show/hide node boundaries"
+                      style={{ ...tbGroupFirstStyle, background: showNodes ? undefined : 'var(--color-bg)' }}
                     >
-                      Push to Library
+                      Nodes
                     </button>
+                    <button
+                      onClick={() => setShowExport(true)}
+                      title="Export to CSV"
+                      style={tbGroupLastStyle}
+                    >
+                      Export CSV
+                    </button>
+                  </div>
+
+                  {/* Template sync */}
+                  {pushableNodes.length > 0 && (
+                    <div style={tbGroupStyle}>
+                      <button
+                        onClick={() => setShowPushDialog(true)}
+                        disabled={isLocked}
+                        title="Push route changes back to source templates in Node Library"
+                        style={tbGroupOnlyStyle}
+                      >
+                        Push to Library
+                      </button>
+                    </div>
                   )}
                 </>
               )}
               {tab === 'nodes' && rally.nodeLibrary.length > 0 && (
-                <button
-                  onClick={() => setShowRouteMap(true)}
-                  style={{ padding: '4px 14px', fontSize: '13px', minHeight: 'auto', whiteSpace: 'nowrap' }}
-                >
-                  Route Map
-                </button>
+                <div style={tbGroupStyle}>
+                  <button
+                    onClick={() => setShowRouteMap(true)}
+                    style={tbGroupOnlyStyle}
+                  >
+                    Route Map
+                  </button>
+                </div>
               )}
               <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
                 {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'}{tab === 'table' && ` • ${rowData.length} rows`}
