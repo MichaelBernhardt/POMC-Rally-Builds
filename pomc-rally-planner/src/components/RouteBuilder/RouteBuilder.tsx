@@ -42,6 +42,10 @@ export default function RouteBuilder() {
   const reconTolerance = useProjectStore(selectReconTolerance);
   const toggleReconMode = useProjectStore(s => s.toggleReconMode);
   const clearCheckDistances = useProjectStore(s => s.clearCheckDistances);
+  const undo = useProjectStore(s => s.undo);
+  const redo = useProjectStore(s => s.redo);
+  const undoStack = useProjectStore(s => s.undoStack);
+  const redoStack = useProjectStore(s => s.redoStack);
   const pushToTemplate = useProjectStore(s => s.pushToTemplate);
   const pullFromTemplate = useProjectStore(s => s.pullFromTemplate);
   const tab = useProjectStore(s => s.routeBuilderTab);
@@ -490,6 +494,26 @@ export default function RouteBuilder() {
                       style={tbGroupLastStyle}
                     >
                       - Row
+                    </button>
+                  </div>
+
+                  {/* History group */}
+                  <div style={tbGroupStyle}>
+                    <button
+                      onClick={undo}
+                      disabled={isLocked || undoStack.length === 0}
+                      title="Undo (Ctrl+Z)"
+                      style={tbGroupFirstStyle}
+                    >
+                      Undo
+                    </button>
+                    <button
+                      onClick={redo}
+                      disabled={isLocked || redoStack.length === 0}
+                      title="Redo (Ctrl+Y)"
+                      style={tbGroupLastStyle}
+                    >
+                      Redo
                     </button>
                   </div>
 
