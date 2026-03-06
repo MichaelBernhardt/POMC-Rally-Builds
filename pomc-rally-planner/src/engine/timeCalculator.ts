@@ -214,6 +214,11 @@ export function computeTimes(
         curTravelB = anchorTravelB + row.addTimeB / 60;
         curTravelC = anchorTravelC + row.addTimeC / 60;
         curTravelD = anchorTravelD + row.addTimeD / 60;
+        // Advance anchors past the time-add so subsequent rows include the added time
+        anchorTravelA = curTravelA;
+        anchorTravelB = curTravelB;
+        anchorTravelC = curTravelC;
+        anchorTravelD = curTravelD;
       } else {
         // Distance segment: incDist from anchor, divided by effective speed
         const incDist = row.rallyDistance - anchorDist;
@@ -314,6 +319,7 @@ export function computeCumulativeForGroup(
 
       if (rows[i].type === 't') {
         curTravel = anchorTravel + getAddTime(rows[i]) / 60;
+        anchorTravel = curTravel;
       } else {
         const incDist = rows[i].rallyDistance - anchorDist;
         curTravel = anchorTravel + (effSpeed > 0 && incDist > 0 ? incDist / effSpeed : 0);
