@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useProjectStore, selectCurrentRally, selectCurrentEdition, selectCurrentDay, selectCurrentNode, selectIsCurrentEditionLocked, selectReconMode, selectSourceTemplateForNode } from '../../state/projectStore';
 import { GridApi } from 'ag-grid-community';
 import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
+import { countEstimableRows } from '../../engine/checkDistEstimator';
 import { buildReconBackup, saveReconBackup } from '../../engine/reconBackup';
 import PushToTemplateDialog from '../Dialogs/PushToTemplateDialog';
 import PullFromTemplateDialog from '../Dialogs/PullFromTemplateDialog';
@@ -44,6 +45,11 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
     if (!showPushDialog || !currentNode || !sourceTemplate) return null;
     return compareRows(currentNode.rows, sourceTemplate.rows);
   }, [showPushDialog, currentNode, sourceTemplate]);
+
+  const estimatedCount = useMemo(() => {
+    if (!showPushDialog || !currentNode) return 0;
+    return countEstimableRows(currentNode.rows).count;
+  }, [showPushDialog, currentNode]);
 
   const canPushToTemplate = currentNode?.sourceNodeId && sourceTemplate && !editingTemplateId;
 
@@ -305,6 +311,7 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
         templateName={sourceTemplate?.name ?? ''}
         changeSummary={changeSummary}
         error={showPushDialog && !sourceTemplate ? 'Source template no longer exists' : undefined}
+        estimatedCount={estimatedCount}
       />
 
       <PullFromTemplateDialog

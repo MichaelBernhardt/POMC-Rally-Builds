@@ -60,7 +60,8 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
     return { baseCheck, baseRally };
   };
 
-  /** Estimate checkDist for a row based on drift from nearest previous row with checkDist */
+  /** Estimate checkDist for a row based on drift from nearest previous row with checkDist.
+   *  Pure-array version: see engine/checkDistEstimator.ts (used for push-to-library). */
   const getEstimatedCheckDist = (api: GridApi, data: RouteRow | undefined, rowIndex: number | null | undefined): number | null => {
     if (!data || rowIndex === null || rowIndex === undefined || rowIndex <= 0) return null;
     const first = api.getDisplayedRowAtIndex(0)?.data as RouteRow | undefined;

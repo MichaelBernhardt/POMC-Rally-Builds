@@ -32,9 +32,10 @@ import {
   findNodeForFlatIndex,
 } from './storeHelpers';
 import { rowFingerprint, buildMatchMap } from '../engine/rowDiff';
+import { fillEstimatedCheckDists } from '../engine/checkDistEstimator';
 import { useGpsStore } from './gpsStore';
 
-type ViewMode = 'grid' | 'library' | 'routeBuilder' | 'speedTables' | 'gps';
+type ViewMode = 'grid' | 'library' | 'routeBuilder' | 'speedTables' | 'gps' | 'signs';
 
 interface UndoEntry {
   rows: RouteRow[];
@@ -904,22 +905,25 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     const template = rally.nodeLibrary.find(t => t.id === node.sourceNodeId);
     if (!template) return false;
 
+    // Auto-fill estimated check distances for unmeasured rows via drift interpolation
+    const nodeRowsWithEstimates = fillEstimatedCheckDists(node.rows);
+
     // Match node rows to template rows by content, not position.
     // This prevents an insertion from shifting all subsequent matches,
     // and pairs modified rows (e.g. with pending checkDist) to the correct template.
-    const nodeFps = node.rows.map(rowFingerprint);
+    const nodeFps = nodeRowsWithEstimates.map(rowFingerprint);
     const templateFps = template.rows.map(rowFingerprint);
     const nodeToTemplate = buildMatchMap(nodeFps, templateFps);
 
     // Process each node row: merge checkDist + lat/long into history, compute averages
     // checkDist is the exact measured value from recon — store it as-is
-    const newTemplateRows = node.rows.map((r, i) => {
+    const newTemplateRows = nodeRowsWithEstimates.map((r, i) => {
       const ti = nodeToTemplate.get(i);
       return processReconHistory(r, ti != null ? template.rows[ti] : null);
     });
 
     // Refresh the node's rows: pick up new averaged values, clear checkDist
-    const refreshedNodeRows = node.rows.map((r, i) => {
+    const refreshedNodeRows = nodeRowsWithEstimates.map((r, i) => {
       const updated = newTemplateRows[i];
       return updated
         ? { ...r, rallyDistance: updated.rallyDistance, lat: updated.lat, long: updated.long, checkDist: null, checkLat: null, checkLong: null, distanceOverride: undefined, coordOverride: undefined, addedInRecon: undefined }
@@ -1138,7 +1142,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   captureReconPoint: (rowIndex: number) => {
-    const rows = get().getCurrentRows();
+    const isRouteBuilder = get().viewMode === 'routeBuilder';
+    const rows = isRouteBuilder ? get().getDayRows() : get().getCurrentRows();
     if (!rows[rowIndex]) return;
 
     const gps = useGpsStore.getState();
@@ -1158,7 +1163,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       longHistory: [...row.longHistory, { value: Math.round(longitude * 10_000_000) / 10_000_000, date: today }],
     };
 
-    get().updateRow(rowIndex, updates);
+    if (isRouteBuilder) {
+      get().updateDayRow(rowIndex, updates);
+    } else {
+      get().updateRow(rowIndex, updates);
+    }
   },
 
   // --- Day-level row management (for Route Builder table view) ---

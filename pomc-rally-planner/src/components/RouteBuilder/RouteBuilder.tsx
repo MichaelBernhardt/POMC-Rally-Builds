@@ -4,6 +4,8 @@ import {
   AllCommunityModule,
   ModuleRegistry,
   CellEditingStoppedEvent,
+  GridApi,
+  GridReadyEvent,
   GetRowIdParams,
   ColDef,
   RowClassRules,
@@ -15,6 +17,7 @@ import { RouteRow } from '../../types/domain';
 import { useProjectStore, selectCurrentRally, selectCurrentEdition, selectCurrentDay, selectIsCurrentEditionLocked, selectReconMode, selectReconTolerance } from '../../state/projectStore';
 import { validateNodeConnections } from '../../engine/validator';
 import { compareRows, RowChangeSummary } from '../../engine/rowDiff';
+import { countEstimableRows } from '../../engine/checkDistEstimator';
 import { buildReconBackup, saveReconBackup } from '../../engine/reconBackup';
 import NodePalette from './NodePalette';
 import ConnectionDiagram from '../NodeLibrary/ConnectionDiagram';
@@ -24,7 +27,11 @@ import '../../styles/grid-theme.css';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-export default function RouteBuilder() {
+interface RouteBuilderProps {
+  onGridReady?: (api: GridApi) => void;
+}
+
+export default function RouteBuilder({ onGridReady }: RouteBuilderProps) {
   const gridRef = useRef<AgGridReact<RouteRow>>(null);
   const rally = useProjectStore(selectCurrentRally);
   const edition = useProjectStore(selectCurrentEdition);
@@ -101,6 +108,7 @@ export default function RouteBuilder() {
       templateName: template.name,
       nodeId: node.id,
       summary: compareRows(node.rows, template.rows),
+      estimatedCount: countEstimableRows(node.rows).count,
     }));
   }, [showPushDialog, pushableNodes]);
 
@@ -749,6 +757,7 @@ export default function RouteBuilder() {
               getRowId={getRowId}
               rowClassRules={rowClassRules}
               onCellEditingStopped={onCellEditingStopped}
+              onGridReady={(e: GridReadyEvent) => onGridReady?.(e.api)}
               rowSelection="multiple"
               animateRows={false}
               undoRedoCellEditing={false}
@@ -824,7 +833,7 @@ export default function RouteBuilder() {
               and rally distances will be updated based on the average of recent recordings.
             </p>
 
-            {pushSummaries.map(({ nodeName, templateName, nodeId, summary }) => {
+            {pushSummaries.map(({ nodeName, templateName, nodeId, summary, estimatedCount }) => {
               const hasChanges = summary.added + summary.removed + summary.modified > 0;
               return (
                 <div key={nodeId} style={{
@@ -847,9 +856,20 @@ export default function RouteBuilder() {
                   ) : (
                     <div style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>No changes</div>
                   )}
+                  {estimatedCount > 0 && (
+                    <div style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)', fontSize: '13px', marginTop: '4px' }}>
+                      {estimatedCount} {estimatedCount === 1 ? 'row' : 'rows'} with estimated distances
+                    </div>
+                  )}
                 </div>
               );
             })}
+
+            {pushSummaries.reduce((sum, s) => sum + s.estimatedCount, 0) > 0 && (
+              <div style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: '16px' }}>
+                {pushSummaries.reduce((sum, s) => sum + s.estimatedCount, 0)} total rows will use estimated check distances
+              </div>
+            )}
 
             {pushSummaries.some(s => s.summary.added + s.summary.removed + s.summary.modified > 0) && (
               <div style={{

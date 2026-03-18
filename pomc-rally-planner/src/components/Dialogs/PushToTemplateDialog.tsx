@@ -7,6 +7,7 @@ interface PushToTemplateDialogProps {
   templateName: string;
   changeSummary: RowChangeSummary | null;
   error?: string;
+  estimatedCount?: number;
 }
 
 export default function PushToTemplateDialog({
@@ -16,6 +17,7 @@ export default function PushToTemplateDialog({
   templateName,
   changeSummary,
   error,
+  estimatedCount,
 }: PushToTemplateDialogProps) {
   if (!open) return null;
 
@@ -110,6 +112,12 @@ export default function PushToTemplateDialog({
                     No changes to push - node matches template
                   </div>
                 )}
+              </div>
+            )}
+
+            {!!estimatedCount && estimatedCount > 0 && (
+              <div style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)', fontSize: '13px', marginBottom: '16px' }}>
+                {estimatedCount} {estimatedCount === 1 ? 'row' : 'rows'} will use estimated check distances
               </div>
             )}
 
