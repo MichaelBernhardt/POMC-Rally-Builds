@@ -15,6 +15,7 @@ import RouteBuilder from '../RouteBuilder/RouteBuilder';
 import SpeedTablePage from '../Dialogs/SpeedTableDialog';
 import GpsPage from '../GPS/GpsPage';
 import { initGpsListeners } from '../../state/gpsStore';
+import GpsReconBar from '../GPS/GpsReconBar';
 import HelpGuide from '../Dialogs/HelpGuide';
 import { detectFileVersion, migrateV1ToWorkspace, migrateV2ToV3, migrateV3ToV4 } from '../../engine/migration';
 import { RallyProjectV1, RallyWorkspace, RallyWorkspaceV3 } from '../../types/domain';
@@ -453,6 +454,8 @@ export default function AppShell() {
           {viewMode === 'grid' && currentRally && (
             <Toolbar gridApi={gridApi} />
           )}
+
+          <GpsReconBar gridApi={gridApi} />
 
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
             {renderMainContent()}

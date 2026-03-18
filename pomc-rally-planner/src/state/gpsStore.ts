@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { haversineMetres } from '../engine/geo';
 
 export interface PortInfo {
   name: string;
@@ -53,12 +54,20 @@ interface GpsState {
   nmeaLines: string[];
   updateRate: number; // measured Hz
 
+  // Odometer
+  odoKm: number;
+  odoLastLat: number | null;
+  odoLastLon: number | null;
+  odoActive: boolean;
+
   // Actions
   refreshPorts: () => Promise<void>;
   setSelectedPort: (port: string) => void;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   clearNmea: () => void;
+  resetOdo: () => void;
+  setOdoActive: (active: boolean) => void;
 }
 
 export const useGpsStore = create<GpsState>((set, get) => ({
@@ -70,6 +79,10 @@ export const useGpsStore = create<GpsState>((set, get) => ({
   gpsData: null,
   nmeaLines: [],
   updateRate: 0,
+  odoKm: 0,
+  odoLastLat: null,
+  odoLastLon: null,
+  odoActive: false,
 
   refreshPorts: async () => {
     const result = await invoke<PortInfo[]>('list_serial_ports');
@@ -103,6 +116,16 @@ export const useGpsStore = create<GpsState>((set, get) => ({
   },
 
   clearNmea: () => set({ nmeaLines: [] }),
+
+  resetOdo: () => set({ odoKm: 0, odoLastLat: null, odoLastLon: null }),
+
+  setOdoActive: (active: boolean) => {
+    if (active) {
+      set({ odoActive: true, odoLastLat: null, odoLastLon: null });
+    } else {
+      set({ odoActive: false });
+    }
+  },
 }));
 
 // App-level listener setup — call once from AppShell
@@ -127,11 +150,38 @@ export function initGpsListeners() {
       ? (updateTimestamps.length - 1) / ((now - updateTimestamps[0]) / 1000)
       : 0;
 
-    useGpsStore.setState({
+    const stateUpdate: Partial<GpsState> = {
       gpsData: event.payload,
       connected: event.payload.connected,
       updateRate: Math.round(rate * 10) / 10,
-    });
+    };
+
+    // ODO accumulation with noise filtering
+    const gps = event.payload;
+    const st = useGpsStore.getState();
+    if (
+      st.odoActive &&
+      gps.fix_quality >= 1 &&
+      gps.hdop != null && gps.hdop <= 5.0 &&
+      gps.latitude != null && gps.longitude != null
+    ) {
+      if (st.odoLastLat != null && st.odoLastLon != null) {
+        const delta = haversineMetres(st.odoLastLat, st.odoLastLon, gps.latitude, gps.longitude);
+        if (delta > 1 && delta < 55.6) {
+          stateUpdate.odoKm = st.odoKm + delta / 1000;
+          stateUpdate.odoLastLat = gps.latitude;
+          stateUpdate.odoLastLon = gps.longitude;
+        }
+        // If delta <= 1m: stationary drift — skip but keep last point
+        // If delta >= 55.6m: GPS jump (>200km/h at 1Hz) — skip but keep last point
+      } else {
+        // First valid fix after start — seed the last point
+        stateUpdate.odoLastLat = gps.latitude;
+        stateUpdate.odoLastLon = gps.longitude;
+      }
+    }
+
+    useGpsStore.setState(stateUpdate);
   }).then(u => unlisteners.push(u));
 
   listen<string>('gps:nmea', event => {

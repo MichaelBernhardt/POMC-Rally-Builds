@@ -32,6 +32,7 @@ import {
   findNodeForFlatIndex,
 } from './storeHelpers';
 import { rowFingerprint, buildMatchMap } from '../engine/rowDiff';
+import { useGpsStore } from './gpsStore';
 
 type ViewMode = 'grid' | 'library' | 'routeBuilder' | 'speedTables' | 'gps';
 
@@ -120,6 +121,7 @@ interface ProjectState {
   updateRow: (index: number, updates: Partial<RouteRow>) => void;
   moveRows: (fromIndices: number[], toIndex: number) => void;
   importRows: (rows: RouteRow[]) => void;
+  captureReconPoint: (rowIndex: number) => void;
 
   // Day-level row management (for Route Builder table view)
   addRowToDay: (afterFlatIndex?: number) => void;
@@ -1133,6 +1135,30 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       state.pushUndo('Import rows');
     }
     get().setRows(rows);
+  },
+
+  captureReconPoint: (rowIndex: number) => {
+    const rows = get().getCurrentRows();
+    if (!rows[rowIndex]) return;
+
+    const gps = useGpsStore.getState();
+    if (!gps.gpsData || gps.gpsData.fix_quality < 1) return;
+    const { latitude, longitude } = gps.gpsData;
+    if (latitude == null || longitude == null) return;
+
+    get().pushUndo('GPS capture');
+
+    const today = new Date().toISOString().slice(0, 10);
+    const row = rows[rowIndex];
+    const updates: Partial<RouteRow> = {
+      checkDist: Math.round(gps.odoKm * 1000) / 1000,
+      checkLat: Math.round(latitude * 10_000_000) / 10_000_000,
+      checkLong: Math.round(longitude * 10_000_000) / 10_000_000,
+      latHistory: [...row.latHistory, { value: Math.round(latitude * 10_000_000) / 10_000_000, date: today }],
+      longHistory: [...row.longHistory, { value: Math.round(longitude * 10_000_000) / 10_000_000, date: today }],
+    };
+
+    get().updateRow(rowIndex, updates);
   },
 
   // --- Day-level row management (for Route Builder table view) ---
