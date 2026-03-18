@@ -106,6 +106,7 @@ function PillButton({ active, onClick, children }: {
   return (
     <button
       onClick={onClick}
+      className={active ? 'primary' : undefined}
       style={{
         padding: '4px 12px',
         fontSize: '12px',
@@ -113,8 +114,6 @@ function PillButton({ active, onClick, children }: {
         borderRadius: '99px',
         border: '1px solid',
         borderColor: active ? 'var(--color-accent)' : 'var(--color-border)',
-        background: active ? 'var(--color-accent)' : 'transparent',
-        color: active ? '#fff' : 'var(--color-text)',
         cursor: 'pointer',
         whiteSpace: 'nowrap',
         lineHeight: '1.4',
