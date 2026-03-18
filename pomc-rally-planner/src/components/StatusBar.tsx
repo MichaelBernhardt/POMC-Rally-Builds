@@ -1,5 +1,6 @@
 import { useProjectStore, selectCurrentRally, selectCurrentDay, selectCurrentNode } from '../state/projectStore';
 import { flattenDayRows } from '../state/storeHelpers';
+import { useGpsStore } from '../state/gpsStore';
 
 export default function StatusBar() {
   const rally = useProjectStore(selectCurrentRally);
@@ -20,9 +21,18 @@ export default function StatusBar() {
     templateRows = template?.rows ?? { length: 0 };
   }
 
+  const gpsConnected = useGpsStore(s => s.connected);
+  const gpsData = useGpsStore(s => s.gpsData);
+  const gpsFixColor = gpsConnected && gpsData && gpsData.fix_quality > 0 ? '#22C55E' : gpsConnected ? '#EAB308' : undefined;
+
   const renderContextInfo = () => {
     if (viewMode === 'gps') {
-      return <span>GPS Receiver</span>;
+      return (
+        <span>GPS Receiver — {gpsConnected
+          ? `${gpsData?.satellites_used ?? 0} sats, ${gpsData?.fix_quality_label ?? 'No Fix'}`
+          : 'Disconnected'
+        }</span>
+      );
     }
 
     if (viewMode === 'library') {
@@ -76,6 +86,17 @@ export default function StatusBar() {
       color: 'var(--color-text-secondary)',
     }}>
       {renderContextInfo()}
+      {/* GPS indicator when connected but on another page */}
+      {gpsConnected && viewMode !== 'gps' && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}>
+          <span style={{
+            width: '7px', height: '7px', borderRadius: '50%',
+            background: gpsFixColor, display: 'inline-block',
+            boxShadow: `0 0 4px ${gpsFixColor}`,
+          }} />
+          GPS
+        </span>
+      )}
       <div style={{ flex: 1 }} />
       <span>
         {isDirty ? (

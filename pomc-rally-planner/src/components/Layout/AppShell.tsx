@@ -14,6 +14,7 @@ import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
 import RouteBuilder from '../RouteBuilder/RouteBuilder';
 import SpeedTablePage from '../Dialogs/SpeedTableDialog';
 import GpsPage from '../GPS/GpsPage';
+import { initGpsListeners } from '../../state/gpsStore';
 import HelpGuide from '../Dialogs/HelpGuide';
 import { detectFileVersion, migrateV1ToWorkspace, migrateV2ToV3, migrateV3ToV4 } from '../../engine/migration';
 import { RallyProjectV1, RallyWorkspace, RallyWorkspaceV3 } from '../../types/domain';
@@ -88,6 +89,11 @@ export default function AppShell() {
       .catch(() => {
         localStorage.removeItem(LAST_FILE_KEY);
       });
+  }, []);
+
+  // Initialize GPS event listeners (once, app-level)
+  useEffect(() => {
+    initGpsListeners();
   }, []);
 
   // Auto-save to main file when dirty (every 5 seconds)

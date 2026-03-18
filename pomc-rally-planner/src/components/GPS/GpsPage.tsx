@@ -1,47 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { useEffect } from 'react';
+import { useGpsStore } from '../../state/gpsStore';
 import GpsMap from './GpsMap';
+import SkyPlot from './SkyPlot';
 import SatelliteChart from './SatelliteChart';
 import NmeaLog from './NmeaLog';
 
-interface PortInfo {
-  name: string;
-  description: string;
-}
-
-interface GpsData {
-  connected: boolean;
-  latitude: number | null;
-  longitude: number | null;
-  altitude: number | null;
-  speed_knots: number | null;
-  speed_kmh: number | null;
-  heading: number | null;
-  utc_time: string | null;
-  utc_date: string | null;
-  fix_quality: number;
-  fix_quality_label: string;
-  fix_type: number;
-  fix_type_label: string;
-  satellites_used: number;
-  hdop: number | null;
-  vdop: number | null;
-  pdop: number | null;
-  satellites: SatelliteInfo[];
-}
-
-interface SatelliteInfo {
-  prn: number;
-  elevation: number | null;
-  azimuth: number | null;
-  snr: number | null;
-  constellation: string;
-  used: boolean;
-}
-
 const DEFAULT_BAUD = 115200;
-const MAX_NMEA_LINES = 200;
 
 function hdopQuality(hdop: number | null): { label: string; color: string } {
   if (hdop == null) return { label: '', color: 'var(--color-text-muted)' };
@@ -53,84 +17,26 @@ function hdopQuality(hdop: number | null): { label: string; color: string } {
 }
 
 export default function GpsPage() {
-  const [ports, setPorts] = useState<PortInfo[]>([]);
-  const [selectedPort, setSelectedPort] = useState('');
-  const [connected, setConnected] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [gpsData, setGpsData] = useState<GpsData | null>(null);
-  const [nmeaLines, setNmeaLines] = useState<string[]>([]);
-  const nmeaRef = useRef<string[]>([]);
+  const ports = useGpsStore(s => s.ports);
+  const selectedPort = useGpsStore(s => s.selectedPort);
+  const connected = useGpsStore(s => s.connected);
+  const connecting = useGpsStore(s => s.connecting);
+  const error = useGpsStore(s => s.error);
+  const gpsData = useGpsStore(s => s.gpsData);
+  const nmeaLines = useGpsStore(s => s.nmeaLines);
 
-  const refreshPorts = useCallback(async () => {
-    const result = await invoke<PortInfo[]>('list_serial_ports');
-    setPorts(result);
-    if (result.length > 0 && !selectedPort) {
-      // Auto-select first cu.usbserial port (macOS USB GNSS), or first port
-      const usbPort = result.find(p => p.name.includes('cu.usbserial'));
-      setSelectedPort(usbPort?.name ?? result[0].name);
+  const refreshPorts = useGpsStore(s => s.refreshPorts);
+  const setSelectedPort = useGpsStore(s => s.setSelectedPort);
+  const connect = useGpsStore(s => s.connect);
+  const disconnect = useGpsStore(s => s.disconnect);
+  const clearNmea = useGpsStore(s => s.clearNmea);
+
+  // Refresh ports on first mount (only if not already loaded)
+  useEffect(() => {
+    if (ports.length === 0) {
+      refreshPorts();
     }
-  }, [selectedPort]);
-
-  useEffect(() => {
-    refreshPorts();
   }, []);
-
-  // Listen for GPS events
-  useEffect(() => {
-    const unlisteners: UnlistenFn[] = [];
-
-    listen<GpsData>('gps:update', event => {
-      setGpsData(event.payload);
-      setConnected(event.payload.connected);
-    }).then(u => unlisteners.push(u));
-
-    listen<string>('gps:nmea', event => {
-      nmeaRef.current = [...nmeaRef.current.slice(-(MAX_NMEA_LINES - 1)), event.payload];
-      setNmeaLines([...nmeaRef.current]);
-    }).then(u => unlisteners.push(u));
-
-    listen<string>('gps:error', event => {
-      setError(event.payload);
-      setConnected(false);
-    }).then(u => unlisteners.push(u));
-
-    return () => {
-      unlisteners.forEach(u => u());
-    };
-  }, []);
-
-  // Auto-disconnect on unmount
-  useEffect(() => {
-    return () => {
-      invoke('disconnect_gps').catch(() => {});
-    };
-  }, []);
-
-  const handleConnect = async () => {
-    if (!selectedPort) return;
-    setConnecting(true);
-    setError(null);
-    try {
-      await invoke('connect_gps', { portName: selectedPort, baudRate: DEFAULT_BAUD });
-      setConnected(true);
-    } catch (e: any) {
-      setError(String(e));
-    } finally {
-      setConnecting(false);
-    }
-  };
-
-  const handleDisconnect = async () => {
-    await invoke('disconnect_gps');
-    setConnected(false);
-    setGpsData(null);
-  };
-
-  const clearNmea = () => {
-    nmeaRef.current = [];
-    setNmeaLines([]);
-  };
 
   const fixColor = connected && gpsData && gpsData.fix_quality > 0 ? '#22C55E' : connected ? '#EAB308' : '#9CA3AF';
 
@@ -184,7 +90,7 @@ export default function GpsPage() {
         {!connected ? (
           <button
             className="primary"
-            onClick={handleConnect}
+            onClick={connect}
             disabled={connecting || !selectedPort}
             style={{ fontSize: '13px', padding: '4px 12px', minHeight: 'auto' }}
           >
@@ -192,7 +98,7 @@ export default function GpsPage() {
           </button>
         ) : (
           <button
-            onClick={handleDisconnect}
+            onClick={disconnect}
             style={{ fontSize: '13px', padding: '4px 12px', minHeight: 'auto' }}
           >
             Disconnect
@@ -258,13 +164,18 @@ export default function GpsPage() {
           />
         </div>
 
-        {/* Left bottom: Satellite chart */}
+        {/* Left bottom: Sky plot + SNR chart */}
         <div style={{
           borderRight: '1px solid var(--color-border)',
           overflow: 'auto',
           padding: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
         }}>
-          <SectionTitle>Satellites in View</SectionTitle>
+          <SectionTitle>Sky Plot</SectionTitle>
+          <SkyPlot satellites={gpsData?.satellites ?? []} />
+          <SectionTitle>Signal Strength</SectionTitle>
           <SatelliteChart satellites={gpsData?.satellites ?? []} />
         </div>
 
