@@ -51,6 +51,7 @@ interface GpsState {
   // Data
   gpsData: GpsData | null;
   nmeaLines: string[];
+  updateRate: number; // measured Hz
 
   // Actions
   refreshPorts: () => Promise<void>;
@@ -68,6 +69,7 @@ export const useGpsStore = create<GpsState>((set, get) => ({
   error: null,
   gpsData: null,
   nmeaLines: [],
+  updateRate: 0,
 
   refreshPorts: async () => {
     const result = await invoke<PortInfo[]>('list_serial_ports');
@@ -111,10 +113,24 @@ export function initGpsListeners() {
   if (initialized) return;
   initialized = true;
 
+  // Update rate measurement
+  const updateTimestamps: number[] = [];
+
   listen<GpsData>('gps:update', event => {
+    const now = performance.now();
+    updateTimestamps.push(now);
+    // Keep only timestamps from the last 2 seconds
+    while (updateTimestamps.length > 0 && now - updateTimestamps[0] > 2000) {
+      updateTimestamps.shift();
+    }
+    const rate = updateTimestamps.length > 1
+      ? (updateTimestamps.length - 1) / ((now - updateTimestamps[0]) / 1000)
+      : 0;
+
     useGpsStore.setState({
       gpsData: event.payload,
       connected: event.payload.connected,
+      updateRate: Math.round(rate * 10) / 10,
     });
   }).then(u => unlisteners.push(u));
 

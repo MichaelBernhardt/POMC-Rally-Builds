@@ -30,6 +30,7 @@ export default function GpsPage() {
   const connect = useGpsStore(s => s.connect);
   const disconnect = useGpsStore(s => s.disconnect);
   const clearNmea = useGpsStore(s => s.clearNmea);
+  const updateRate = useGpsStore(s => s.updateRate);
 
   // Refresh ports on first mount (only if not already loaded)
   useEffect(() => {
@@ -86,6 +87,12 @@ export default function GpsPage() {
         </button>
 
         <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{DEFAULT_BAUD} baud</span>
+
+        {connected && updateRate > 0 && (
+          <span style={{ fontSize: '12px', fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: 'var(--color-text-secondary)' }}>
+            {updateRate.toFixed(1)} Hz
+          </span>
+        )}
 
         {!connected ? (
           <button
