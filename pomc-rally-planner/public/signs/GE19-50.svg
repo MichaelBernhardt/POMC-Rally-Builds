@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="900"
+   height="750"
+   viewBox="0 0 900 750"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="SADC road sign GE19-50.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata14">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs12" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1366"
+     inkscape:window-height="715"
+     id="namedview10"
+     showgrid="false"
+     inkscape:zoom="0.728"
+     inkscape:cx="450"
+     inkscape:cy="375"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg8" />
+  <path
+     d="M 825 0 Q 900 0 900 75 L 900 675 Q 900 750 825 750 L 75 750 Q 0 750 0 675 L 0 75 Q 0 0 75 0 Z"
+     fill="#ff6900"
+     id="background" />
+  <path
+     d="M 450 40 L 59.3972712981828628696052380752 138.12702696655406127909917189818 Q 40 143 40 163L 40 587 Q 40 607 59.3972712981828628696052380752 611.87297303344593872090082810182 L 450 710 L 840.6027287018171371303947619248 611.87297303344593872090082810182Q 860 607 860 587 L 860 163 Q 860 143 840.6027287018171371303947619248 138.12702696655406127909917189818 L 450 40"
+     fill="#00559b"
+     id="border" />
+  <g
+     aria-label="50"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:566.58569336px;line-height:1.25;font-family:'DIN 1451 Mittelschrift';-inkscape-font-specification:'DIN 1451 Mittelschrift';letter-spacing:0px;word-spacing:0px;fill:#ff6900;fill-opacity:1;stroke:none;stroke-width:14.16464138"
+     id="route-number">
+    <path
+       d="m 206.54511,391.59931 v -218.0027 h 214.68286 v 57.82051 H 261.04578 v 91.01889 q 27.66532,-22.13225 64.46019,-22.13225 22.96221,0 41.77463,8.8529 19.08907,8.8529 30.1552,20.74899 16.59919,17.98246 24.06882,39.28475 7.74629,21.02564 7.74629,71.09987 0,40.66801 -6.08637,60.58704 -5.80972,19.64238 -18.81242,36.24157 -12.44939,15.76923 -34.85829,29.32523 -22.40891,13.55601 -52.56411,13.55601 -39.00809,0 -75.24966,-24.06883 -36.24156,-24.06882 -42.60459,-80.50607 h 57.82051 q 10.23617,47.03104 57.82052,47.03104 42.32793,0 49.52092,-29.04859 7.19298,-29.04858 7.19298,-57.54386 0,-33.47503 -11.34278,-55.60728 -11.34278,-22.13226 -47.03104,-22.13226 -33.47504,0 -52.0108,33.47504 z"
+       style="stroke-width:14.16464138"
+       id="path10" />
+    <path
+       d="M 643.10381,460.7626 V 289.51429 q 0,-29.04859 -15.76923,-45.37112 -15.49258,-16.32254 -40.94467,-16.32254 -25.72875,0 -41.22133,16.32254 -15.49257,16.32253 -15.49257,45.37112 V 460.7626 q 0,29.32524 15.49257,45.64777 15.49258,16.04589 41.22133,16.04589 25.45209,0 40.94467,-16.04589 15.76923,-16.32253 15.76923,-45.64777 z m -171.24832,3.31984 V 286.19445 q 0,-55.60729 34.8583,-85.76248 34.8583,-30.43185 79.67612,-30.43185 44.54116,0 79.39946,30.43185 35.13495,30.15519 35.13495,85.76248 v 177.88799 q 0,55.60729 -35.13495,85.76248 -34.8583,30.1552 -79.39946,30.1552 -44.81782,0 -79.67612,-30.1552 -34.8583,-30.15519 -34.8583,-85.76248 z"
+       style="stroke-width:14.16464138"
+       id="path12" />
+  </g>
+</svg>

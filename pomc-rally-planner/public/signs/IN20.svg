@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="700" height="800" fill-rule="evenodd">
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="800"
+   viewBox="0 0 700 800" fill-rule="evenodd">
 <rect width="700" height="800" rx="0" ry="0" x="0" y="0" fill="#00783a" stroke="none"/>
 <rect width="700" height="800" rx="48" ry="48" x="0" y="0" fill="#fff" stroke="none"/>
 <rect width="652" height="752" rx="24" ry="24" x="24" y="24" fill="#00783a" stroke="none"/>

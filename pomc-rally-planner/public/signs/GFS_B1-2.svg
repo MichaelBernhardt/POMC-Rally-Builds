@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="602mm"
+   height="602mm"
+   viewBox="0 0 602 601.99999"
+   version="1.1"
+   id="svg8781"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
+   sodipodi:docname="SADC_road_sign_GFS_B1-2.svg">
+  <defs
+     id="defs8775">
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-2" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-6" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-8" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-0" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-7" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-5" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-82" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-84" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-86" />
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern-23" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.1207226"
+     inkscape:cx="-1487.9663"
+     inkscape:cy="607.27983"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     showguides="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1057"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:snap-global="false"
+     inkscape:measure-start="0,0"
+     inkscape:measure-end="0,0"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata8778">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-179.2,397.3)">
+    <path
+       d="m 197.40882,154.5619 c -1.3527,-9.4252 -16.1876,-104.27773 -16.1876,-105.83383 V -62.1059 c 0,-38.57928 -4.35,-74.09289 6.5912,-107.76699 11.4584,-35.1367 -21.8479,-121.77655 0,-151.8196 84.9634,-116.72832 153.6449,-53.7184 258.4906,-63.85886 38.7849,-3.77009 70.8804,-10.74876 110.7885,-10.74876 17.124,0 37.5687,9.05088 54.9725,10.74876 77.5711,-17.92128 118.6489,-11.36374 158.6499,44.4282 6.0873,32.82516 -3.5542,90.45936 -3.5542,122.67086 0,17.3572 -9.6415,38.5806 -11.4584,56.2666 -9.363,90.59969 43.1825,193.13276 17.2168,281.84749 -9.8272,98.0049 -123.9816,73.8109 -215.8213,73.8109 -17.1239,0 -54.5521,10.2273 -72.05,10.2273 -53.897,0 -92.8688,-20.9881 -145.1293,-20.9881 -10.0526,0 -34.2466,10.468 -44.0711,8.6364 -46.1771,0 -92.028,7.6872 -98.4376,-36.7878"
+       style="fill:#782d00;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:46.97400665"
+       id="path6282"
+       inkscape:connector-curvature="0" />
+    <circle
+       r="250"
+       style="opacity:1;fill:#ffd70a;fill-opacity:1;stroke:none;stroke-width:7.97356939;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="circle4531"
+       cx="480.20001"
+       cy="-96.300003" />
+    <circle
+       r="155.55557"
+       cy="-96.300003"
+       cx="480.20001"
+       id="circle4533"
+       style="opacity:1;fill:#00559b;fill-opacity:1;stroke:none;stroke-width:4.96133232;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <path
+       d="m 391.31134,-152.02723 h 23.95003 q 6.5747,0 11.58383,1.72187 5.00914,1.72191 9.07927,6.10494 4.06971,4.38304 5.63527,10.33172 1.56515,5.79196 1.56515,15.81031 0,7.35718 -0.93901,12.67952 -0.78278,5.16564 -3.60063,9.705362 -3.28692,5.47859 -8.76598,8.60943 -5.47864,2.97411 -14.40126,2.97411 h -8.13984 v 43.51752 h -15.96683 z m 15.96683,52.909522 h 7.67034 q 4.85249,0 7.5137,-1.408502 2.66121,-1.40893 3.91349,-3.75715 1.25228,-2.50448 1.4085,-5.94822 0.31077,-3.44378 0.31077,-7.67055 0,-3.91341 -0.31077,-7.35714 -0.15538,-3.60047 -1.4085,-6.10495 -1.09606,-2.66116 -3.60063,-4.07009 -2.50457,-1.56518 -7.20042,-1.56518 h -8.29648 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:37.26424026px;line-height:1.25;font-family:'DIN 1451 Std';-inkscape-font-specification:'DIN 1451 Std';letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.81529802"
+       id="path4525"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 453.91208,-125.72894 q 0,-6.73084 2.34792,-11.89691 2.34793,-5.16564 6.10478,-8.4527 3.91349,-3.44378 8.60977,-5.16565 4.85249,-1.72233 9.7054,-1.72233 4.8525,0 9.54877,1.72233 4.85249,1.72187 8.60934,5.16565 3.91349,3.28706 6.26142,8.4527 2.34835,5.16607 2.34835,11.89691 v 58.858202 q 0,6.88752 -2.34835,12.05317 -2.34793,5.00938 -6.26142,8.45312 -3.75685,3.2871 -8.60934,5.00939 -4.69627,1.72186 -9.54877,1.72186 -4.85291,0 -9.7054,-1.72186 -4.69628,-1.72229 -8.60977,-5.00939 -3.75685,-3.44374 -6.10478,-8.45312 -2.34792,-5.16565 -2.34792,-12.05317 z m 15.9664,58.858202 q 0,5.79196 3.13113,8.60939 3.28693,2.66116 7.67034,2.66116 4.38299,0 7.5137,-2.66116 3.28735,-2.81743 3.28735,-8.60939 v -58.858202 q 0,-5.79154 -3.28735,-8.45271 -3.13071,-2.81784 -7.5137,-2.81784 -4.38341,0 -7.67034,2.81784 -3.13113,2.66117 -3.13113,8.45271 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:37.26424026px;line-height:1.25;font-family:'DIN 1451 Std';-inkscape-font-specification:'DIN 1451 Std';letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.81529802"
+       id="path4527"
+       inkscape:connector-curvature="0" />
+    <path
+       d="m 521.50179,-152.02723 h 15.96682 v 95.487792 h 31.62037 v 15.96699 h -47.58719 z"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:37.26424026px;line-height:1.25;font-family:'DIN 1451 Std';-inkscape-font-specification:'DIN 1451 Std';letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.81529802"
+       id="path4529"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>
