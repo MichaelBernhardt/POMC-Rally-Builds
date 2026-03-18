@@ -67,6 +67,7 @@ interface GpsState {
   disconnect: () => Promise<void>;
   clearNmea: () => void;
   resetOdo: () => void;
+  setOdoKm: (km: number) => void;
   setOdoActive: (active: boolean) => void;
 }
 
@@ -118,6 +119,8 @@ export const useGpsStore = create<GpsState>((set, get) => ({
   clearNmea: () => set({ nmeaLines: [] }),
 
   resetOdo: () => set({ odoKm: 0, odoLastLat: null, odoLastLon: null }),
+
+  setOdoKm: (km: number) => set({ odoKm: km, odoLastLat: null, odoLastLon: null }),
 
   setOdoActive: (active: boolean) => {
     if (active) {

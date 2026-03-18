@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { GridApi } from 'ag-grid-community';
 import { useGpsStore } from '../../state/gpsStore';
 import { useProjectStore, selectReconMode } from '../../state/projectStore';
@@ -23,7 +23,12 @@ export default function GpsReconBar({ gridApi }: GpsReconBarProps) {
   const odoKm = useGpsStore(s => s.odoKm);
   const odoActive = useGpsStore(s => s.odoActive);
   const resetOdo = useGpsStore(s => s.resetOdo);
+  const setOdoKm = useGpsStore(s => s.setOdoKm);
   const setOdoActive = useGpsStore(s => s.setOdoActive);
+
+  const [editingOdo, setEditingOdo] = useState(false);
+  const [odoInput, setOdoInput] = useState('');
+  const odoInputRef = useRef<HTMLInputElement>(null);
   const captureReconPoint = useProjectStore(s => s.captureReconPoint);
 
   // Sync odoActive with reconMode && connected
@@ -52,7 +57,7 @@ export default function GpsReconBar({ gridApi }: GpsReconBarProps) {
     }
   }, [gridApi, captureReconPoint]);
 
-  if (!reconMode || !connected || viewMode !== 'grid') return null;
+  if (!reconMode || !connected || viewMode !== 'routeBuilder') return null;
 
   const hasFix = gpsData != null && gpsData.fix_quality >= 1;
   const lat = gpsData?.latitude;
@@ -136,7 +141,59 @@ export default function GpsReconBar({ gridApi }: GpsReconBarProps) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
           <span style={labelStyle}>Odometer</span>
-          <span style={{ ...valueStyle, fontWeight: 700, fontSize: '14px' }}>{odoKm.toFixed(3)} <span style={{ fontSize: '10px', fontWeight: 500, color: 'var(--color-text-muted)' }}>km</span></span>
+          {editingOdo ? (
+            <input
+              ref={odoInputRef}
+              type="number"
+              value={odoInput}
+              onChange={e => setOdoInput(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  const parsed = parseFloat(odoInput);
+                  if (!isNaN(parsed) && parsed >= 0) setOdoKm(parsed);
+                  setEditingOdo(false);
+                } else if (e.key === 'Escape') {
+                  setEditingOdo(false);
+                }
+              }}
+              onBlur={() => {
+                const parsed = parseFloat(odoInput);
+                if (!isNaN(parsed) && parsed >= 0) setOdoKm(parsed);
+                setEditingOdo(false);
+              }}
+              min={0}
+              step={0.001}
+              style={{
+                ...valueStyle,
+                fontWeight: 700,
+                fontSize: '14px',
+                width: '90px',
+                padding: '0 2px',
+                border: '1px solid var(--color-accent)',
+                borderRadius: '3px',
+                background: 'var(--color-bg)',
+                outline: 'none',
+              }}
+            />
+          ) : (
+            <span
+              onClick={() => {
+                setOdoInput(odoKm.toFixed(3));
+                setEditingOdo(true);
+                requestAnimationFrame(() => odoInputRef.current?.select());
+              }}
+              title="Click to set odometer value"
+              style={{
+                ...valueStyle,
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                borderBottom: '1px dashed var(--color-text-muted)',
+              }}
+            >
+              {odoKm.toFixed(3)} <span style={{ fontSize: '10px', fontWeight: 500, color: 'var(--color-text-muted)' }}>km</span>
+            </span>
+          )}
         </div>
         <button
           onClick={resetOdo}
