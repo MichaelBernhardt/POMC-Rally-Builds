@@ -33,7 +33,7 @@ import {
 } from './storeHelpers';
 import { rowFingerprint, buildMatchMap } from '../engine/rowDiff';
 
-type ViewMode = 'grid' | 'library' | 'routeBuilder' | 'speedTables';
+type ViewMode = 'grid' | 'library' | 'routeBuilder' | 'speedTables' | 'gps';
 
 interface UndoEntry {
   rows: RouteRow[];

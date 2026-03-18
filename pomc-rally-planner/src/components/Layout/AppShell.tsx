@@ -13,6 +13,7 @@ import NodeLibraryPanel from '../NodeLibrary/NodeLibraryPanel';
 import NodeTemplateEditor from '../NodeLibrary/NodeTemplateEditor';
 import RouteBuilder from '../RouteBuilder/RouteBuilder';
 import SpeedTablePage from '../Dialogs/SpeedTableDialog';
+import GpsPage from '../GPS/GpsPage';
 import HelpGuide from '../Dialogs/HelpGuide';
 import { detectFileVersion, migrateV1ToWorkspace, migrateV2ToV3, migrateV3ToV4 } from '../../engine/migration';
 import { RallyProjectV1, RallyWorkspace, RallyWorkspaceV3 } from '../../types/domain';
@@ -60,9 +61,9 @@ export default function AppShell() {
   const setViewMode = useProjectStore(s => s.setViewMode);
   const isLocked = useProjectStore(selectIsCurrentEditionLocked);
 
-  // Auto-hide sidebar when Route Builder is in table view
+  // Auto-hide sidebar when Route Builder is in table view or GPS page
   useEffect(() => {
-    if (viewMode === 'routeBuilder' && routeBuilderTab === 'table') {
+    if (viewMode === 'gps' || (viewMode === 'routeBuilder' && routeBuilderTab === 'table')) {
       setSidebarOpen(false);
     } else {
       setSidebarOpen(true);
@@ -233,6 +234,10 @@ export default function AppShell() {
   }, []);
 
   const renderMainContent = () => {
+    if (viewMode === 'gps') {
+      return <GpsPage />;
+    }
+
     if (!currentRally) {
       return (
         <div style={{
@@ -299,7 +304,12 @@ export default function AppShell() {
         <div style={{ flex: 1 }} />
 
         {/* Breadcrumb */}
-        {currentRally && (
+        {viewMode === 'gps' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
+            <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>GPS Receiver</span>
+          </div>
+        )}
+        {currentRally && viewMode !== 'gps' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-muted)' }}>
             <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{currentRally.name}</span>
             {isLocked && viewMode !== 'library' && viewMode !== 'speedTables' && (
@@ -346,6 +356,30 @@ export default function AppShell() {
             Back to Library
           </button>
         )}
+
+        <button
+          onClick={() => setViewMode(viewMode === 'gps' ? 'routeBuilder' : 'gps')}
+          title="GPS Receiver"
+          style={{
+            padding: '4px 10px',
+            fontSize: '13px',
+            minHeight: 'auto',
+            borderRadius: '50%',
+            width: '28px',
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: viewMode === 'gps' ? 'var(--color-accent)' : undefined,
+            color: viewMode === 'gps' ? '#fff' : undefined,
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 1v4M12 19v4M1 12h4M19 12h4" />
+            <circle cx="12" cy="12" r="9" strokeDasharray="2 2" />
+          </svg>
+        </button>
 
         <button
           onClick={() => setShowAbout(true)}

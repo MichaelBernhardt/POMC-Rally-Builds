@@ -21,6 +21,10 @@ export default function StatusBar() {
   }
 
   const renderContextInfo = () => {
+    if (viewMode === 'gps') {
+      return <span>GPS Receiver</span>;
+    }
+
     if (viewMode === 'library') {
       if (editingTemplateId) {
         return (

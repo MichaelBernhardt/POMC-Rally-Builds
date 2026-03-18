@@ -16,13 +16,16 @@
     "@tauri-apps/plugin-opener": "^2.5.3",
     "ag-grid-community": "^35.0.1",
     "ag-grid-react": "^35.0.1",
+    "leaflet": "^1.9.4",
     "papaparse": "^5.5.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-leaflet": "^5.0.0",
     "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.10.0",
+    "@types/leaflet": "^1.9.21",
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
