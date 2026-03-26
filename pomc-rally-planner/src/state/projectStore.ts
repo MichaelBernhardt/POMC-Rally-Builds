@@ -93,7 +93,7 @@ interface ProjectState {
   addDay: (name: string) => void;
   removeDay: (dayId: string) => void;
   selectDay: (dayId: string) => void;
-  updateDaySettings: (dayId: string, settings: Partial<Pick<RouteDay, 'startTime' | 'carIntervalSeconds' | 'numberOfCars' | 'name' | 'reconDistanceTolerance' | 'speedGroupSettings'>>) => void;
+  updateDaySettings: (dayId: string, settings: Partial<Pick<RouteDay, 'startTime' | 'carIntervalSeconds' | 'numberOfCars' | 'name' | 'date' | 'reconDistanceTolerance' | 'speedGroupSettings'>>) => void;
 
   // Node management (route building)
   placeNode: (templateId: string, afterIndex?: number) => void;

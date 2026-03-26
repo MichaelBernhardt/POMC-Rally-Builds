@@ -22,6 +22,7 @@ import { buildReconBackup, saveReconBackup } from '../../engine/reconBackup';
 import NodePalette from './NodePalette';
 import ConnectionDiagram from '../NodeLibrary/ConnectionDiagram';
 import ExportDialog from '../Dialogs/ExportDialog';
+import ReportDialog from '../Dialogs/ReportDialog';
 import PullFromTemplateDialog from '../Dialogs/PullFromTemplateDialog';
 import '../../styles/grid-theme.css';
 
@@ -58,6 +59,7 @@ export default function RouteBuilder({ onGridReady }: RouteBuilderProps) {
   const tab = useProjectStore(s => s.routeBuilderTab);
   const setTab = useProjectStore(s => s.setRouteBuilderTab);
   const [showExport, setShowExport] = useState(false);
+  const [showReports, setShowReports] = useState(false);
   const [showNodes, setShowNodes] = useState(true);
   const [showPushDialog, setShowPushDialog] = useState(false);
   const [pullNodeId, setPullNodeId] = useState<string | null>(null);
@@ -586,6 +588,16 @@ export default function RouteBuilder({ onGridReady }: RouteBuilderProps) {
                     </button>
                   </div>
 
+                  <div style={tbGroupStyle}>
+                    <button
+                      onClick={() => setShowReports(true)}
+                      title="Generate route schedule reports (PDF/CSV)"
+                      style={tbGroupOnlyStyle}
+                    >
+                      Reports
+                    </button>
+                  </div>
+
                   {/* Template sync */}
                   {pushableNodes.length > 0 && (
                     <div style={tbGroupStyle}>
@@ -783,6 +795,7 @@ export default function RouteBuilder({ onGridReady }: RouteBuilderProps) {
       )}
 
       <ExportDialog open={showExport} onClose={() => setShowExport(false)} />
+      <ReportDialog open={showReports} onClose={() => setShowReports(false)} />
 
       {showRouteMap && (
         <ConnectionDiagram

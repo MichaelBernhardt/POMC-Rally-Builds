@@ -56,6 +56,19 @@ export default function DayPanel() {
 
       <div style={{ marginBottom: '10px' }}>
         <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px', color: 'var(--color-text-muted)' }}>
+          Day Date
+        </label>
+        <input
+          type="date"
+          value={day.date ?? ''}
+          onChange={e => updateDaySettings(currentDayId, { date: e.target.value })}
+          disabled={locked}
+          style={{ width: '100%', minHeight: '36px' }}
+        />
+      </div>
+
+      <div style={{ marginBottom: '10px' }}>
+        <label style={{ display: 'block', fontSize: '13px', marginBottom: '4px', color: 'var(--color-text-muted)' }}>
           Start Time (HH:MM:SS)
         </label>
         <input

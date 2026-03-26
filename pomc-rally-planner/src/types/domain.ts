@@ -235,6 +235,8 @@ export interface RouteNode {
 export interface RouteDay {
   id: string;
   name: string;
+  /** Rally day date in ISO format (e.g. "2026-03-13"), used in report headers */
+  date?: string;
   startTime: string; // HH:MM:SS
   carIntervalSeconds: number;
   numberOfCars: number;
