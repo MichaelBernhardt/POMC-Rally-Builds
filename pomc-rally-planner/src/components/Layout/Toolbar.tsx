@@ -6,7 +6,6 @@ import { countEstimableRows } from '../../engine/checkDistEstimator';
 import { buildReconBackup, saveReconBackup } from '../../engine/reconBackup';
 import PushToTemplateDialog from '../Dialogs/PushToTemplateDialog';
 import PullFromTemplateDialog from '../Dialogs/PullFromTemplateDialog';
-import ImportMagnumDialog from '../Dialogs/ImportMagnumDialog';
 
 interface ToolbarProps {
   gridApi: GridApi | null;
@@ -33,7 +32,6 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
 
   const [showPushDialog, setShowPushDialog] = useState(false);
   const [showPullDialog, setShowPullDialog] = useState(false);
-  const [showMagnumImport, setShowMagnumImport] = useState(false);
   const pullFromTemplate = useProjectStore(s => s.pullFromTemplate);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -282,18 +280,6 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
         </button>
       </div>
 
-      {/* Import */}
-      <div style={groupStyle}>
-        <button
-          onClick={() => setShowMagnumImport(true)}
-          disabled={disabled || locked || !currentDay}
-          title="Import data from Magnum Rally Excel spreadsheet"
-          style={groupButtonOnlyStyle}
-        >
-          Import Magnum
-        </button>
-      </div>
-
       {/* Template sync */}
       {canPushToTemplate && (
         <div style={groupStyle}>
@@ -336,15 +322,6 @@ export default function Toolbar({ gridApi }: ToolbarProps) {
         templateName={sourceTemplate?.name ?? ''}
         changeSummary={pullChangeSummary}
         hasPendingRecon={hasPendingRecon}
-      />
-
-      <ImportMagnumDialog
-        open={showMagnumImport}
-        onClose={() => setShowMagnumImport(false)}
-        onComplete={msg => {
-          setToast(msg);
-          setTimeout(() => setToast(null), 4000);
-        }}
       />
 
       {/* Toast notification */}

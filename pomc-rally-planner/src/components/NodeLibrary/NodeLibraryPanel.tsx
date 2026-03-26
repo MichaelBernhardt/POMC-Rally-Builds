@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { useProjectStore, selectCurrentRally } from '../../state/projectStore';
+import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentEditionLocked } from '../../state/projectStore';
 import { isTemplateComplete, validateTemplate } from '../../engine/validator';
 import ConnectionDiagram from './ConnectionDiagram';
+import ImportMagnumDialog from '../Dialogs/ImportMagnumDialog';
 
 export default function NodeLibraryPanel() {
   const rally = useProjectStore(selectCurrentRally);
@@ -10,8 +11,13 @@ export default function NodeLibraryPanel() {
   const updateNodeTemplate = useProjectStore(s => s.updateNodeTemplate);
   const setEditingTemplate = useProjectStore(s => s.setEditingTemplate);
 
+  const currentDay = useProjectStore(selectCurrentDay);
+  const isLocked = useProjectStore(selectIsCurrentEditionLocked);
+
   const [showDialog, setShowDialog] = useState(false);
   const [showConnections, setShowConnections] = useState(false);
+  const [showMagnumImport, setShowMagnumImport] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   // 'start' = start node, 'follow' = follows another node, '' = not chosen
   const [ruleType, setRuleType] = useState<'start' | 'follow' | ''>('');
@@ -75,6 +81,13 @@ export default function NodeLibraryPanel() {
           Node Library {rally && <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>for {rally.name}</span>}
         </h2>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setShowMagnumImport(true)}
+            disabled={!currentDay || isLocked}
+            title={!currentDay ? 'Select a day first' : 'Import data from Magnum Rally Excel spreadsheet'}
+          >
+            Import Magnum
+          </button>
           <button
             onClick={() => setShowConnections(true)}
             disabled={templates.length === 0}
@@ -219,6 +232,34 @@ export default function NodeLibraryPanel() {
       {/* Route Connections diagram */}
       {showConnections && (
         <ConnectionDiagram templates={templates} onClose={() => setShowConnections(false)} />
+      )}
+
+      <ImportMagnumDialog
+        open={showMagnumImport}
+        onClose={() => setShowMagnumImport(false)}
+        onComplete={msg => {
+          setToast(msg);
+          setTimeout(() => setToast(null), 4000);
+        }}
+      />
+
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'var(--color-text)',
+          color: 'var(--color-bg)',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontWeight: 500,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          zIndex: 1000,
+        }}>
+          {toast}
+        </div>
       )}
 
       {/* New Node dialog */}

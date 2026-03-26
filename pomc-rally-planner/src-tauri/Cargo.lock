@@ -2660,7 +2660,7 @@ dependencies = [
 
 [[package]]
 name = "pomc-rally-planner"
-version = "2.6.0"
+version = "3.0.0"
 dependencies = [
  "serde",
  "serde_json",
