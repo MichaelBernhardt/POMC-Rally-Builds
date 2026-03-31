@@ -6,37 +6,25 @@
 import * as XLSX from 'xlsx';
 import {
   RouteRow,
+  ReconEntry,
   TypeCode,
   TYPE_CODES,
   createEmptyRow,
 } from '../types/domain';
 
 // ---------------------------------------------------------------------------
-// Header → field mapping
+// Constants
 // ---------------------------------------------------------------------------
-
-const HEADER_MAP: Record<string, keyof RouteRow> = {
-  'rally dist': 'rallyDistance',
-  'typ': 'type',
-  'instruction': 'clue',
-  'a sp': 'aSpeed',
-  'b sp': 'bSpeed',
-  'c sp': 'cSpeed',
-  'd sp': 'dSpeed',
-  'limit': 'speedLimit',
-  'lat': 'lat',
-  'long': 'long',
-  'terrain': 'terrain',
-  'add a': 'addTimeA',
-  'add b': 'addTimeB',
-  'add c': 'addTimeC',
-  'add d': 'addTimeD',
-};
 
 const SKIP_SHEETS = ['notes'];
 
 function isValidTypeCode(v: string): v is TypeCode {
   return TYPE_CODES.includes(v as TypeCode);
+}
+
+function round(n: number, decimals: number): number {
+  const f = 10 ** decimals;
+  return Math.round(n * f) / f;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +107,16 @@ export function parseNodeSheets(
         if (!cell) return '';
         return String(cell.v);
       };
+      const readNum = (header: string, fallback: number): number => {
+        const col = colMap[header];
+        if (col == null) return fallback;
+        return getNum(col) ?? fallback;
+      };
+      const readOptNum = (header: string): number | null => {
+        const col = colMap[header];
+        if (col == null) return null;
+        return getNum(col);
+      };
 
       // Read type
       const typeCol = colMap['typ'];
@@ -139,45 +137,75 @@ export function parseNodeSheets(
 
       row.type = isValidTypeCode(typeStr) ? typeStr : null;
       row.clue = clue;
-      row.rallyDistance = Math.round(dist * 100) / 100;
+      row.rallyDistance = round(dist, 2);
 
-      if (row.type && !isValidTypeCode(typeStr)) {
+      if (typeStr && !isValidTypeCode(typeStr)) {
         warnings.push(`Sheet "${sheetName}" row ${r + 1}: invalid type "${typeStr}".`);
       }
 
-      // Speeds / add-times
-      const readSpeed = (header: string, fallback: number): number => {
-        const col = colMap[header];
-        if (col == null) return fallback;
-        return getNum(col) ?? fallback;
-      };
-
+      // --- Speeds / add-times ---
       if (row.type === 't') {
-        row.addTimeA = readSpeed('a sp', 0);
-        row.addTimeB = readSpeed('b sp', 0);
-        row.addTimeC = readSpeed('c sp', 0);
-        row.addTimeD = readSpeed('d sp', 0);
+        row.addTimeA = readNum('a sp', 0);
+        row.addTimeB = readNum('b sp', 0);
+        row.addTimeC = readNum('c sp', 0);
+        row.addTimeD = readNum('d sp', 0);
       } else {
-        row.aSpeed = readSpeed('a sp', 0);
-        row.bSpeed = readSpeed('b sp', 0);
-        row.cSpeed = readSpeed('c sp', 0);
-        row.dSpeed = readSpeed('d sp', 0);
+        row.aSpeed = readNum('a sp', 0);
+        row.bSpeed = readNum('b sp', 0);
+        row.cSpeed = readNum('c sp', 0);
+        row.dSpeed = readNum('d sp', 0);
       }
 
-      row.speedLimit = readSpeed('limit', 60);
-      row.lat = readSpeed('lat', 0);
-      row.long = readSpeed('long', 0);
+      row.speedLimit = readNum('limit', 60);
 
+      // --- Coordinates ---
+      row.lat = readNum('lat', 0);
+      row.long = readNum('long', 0);
+
+      // --- Terrain ---
       const terrainCol = colMap['terrain'];
       if (terrainCol != null) row.terrain = getStr(terrainCol);
 
-      // Add-time columns (explicit, in addition to speed column override for type t)
-      if (row.type !== 't') {
-        row.addTimeA = readSpeed('add a', 0);
-        row.addTimeB = readSpeed('add b', 0);
-        row.addTimeC = readSpeed('add c', 0);
-        row.addTimeD = readSpeed('add d', 0);
+      // --- Metadata ---
+      row.bbPage = readOptNum('bb pg');
+      row.instructionNumber = readOptNum('instr. num.');
+
+      const sugTypCol = colMap['sugg. typ'];
+      if (sugTypCol != null) {
+        const st = getStr(sugTypCol).toLowerCase().trim();
+        row.suggestedType = isValidTypeCode(st) ? st : null;
       }
+      row.suggestedASpeed = readOptNum('sugg. a sp');
+
+      // --- Explicit add-time columns (for non-'t' rows) ---
+      if (row.type !== 't') {
+        row.addTimeA = readNum('add a', 0);
+        row.addTimeB = readNum('add b', 0);
+        row.addTimeC = readNum('add c', 0);
+        row.addTimeD = readNum('add d', 0);
+      }
+
+      // --- Recon check values ---
+      row.checkDist = readOptNum('check dist');
+      row.checkLat = readOptNum('check lat');
+      row.checkLong = readOptNum('check long');
+
+      // --- Survey history ---
+      row.distanceHistory = buildHistory(readOptNum, [
+        ['survey 1 dist', 'Survey #1'],
+        ['survey 2 dist', 'Survey #2'],
+        ['survey 3 dist', 'Survey #3'],
+      ]);
+      row.latHistory = buildHistory(readOptNum, [
+        ['survey 1 lat', 'Survey #1'],
+        ['survey 2 lat', 'Survey #2'],
+        ['survey 3 lat', 'Survey #3'],
+      ]);
+      row.longHistory = buildHistory(readOptNum, [
+        ['survey 1 long', 'Survey #1'],
+        ['survey 2 long', 'Survey #2'],
+        ['survey 3 long', 'Survey #3'],
+      ]);
 
       row.verified = true;
       rows.push(row);
@@ -191,4 +219,22 @@ export function parseNodeSheets(
   }
 
   return { sheets, warnings };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function buildHistory(
+  readOptNum: (header: string) => number | null,
+  entries: [header: string, label: string][],
+): ReconEntry[] {
+  const history: ReconEntry[] = [];
+  for (const [header, label] of entries) {
+    const v = readOptNum(header);
+    if (v != null && v !== 0) {
+      history.push({ value: round(v, 8), date: label });
+    }
+  }
+  return history;
 }
