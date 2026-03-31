@@ -234,7 +234,7 @@ export default function RouteBuilder({ onGridReady }: RouteBuilderProps) {
   const columnDefs = useMemo(() => {
     const nodeCol: ColDef<RouteRow> = {
       headerName: 'Node',
-      width: 140,
+      width: 80,
       pinned: 'left',
       hide: !showNodes,
       editable: false,

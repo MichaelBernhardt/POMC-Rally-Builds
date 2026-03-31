@@ -132,13 +132,6 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       },
     },
     {
-      headerName: 'BB Pg',
-      field: 'bbPage',
-      width: 70,
-      valueParser: optionalNumberParser,
-      headerTooltip: 'Blackbook page reference',
-    },
-    {
       headerName: 'Terrain',
       field: 'terrain',
       width: 85,
@@ -447,6 +440,13 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
       editable: false,
       headerTooltip: 'Computed: last car arrival time (HH:MM:SS)',
       cellStyle: { color: '#DC2626', fontWeight: 600 },
+    },
+    {
+      headerName: 'BB Pg',
+      field: 'bbPage',
+      width: 70,
+      valueParser: optionalNumberParser,
+      headerTooltip: 'Blackbook page reference',
     },
   ];
 }
