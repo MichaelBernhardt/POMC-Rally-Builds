@@ -3,6 +3,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { readFile } from '@tauri-apps/plugin-fs';
 import * as XLSX from 'xlsx';
 import { useProjectStore } from '../../state/projectStore';
+import type { RouteRow } from '../../types/domain';
 import {
   categorizeSheets,
   getSheetInfoList,
@@ -22,8 +23,7 @@ interface ImportMagnumDialogProps {
 type Step = 'idle' | 'loading' | 'preview' | 'importing';
 
 export default function ImportMagnumDialog({ open: isOpen, onClose, onComplete }: ImportMagnumDialogProps) {
-  const addEmptyNode = useProjectStore(s => s.addEmptyNode);
-  const importRows = useProjectStore(s => s.importRows);
+  const importMagnumNodes = useProjectStore(s => s.importMagnumNodes);
   const updateSpeedLookupTable = useProjectStore(s => s.updateSpeedLookupTable);
   const updateTimeAddLookupTable = useProjectStore(s => s.updateTimeAddLookupTable);
 
@@ -111,6 +111,7 @@ export default function ImportMagnumDialog({ open: isOpen, onClose, onComplete }
       const sheetsToImport = sheetInfos
         .filter(s => selectedSheets.has(s.name) && (s.category === 'route' || s.category === 'alternate'));
 
+      const parsedSheets: { name: string; rows: RouteRow[] }[] = [];
       for (const info of sheetsToImport) {
         const ws = workbook.Sheets[info.name];
         if (!ws) continue;
@@ -119,12 +120,14 @@ export default function ImportMagnumDialog({ open: isOpen, onClose, onComplete }
         allWarnings.push(...result.warnings);
 
         if (result.rows.length > 0) {
-          // Create a new node with the sheet name and populate it
-          addEmptyNode(info.name);
-          importRows(result.rows);
+          parsedSheets.push({ name: info.name, rows: result.rows });
           totalRows += result.rows.length;
           nodeCount++;
         }
+      }
+
+      if (parsedSheets.length > 0) {
+        importMagnumNodes(parsedSheets);
       }
 
       // Import speed tables

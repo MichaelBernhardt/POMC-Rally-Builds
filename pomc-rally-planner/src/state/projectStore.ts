@@ -102,6 +102,7 @@ interface ProjectState {
   selectNode: (nodeId: string) => void;
   extractToLibrary: (nodeId: string, name: string) => void;
   addEmptyNode: (name?: string) => void;
+  importMagnumNodes: (sheets: { name: string; rows: RouteRow[] }[]) => void;
   renameRouteNode: (nodeId: string, name: string) => void;
 
   // Node library
@@ -772,6 +773,45 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         ),
       ),
       currentNodeId: node.id,
+      viewMode: 'grid',
+      isDirty: true,
+    });
+  },
+
+  importMagnumNodes: (sheets) => {
+    const { workspace, currentRallyId, currentEditionId, currentDayId } = get();
+    if (!workspace || !currentRallyId || !currentEditionId || !currentDayId) return;
+    if (sheets.length === 0) return;
+
+    // Create templates with rows
+    const templates: NodeTemplate[] = sheets.map(sheet => {
+      const t = createEmptyNodeTemplate(sheet.name);
+      t.rows = sheet.rows.map(r => ({ ...r, id: crypto.randomUUID() }));
+      return t;
+    });
+
+    // Wire up connection rules: first is start, rest chain to previous
+    templates[0].isStartNode = true;
+    for (let i = 1; i < templates.length; i++) {
+      templates[i].allowedPreviousNodes = [templates[i - 1].id];
+    }
+
+    // Create RouteNodes linked to their templates
+    const routeNodes: RouteNode[] = templates.map(t => createRouteNode(t));
+    const lastNodeId = routeNodes[routeNodes.length - 1].id;
+
+    set({
+      workspace: updateRallyV3(workspace, currentRallyId, r => ({
+        ...updateEdition(r, currentEditionId, ed =>
+          updateRouteDay(ed, currentDayId, day => ({
+            ...day,
+            nodes: [...day.nodes, ...routeNodes],
+          })),
+        ),
+        nodeLibrary: [...r.nodeLibrary, ...templates],
+        modifiedAt: new Date().toISOString(),
+      })),
+      currentNodeId: lastNodeId,
       viewMode: 'grid',
       isDirty: true,
     });
