@@ -3,6 +3,7 @@ import { useProjectStore, selectCurrentRally, selectCurrentDay, selectIsCurrentE
 import { isTemplateComplete, validateTemplate } from '../../engine/validator';
 import ConnectionDiagram from './ConnectionDiagram';
 import ImportMagnumDialog from '../Dialogs/ImportMagnumDialog';
+import ImportNodesDialog from '../Dialogs/ImportNodesDialog';
 
 export default function NodeLibraryPanel() {
   const rally = useProjectStore(selectCurrentRally);
@@ -17,6 +18,7 @@ export default function NodeLibraryPanel() {
   const [showDialog, setShowDialog] = useState(false);
   const [showConnections, setShowConnections] = useState(false);
   const [showMagnumImport, setShowMagnumImport] = useState(false);
+  const [showNodeImport, setShowNodeImport] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   // 'start' = start node, 'follow' = follows another node, '' = not chosen
@@ -81,6 +83,13 @@ export default function NodeLibraryPanel() {
           Node Library {rally && <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>for {rally.name}</span>}
         </h2>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setShowNodeImport(true)}
+            disabled={!currentDay || isLocked}
+            title={!currentDay ? 'Select a day first' : 'Import nodes from Excel (one sheet per node)'}
+          >
+            Import Nodes
+          </button>
           <button
             onClick={() => setShowMagnumImport(true)}
             disabled={!currentDay || isLocked}
@@ -237,6 +246,15 @@ export default function NodeLibraryPanel() {
       <ImportMagnumDialog
         open={showMagnumImport}
         onClose={() => setShowMagnumImport(false)}
+        onComplete={msg => {
+          setToast(msg);
+          setTimeout(() => setToast(null), 4000);
+        }}
+      />
+
+      <ImportNodesDialog
+        open={showNodeImport}
+        onClose={() => setShowNodeImport(false)}
         onComplete={msg => {
           setToast(msg);
           setTimeout(() => setToast(null), 4000);

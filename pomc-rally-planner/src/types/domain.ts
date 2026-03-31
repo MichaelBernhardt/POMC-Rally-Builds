@@ -253,9 +253,9 @@ export function createDefaultSpeedGroupSettings(): SpeedGroupSettings {
     b: { numberOfCars: 8, carIntervalSeconds: 60 },
     c: { numberOfCars: 8, carIntervalSeconds: 60 },
     d: { numberOfCars: 8, carIntervalSeconds: 60 },
-    gapABSeconds: 120,
-    gapBCSeconds: 120,
-    gapCDSeconds: 120,
+    gapABSeconds: 60,
+    gapBCSeconds: 60,
+    gapCDSeconds: 60,
   };
 }
 
@@ -271,9 +271,9 @@ export function resolveSpeedGroupSettings(day: RouteDay): SpeedGroupSettings {
     b: { numberOfCars: perGroup, carIntervalSeconds: day.carIntervalSeconds },
     c: { numberOfCars: perGroup, carIntervalSeconds: day.carIntervalSeconds },
     d: { numberOfCars: perGroup, carIntervalSeconds: day.carIntervalSeconds },
-    gapABSeconds: 120,
-    gapBCSeconds: 120,
-    gapCDSeconds: 120,
+    gapABSeconds: 60,
+    gapBCSeconds: 60,
+    gapCDSeconds: 60,
   };
 }
 

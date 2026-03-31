@@ -32,6 +32,7 @@ export function generateCheckSchedulePdf(options: CheckScheduleOptions): Uint8Ar
     return [
       i + 1,                                  // No
       row.rallyDistance.toFixed(2),            // Dist
+      '',                                     // Check Dist (blank for manual entry)
       row.aSpeed,                             // Asp
       row.bSpeed,                             // Bsp
       row.cSpeed,                             // Csp
@@ -47,21 +48,22 @@ export function generateCheckSchedulePdf(options: CheckScheduleOptions): Uint8Ar
 
   autoTable(doc, {
     ...baseOpts,
-    head: [['No', 'Dist', 'Asp', 'Bsp', 'Csp', 'Dsp', 'First', 'Last', 'Lat', 'Long', 'Instruction', 't']],
+    head: [['No', 'Dist', 'Check Dist', 'Asp', 'Bsp', 'Csp', 'Dsp', 'First', 'Last', 'Lat', 'Long', 'Instruction', 't']],
     body: tableData,
     columnStyles: {
       0: { cellWidth: 10, halign: 'center' },   // No
       1: { cellWidth: 14 },                      // Dist
-      2: { cellWidth: 10, halign: 'center' },    // Asp
-      3: { cellWidth: 10, halign: 'center' },    // Bsp
-      4: { cellWidth: 10, halign: 'center' },    // Csp
-      5: { cellWidth: 10, halign: 'center' },    // Dsp
-      6: { cellWidth: 18 },                      // First
-      7: { cellWidth: 18 },                      // Last
-      8: { cellWidth: 22 },                      // Lat
-      9: { cellWidth: 22 },                      // Long
-      10: { cellWidth: 'auto' },                 // Instruction
-      11: { cellWidth: 8, halign: 'center' },    // t
+      2: { cellWidth: 18 },                      // Check Dist (blank for manual entry)
+      3: { cellWidth: 10, halign: 'center' },    // Asp
+      4: { cellWidth: 10, halign: 'center' },    // Bsp
+      5: { cellWidth: 10, halign: 'center' },    // Csp
+      6: { cellWidth: 10, halign: 'center' },    // Dsp
+      7: { cellWidth: 18 },                      // First
+      8: { cellWidth: 18 },                      // Last
+      9: { cellWidth: 22 },                      // Lat
+      10: { cellWidth: 22 },                     // Long
+      11: { cellWidth: 'auto' },                 // Instruction
+      12: { cellWidth: 8, halign: 'center' },    // t
     },
     didDrawPage: (data) => {
       baseOpts.didDrawPage?.(data);

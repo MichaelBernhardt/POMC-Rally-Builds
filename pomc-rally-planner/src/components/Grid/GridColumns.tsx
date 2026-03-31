@@ -134,7 +134,7 @@ export function getColumnDefs(recon?: ReconOptions): ColDef<RouteRow>[] {
     {
       headerName: 'Terrain',
       field: 'terrain',
-      width: 85,
+      width: 70,
       headerTooltip: 'Terrain type: F (flat), U (uphill), D (downhill), FU, etc.',
     },
     {
